@@ -63,8 +63,8 @@
 #include <Time.h>
 #include "serial.h"
 #include "string.h"
-#include "ntp.h"
 #include "dns.h"
+#include "ntp.h"
 #include "wifi.h"
 
 #ifdef ARDUINO_ARCH_AVR
