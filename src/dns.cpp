@@ -2,14 +2,20 @@
 #ifdef ARDUINO_ARCH_AVR
 #include "Arduino.h"
 #endif
+
 #ifdef MEGA32
 #inclue "WProgram.h"
 #endif
+
 #ifdef WIN32
 #include "stdio.h"
 #include "string.h"
 #endif
+
+#include "serial.h"
 #include "wifi.h"
+
+#define EXT
 #endif
 
 #include "stdint.h"
@@ -71,30 +77,39 @@ typedef struct
 char *htonsCpy(char *p, int16_t val);
 int dnsMsg(char *buffer, int buflen, char *name);
 char *dnsDecode(char *buffer, int len, char *ip);
-void dnsLookup(char *hostName);
+char *dnsLookup(char *buf, char *hostName);
+EXT char dnsBuffer[64];
 
 #if !INCLUDE
 
-void dnsLookup(char *hostName)
+char *dnsLookup(char *buf, char *hostName)
 {
  wifiMux();
- wifiWriteStr("AT+CIPSTART=3,\"UDP\",\""DNS_IP"\","DNS_PORT,3000);
- int dnsLen = dnsMsg(dataBuffer,sizeof(dataBuffer),hostName);
+ wifiWriteStr(F2("AT+CIPSTART=3,\"UDP\",\"" DNS_IP "\"," DNS_PORT),3000);
+ int dnsLen = dnsMsg(dnsBuffer,sizeof(dnsBuffer),hostName);
+ if (DBG)
+  printf(F0("\ndnsLen %d\n"),dnsLen);
 
- sprintf((char *) cmdBuffer,"AT+CIPSEND=3,%d",dnsLen);
+ sprintf((char *) cmdBuffer,F0("AT+CIPSEND=3,%d"),dnsLen);
  wifiStartData((char *) cmdBuffer,strlen(cmdBuffer),1000);
 
  int dataLen;
- char *p = wifiWriteTCPx((char *) dataBuffer,dnsLen,&dataLen,3000);
- printf("\n");
+ char *p = wifiWriteTCPx((char *) dnsBuffer,dnsLen,&dataLen,3000);
+ newLine();
 // printBuf();
 
+ char *ip = 0;
  if (p != 0)
  {
-  dnsDecode(p,dataLen,(char *) dataBuffer);
-  printf("ip %s\n",dataBuffer);
+  ip = dnsDecode(p,dataLen,(char *) buf);
+  if (DBG)
+  {
+   if (ip != 0)
+    printf(F0("ip %s\n"),ip);
+  }
  }
- wifiWriteStr("AT+CIPCLOSE=3",1000);
+ wifiWriteStr(F2("AT+CIPCLOSE=3"),1000);
+ return(ip);
 }
 
 char *htonsCpy(char *p, int16_t val)
@@ -108,7 +123,8 @@ int dnsMsg(char *buffer, int buflen, char *name)
 {
  P_DNS dns = (P_DNS) buffer;
  dns->id = (int16_t) millis();
- dns->flags = htons(QUERY_FLAG | OPCODE_STANDARD_QUERY | RECURSION_DESIRED_FLAG);
+ dns->flags = htons(QUERY_FLAG | OPCODE_STANDARD_QUERY |
+		    RECURSION_DESIRED_FLAG);
  dns->qdcount = htons(1);
  dns->nscount = 0;
  dns->ancount = 0;
@@ -199,7 +215,7 @@ char *dnsDecode(char *buffer, int len, char *ip)
     char *p1 = ip;
     while (--ansLen >= 0)
     {
-     sprintf(p1,"%u",(int) (*p++ & 0xff));
+     sprintf(p1,F0("%u"),(int) (*p++ & 0xff));
      if (ansLen > 0)
      {
       while (1)
