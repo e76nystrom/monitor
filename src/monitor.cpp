@@ -1086,7 +1086,7 @@ char sendHTTP(char *data)
  if (serverIP[0] != 0)
  {
   strcat(data,F3(HTTP));
-  char *p = sendData(ip,TCPPORT,data,10000);
+  char *p = sendData(serverIP,TCPPORT,data,10000);
   if (p != 0)
   {
    if (find(lc(p),(char *) F0("*ok*")) >= 0)
