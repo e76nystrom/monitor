@@ -74,42 +74,53 @@ typedef struct
  int16_t len;
 } T_DNSHDR, *P_DNSHDR;
 
+#define IP_ADDRESS_LEN 16	/* ip address buffer length */
+
 char *htonsCpy(char *p, int16_t val);
 int dnsMsg(char *buffer, int buflen, char *name);
 char *dnsDecode(char *buffer, int len, char *ip);
-char *dnsLookup(char *buf, char *hostName);
+char dnsLookup(char *buf, char *hostName);
 EXT char dnsBuffer[64];
 
 #if !INCLUDE
 
-char *dnsLookup(char *buf, char *hostName)
+char dnsLookup(char *buf, char *hostName)
 {
  wifiMux();
- wifiWriteStr(F2("AT+CIPSTART=3,\"UDP\",\"" DNS_IP "\"," DNS_PORT),3000);
- int dnsLen = dnsMsg(dnsBuffer,sizeof(dnsBuffer),hostName);
+ wifiWriteStr(F2("AT+CIPSTART=3,\"UDP\",\"" DNS_IP "\"," DNS_PORT), 3000);
+ int dnsLen = dnsMsg(dnsBuffer, sizeof(dnsBuffer), hostName);
  if (DBG)
-  printf(F0("\ndnsLen %d\n"),dnsLen);
+  printf(F0("\nhost %s dnsLen %d\n"), hostName, dnsLen);
 
- sprintf((char *) cmdBuffer,F0("AT+CIPSEND=3,%d"),dnsLen);
- wifiStartData((char *) cmdBuffer,strlen(cmdBuffer),1000);
+ sprintf((char *) cmdBuffer, F0("AT+CIPSEND=3,%d"), dnsLen);
+ wifiStartData((char *) cmdBuffer, strlen(cmdBuffer), 1000);
 
  int dataLen;
- char *p = wifiWriteTCPx((char *) dnsBuffer,dnsLen,&dataLen,3000);
+ char *p = wifiWriteTCPx((char *) dnsBuffer, dnsLen, &dataLen, 3000);
  newLine();
 // printBuf();
 
- char *ip = 0;
- if (p != 0)
+ char *ip = 0;			/* pointer ip address */
+ if (p != 0)			/* if wifi returned result */
  {
-  ip = dnsDecode(p,dataLen,(char *) buf);
+  ip = dnsDecode(p, dataLen, (char *) stringBuffer); /* decode dns */
+ }
+
+ wifiWriteStr(F2("AT+CIPCLOSE=3"), 1000);
+
+ if (ip != 0)			/* if successful decode */
+ {
+  strncpy(buf, ip, IP_ADDRESS_LEN); /* save to return buffer */
   if (DBG)
   {
-   if (ip != 0)
-    printf(F0("ip %s\n"),ip);
+   printf(F0("ip %s\n"), ip);
   }
+  return(1);
  }
- wifiWriteStr(F2("AT+CIPCLOSE=3"),1000);
- return(ip);
+ else				/* if failure */
+  printf(F3("**dns fail using %s\n"), buf);
+
+ return(0);
 }
 
 char *htonsCpy(char *p, int16_t val)
@@ -149,8 +160,8 @@ int dnsMsg(char *buffer, int buflen, char *name)
   }
  }
  *p++ = 0;
- p = htonsCpy(p,TYPE_A);
- p = htonsCpy(p,CLASS_IN); 
+ p = htonsCpy(p, TYPE_A);
+ p = htonsCpy(p, CLASS_IN); 
  return((int) (p - buffer));
 }
 
@@ -181,7 +192,7 @@ char *dnsDecode(char *buffer, int len, char *ip)
 {
  int16_t answerCount;
  char *p = (char *) &((P_DNS) buffer)->ancount;
- ntohsCpy(p,&answerCount);	// read answer count
+ ntohsCpy(p, &answerCount);	// read answer count
  p = (char *) &buffer[sizeof(T_DNS)]; // skip over header
  char ch;
  while ((ch = *p++) != 0)	// skip over name
@@ -201,12 +212,12 @@ char *dnsDecode(char *buffer, int len, char *ip)
   }
   int16_t dnsType;
   int16_t dnsClass;
-  p = ntohsCpy(p,&dnsType);	// read type
-  p = ntohsCpy(p,&dnsClass);	// read class
+  p = ntohsCpy(p, &dnsType);	// read type
+  p = ntohsCpy(p, &dnsClass);	// read class
   p += sizeof(int32_t);		// skip time to live
   int16_t ansLen;
-  p = ntohsCpy(p,&ansLen);	// read length
-//  printf("dnsType %d dnsClass %d ansLen %d\n",dnsType,dnsClass,ansLen);
+  p = ntohsCpy(p, &ansLen);	// read length
+//  printf("dnsType %d dnsClass %d ansLen %d\n", dnsType, dnsClass, ansLen);
   if ((dnsType == TYPE_A)	// if correct type
   &&  (dnsClass == CLASS_IN))
   {
@@ -215,7 +226,7 @@ char *dnsDecode(char *buffer, int len, char *ip)
     char *p1 = ip;
     while (--ansLen >= 0)
     {
-     sprintf(p1,F0("%u"),(int) (*p++ & 0xff));
+     sprintf(p1, F0("%u"), (int) (*p++ & 0xff));
      if (ansLen > 0)
      {
       while (1)
