@@ -8,7 +8,7 @@
 #include "wifi.h"
 #include "dns.h"
 
-#endif
+#endif	/* !INCLUDE */
 
 const int NTP_PACKET_SIZE = 48; 
 
@@ -35,6 +35,9 @@ void printTime();
 void printTime(time_t t);
 char ntpSetTime();
 
+EXT unsigned long nextSetTime;	/* millis for set time operation */
+EXT char ntpIP[IP_ADDRESS_LEN];	/* ntp ip address */
+
 #if !INCLUDE
 
 void printTime()
@@ -58,13 +61,15 @@ void printTime(time_t t)
 
 char ntpSetTime()
 {
+ if (millis() > nextSetTime)
+ {
  char status = 0;
  wifiMux();
- char server[16];
- char *ip = dnsLookup(server,(char *) "pool.ntp.org");
- if (ip)
+ dnsLookup(ntpIP, (char *) "pool.ntp.org");
+
+ if (ntpIP[0] != 0)
  {
-  sprintf((char *) cmdBuffer,F0("AT+CIPSTART=3,\"UDP\",\"%s\",123"),ip);
+  sprintf((char *) cmdBuffer,F0("AT+CIPSTART=3,\"UDP\",\"%s\",123"),ntpIp);
   wifiWriteStr(cmdBuffer,3000);
 
   memset(dataBuffer, 0, NTP_PACKET_SIZE);
@@ -109,11 +114,13 @@ char ntpSetTime()
    time_t epoch = val - seventyYears;
 
    setTime(epoch);
+   nextSetTime = millis() + (24UL * 60UL * 60UL * 1000UL);
   }
   else
   {
+   nextSetTime = millis() + (10UL * 60UL * 1000UL);
    if (DBG)
-    printf(F0("error time not set\n"));
+    printf(F0("**err time not set\n"));
    status = 1;
   }
   wifiClose(3,1000);
