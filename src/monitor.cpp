@@ -1090,8 +1090,10 @@ char sendHTTP(char *data)
   if (p != 0)
   {
    if (find(lc(p),(char *) F0("*ok*")) >= 0)
-    failCount = 0
+   {
+    failCount = 0;
     return(1);
+   }
   }
  }
 
