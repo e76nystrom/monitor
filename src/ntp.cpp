@@ -8,6 +8,8 @@
 #include "wifi.h"
 #include "dns.h"
 
+#define EXT
+
 #endif	/* !INCLUDE */
 
 const int NTP_PACKET_SIZE = 48; 
@@ -69,7 +71,7 @@ char ntpSetTime()
 
  if (ntpIP[0] != 0)
  {
-  sprintf((char *) cmdBuffer,F0("AT+CIPSTART=3,\"UDP\",\"%s\",123"),ntpIp);
+  sprintf((char *) cmdBuffer,F0("AT+CIPSTART=3,\"UDP\",\"%s\",123"),ntpIP);
   wifiWriteStr(cmdBuffer,3000);
 
   memset(dataBuffer, 0, NTP_PACKET_SIZE);
