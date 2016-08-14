@@ -169,6 +169,9 @@ const char *argConv(const __FlashStringHelper *s)
 
 #endif	/* ARDUINO_AVR_MEGA2560 */
 
+char serverIP[IP_ADDRESS_LEN];	/* server ip address */
+char failCount;			/* send failure count */
+
 typedef struct
 {
  boolean state;
@@ -1075,20 +1078,33 @@ Connection: Close\r\n\r\n"
 char sendHTTP(char *data)
 {
 #if LOCAL
- const char *ip = SERVER;
+ strncpy(serverIP, HOST, sizeof(serverIP));
 #else
- char server[16];
- char *ip = dnsLookup(server,(char *) F0(HOST));
+ dnsLookup(serverIP, (char *) F0(HOST));
 #endif
- if (ip)
+
+ if (serverIP[0] != 0)
  {
   strcat(data,F3(HTTP));
   char *p = sendData(ip,TCPPORT,data,10000);
   if (p != 0)
   {
    if (find(lc(p),(char *) F0("*ok*")) >= 0)
+    failCount = 0
     return(1);
   }
+ }
+
+ if (failCount >= 3)
+ {
+  failCount = 0;
+  printf(F3("**reset wifi\n"));
+  wifiReset();
+ }
+ else
+ {
+  failCount += 1;
+  printf(F3("**send failure %d\n"), failCount);
  }
  return(0);
 }
