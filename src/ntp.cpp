@@ -131,6 +131,7 @@ char ntpSetTime()
    status = 1;
   return(status);
  }
+ return(0);
 }
 
 #endif
