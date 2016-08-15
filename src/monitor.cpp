@@ -317,7 +317,7 @@ void initCurrent(char isr);	// init current readings
 void printCurrent();
 void currentCheck();		// check for time to send data
 void timer3();			// timer isr for reading current
-int adcRead(char chan);
+//int adcRead(char chan);
 
 #define SAMPLES (100)		// samples per reading
 #define ADCCHANS (2)		// number of adc channels to read
@@ -1485,6 +1485,7 @@ ISR(ADC_vect)
  PORTH &= ~_BV(PH5);
 }
 
+#if 0
 int adcRead(char pin)
 {
  ADCSRB = 0; 			// chan 0 = 7
@@ -1509,5 +1510,6 @@ int adcRead(char pin)
  // combine the two bytes
  return (high << 8) | low;
 }
+#endif
 
 #endif  /* CURRENT_MONITOR */
