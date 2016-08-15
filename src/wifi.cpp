@@ -34,6 +34,8 @@
 #define PASS_LEN 20
 #define ID_LOC (PASS_LOC + PASS_LEN)
 #define ID_LEN 16
+#define CSUM_LOC (ID_LOC + ID_LEN)
+#define CSUM_LEN 4
 
 #ifdef ARDUINO_ARCH_AVR
 
@@ -51,6 +53,8 @@
  while (!DBGPORT.available()) \
   wdt_reset(); \
  ch = DBGPORT.read()
+uint32_t sumEE();
+void writeSumEE();
 void readEE(char *buf, char addr, char len);
 void writeEE(const char *buf, char addr, char eeLen);
 
@@ -182,6 +186,23 @@ void dbgChar(char ch)
 }
 
 #ifdef ARDUINO_ARCH_AVR
+
+uint32_t sumEE()
+{
+ uint32_t checksum = ~0L;
+ for (int i = 0; i < CSUM_LOC; i++)
+ {
+  char data = EEPROM.read(i);
+  checksum = CRC32::update(checksum, data);
+ }
+ return(checksum);
+}
+
+void writeSumEE()
+{
+ uint32_t checksum = sumEE();
+ writeEE((char *) &checksum, CSUM_LOC, sizeof(checksum));
+}
 
 void readEE(char *buf, char addr, char len)
 {
