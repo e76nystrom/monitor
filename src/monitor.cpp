@@ -366,7 +366,7 @@ void setup()
 
 #ifdef ARDUINO_ARCH_AVR
 #if PRINTF
- init_printf(NULL,putx1);
+ init_printf(NULL, putx1);
 #endif
 
 #if !PRINTF
@@ -386,13 +386,13 @@ void setup()
  digitalWrite(WIFI_RESET, HIGH);
 
 #if WATER_MONITOR
- pinMode(LED,OUTPUT);
- pinMode(WATER0,INPUT);
- pinMode(WATER1,INPUT);
- digitalWrite(BEEPER,LOW);
- pinMode(BEEPER,OUTPUT);
+ pinMode(LED, OUTPUT);
+ pinMode(WATER0, INPUT);
+ pinMode(WATER1, INPUT);
+ digitalWrite(BEEPER, LOW);
+ pinMode(BEEPER, OUTPUT);
 
- digitalWrite(LED,LOW);
+ digitalWrite(LED, LOW);
 
  water0.inp = 0xff;
  water0.state = STATE_CLEAR;
@@ -418,15 +418,15 @@ void setup()
   if (DBG)
    printf(F3("init eeprom with default\n"));
 #if INITEE
-  writeEE(SSID,SSID_LOC,SSID_LEN);
-  writeEE(PASS,PASS_LOC,PASS_LEN);
-  writeEE(MONITOR_ID,ID_LOC,ID_LEN);
+  writeEE(SSID, SSID_LOC, SSID_LEN);
+  writeEE(PASS, PASS_LOC, PASS_LEN);
+  writeEE(MONITOR_ID, ID_LOC, ID_LEN);
 #endif  /* INITEE */
   writeSumEE();
  }
 
 #if MEGA32
- init_printf(NULL,putx0);
+ init_printf(NULL, putx0);
 #endif
 
  if (DBG)
@@ -444,13 +444,13 @@ void setup()
 #if DHT_SENSOR
  dht.begin();
 #if DEHUMIDIFIER
- pinMode(DEHU_CTL_PIN,OUTPUT);
+ pinMode(DEHU_CTL_PIN, OUTPUT);
  digitalWrite(DEHU_CTL_PIN, LOW);
 #endif
 #endif
 
 #if 1
- printf("flush %x\n",wifiAvail());
+ printf("flush %x\n", wifiAvail());
  while (wifiAvail())
  {
   wdt_reset();
@@ -487,19 +487,19 @@ void setup()
 #endif /* DBG */
 
 #if ARDUINO_ARCH_AVR
- readEE(id,ID_LOC,ID_LEN);
+ readEE(id, ID_LOC, ID_LEN);
 #endif
 
 #if 0
- if (strnlen(id,ID_LEN) == 0)
+ if (strnlen(id, ID_LEN) == 0)
  {
   wifiGetIP(id);
  }
 #endif
 
- printf("id %s\n",id);
+ printf("id %s\n", id);
 
- wifiWriteStr("AT",1000);	// send command to wifi
+ wifiWriteStr("AT", 1000);	// send command to wifi
 
  wifiCWMode();			// set correct cw mode
  
@@ -535,7 +535,7 @@ void cmdLoop()
    else if (ch == 'e')
    {
     printf("chan: ");
-    len = readStr(stringBuffer,sizeof(stringBuffer) - 1);
+    len = readStr(stringBuffer, sizeof(stringBuffer) - 1);
     unsigned char chan = 0;
     if (len != 0)
     {
@@ -545,8 +545,8 @@ void cmdLoop()
     }
     P_CURRENT p = &iData[chan];
     printf("value: ");
-    char len = readStr(stringBuffer,sizeof(stringBuffer) - 1);
-    printf("iTime %ld len %d cState %d\n",p->iTime,len,cState);
+    char len = readStr(stringBuffer, sizeof(stringBuffer) - 1);
+    printf("iTime %ld len %d cState %d\n", p->iTime, len, cState);
     if (len != 0)
     {
      p->lastIRms1 = p->lastIRms0;
@@ -563,25 +563,25 @@ void cmdLoop()
    else if (ch == 'T')
    {
     printf("isr: ");
-    char len = readStr(stringBuffer,sizeof(stringBuffer) - 1);
+    char len = readStr(stringBuffer, sizeof(stringBuffer) - 1);
     initCurrent(len);
    }
    else if (ch == 'I')
    {
     char tmp[12];
-    printf("vcc %d\n",vcc);
+    printf("vcc %d\n", vcc);
     for (unsigned char i = 0; i < ADCCHANS; i++)
     {
      P_CURRENT p = &iData[i];
-     printf("iRms %s\n",dtostrf(p->iRms,4,2,tmp));
-     printf("iRatio %s\n",dtostrf(p->iRatio,8,6,tmp));
+     printf("iRms %s\n", dtostrf(p->iRms, 4, 2, tmp));
+     printf("iRatio %s\n", dtostrf(p->iRatio, 8, 6, tmp));
      printf("node %d count %d sent %d adc %02x\n",
-	    p->node,p->count,p->sent,p->adc);
+	    p->node, p->count, p->sent, p->adc);
      if (p->iTime != 0)
      {
       printTime(p->iTime);
-      printf("lastIRms0 %s\n",dtostrf(p->lastIRms0,4,2,tmp));
-      printf("offset %s\n",dtostrf(p->offsetI,4,2,tmp));
+      printf("lastIRms0 %s\n", dtostrf(p->lastIRms0, 4, 2, tmp));
+      printf("offset %s\n", dtostrf(p->offsetI, 4, 2, tmp));
       p->iTime = 0;
      }
     }
@@ -591,7 +591,7 @@ void cmdLoop()
    else if (ch == 'w')
    {
     printf("ssid ");
-    char len = readStr(stringBuffer,SSID_LEN);
+    char len = readStr(stringBuffer, SSID_LEN);
     if (len > 0)
     {
      if (len < SSID_LEN)
@@ -600,14 +600,14 @@ void cmdLoop()
      char addr = SSID_LOC;
      while (--len >= 0)
      {
-      EEPROM.write(addr,*p);
+      EEPROM.write(addr, *p);
       addr++;
       p++;
      }
     }
 
     printf("pass ");
-    len = readStr(stringBuffer,PASS_LEN);
+    len = readStr(stringBuffer, PASS_LEN);
     if (len > 0)
     {
      if (len < PASS_LEN)
@@ -616,7 +616,7 @@ void cmdLoop()
      char addr = PASS_LOC;
      while (--len >= 0)
      {
-      EEPROM.write(addr,*p);
+      EEPROM.write(addr, *p);
       addr++;
       p++;
      }
@@ -624,10 +624,10 @@ void cmdLoop()
    }
    else if (ch == 'i')
    {
-    readEE(id,ID_LOC,ID_LEN);
-    printf("%s id ",id);
-    char len = readStr(stringBuffer,ID_LEN);
-    printf("len %d\n",len);
+    readEE(id, ID_LOC, ID_LEN);
+    printf("%s id ", id);
+    char len = readStr(stringBuffer, ID_LEN);
+    printf("len %d\n", len);
     if (len > 0)
     {
      if (len < ID_LEN)
@@ -637,7 +637,7 @@ void cmdLoop()
      char addr = ID_LOC;
      while (--len >= 0)
      {
-      EEPROM.write(addr,*p);
+      EEPROM.write(addr, *p);
       addr++;
       *dst++ = *p++;
      }
@@ -647,9 +647,9 @@ void cmdLoop()
    else if (ch == 'u')
    {
     long tmp = 0x55aa55aa;
-    DBGPORT.print(tmp,16);
+    DBGPORT.print(tmp, 16);
     DBGPORT.println();
-    printf("%lx\n",tmp);
+    printf("%lx\n", tmp);
    }
 #if WATER_MONITOR
    else if (ch == 'l')
@@ -663,23 +663,23 @@ void cmdLoop()
    }
    else if (ch == 'o')
    {
-    wifiWriteStr("AT",1000);
+    wifiWriteStr("AT", 1000);
    }
    else if (ch == 'l')
    {
-    wifiWriteStr("AT+CWLAP",3000);
+    wifiWriteStr("AT+CWLAP", 3000);
    }
    else if (ch == 'q')
    {
-    wifiWriteStr("AT+CWQAP",1000);
+    wifiWriteStr("AT+CWQAP", 1000);
    }
    else if (ch == 's')
    {
-    wifiWriteStr("AT+CIFSR",1000);
+    wifiWriteStr("AT+CIFSR", 1000);
    }
    else if (ch == 'u')
    {
-    wifiWriteStr("AT+CIPSTART=\"UDP\",\"129.6.15.28\",123",3000);
+    wifiWriteStr("AT+CIPSTART=\"UDP\",\"129.6.15.28\",123", 3000);
    }
    else if (ch == 'm')
    {
@@ -687,11 +687,11 @@ void cmdLoop()
    }
    else if (ch == 't')
    {
-    wifiWriteStr("AT+CIPSTART=4,\"TCP\",\"184.106.153.149\",80",4000);
+    wifiWriteStr("AT+CIPSTART=4,\"TCP\",\"184.106.153.149\",80", 4000);
    }
    else if (ch == 'z')
    {
-    wifiClose(4,15000);
+    wifiClose(4, 15000);
    }
    else if (ch == 'g')
    {
@@ -764,12 +764,12 @@ void cmdLoop()
    else if (ch == 'c')
    {
     printf(F3("enter command\n"));
-    char len = readStr(dataBuffer,sizeof(dataBuffer));
+    char len = readStr(dataBuffer, sizeof(dataBuffer));
     if (len != 0)
     {
      printf(F3("send command\n"));
      wifiClrRx();
-     wifiWrite(dataBuffer,len,2000);
+     wifiWrite(dataBuffer, len, 2000);
      wifiTerm();
      newLine();
     }
@@ -800,7 +800,7 @@ void loop()
   unsigned long t0 = millis();	// read time
   if ((unsigned long) (t0 - tLast) > TINTERVAL) // if long interval up
   {
-//   printf("t0 %ld tLast %ld delta %ld\n",t0,tLast,t0 - tLast);
+//   printf("t0 %ld tLast %ld delta %ld\n", t0, tLast, t0 - tLast);
    tLast = t0;			// update previous time
    PORTD &= ~_BV(PD4);
    break;			// exit loop
@@ -810,7 +810,7 @@ void loop()
   t0 = millis();		// read time
   if ((unsigned long) (t0 - tPrev) >= T1SEC) // if short interval up
   {
-//   printf("t0 %ld tPrev %ld delta %ld\n",t0,tPrev,t0 - tPrev);
+//   printf("t0 %ld tPrev %ld delta %ld\n", t0, tPrev, t0 - tPrev);
    tPrev = t0;			// update previous time
 #if WATER_MONITOR
    alarmPoll();			// poll water alarm
@@ -826,7 +826,7 @@ void loop()
  printCurrent();
 #endif
 
- printf("%d ",loopCount);
+ printf("%d ", loopCount);
  printTime();
 
  if (loopCount == TEMP_COUNT)	// if time for temperature reading
@@ -836,7 +836,7 @@ void loop()
  else if (loopCount == WATER_COUNT) // if time to check water alarm
  {
 #if WATER_MONITOR
-  digitalWrite(LED,LOW); 	/* turn off led */
+  digitalWrite(LED, LOW); 	/* turn off led */
   loopWater();			/* loop processing */
 #endif
  }
@@ -945,28 +945,28 @@ void loopTemp()
  char buf[128];
  char *p;
 #ifdef THING_SPEAK
- p = cpyStr(buf,"field1=");
- p = writeTemp(p,temp1);
- p = cpyStr(p,"&field2=");
- p = writeTemp(p,temp2);
- p = cpyStr(p,"&field3=");
- p = writeTemp(p,h);
- p = cpyStr(p,"&field4=");
- writeTemp(p,t);
+ p = cpyStr(buf, "field1=");
+ p = writeTemp(p, temp1);
+ p = cpyStr(p, "&field2=");
+ p = writeTemp(p, temp2);
+ p = cpyStr(p, "&field3=");
+ p = writeTemp(p, h);
+ p = cpyStr(p, "&field4=");
+ writeTemp(p, t);
  tsData(buf);
 #endif  /* THING_SPEAK */
 
- p = cpyStr(buf,"node=" EMONCMS_NODE "&csv=");
+ p = cpyStr(buf, "node=" EMONCMS_NODE "&csv=");
  for (unsigned char i = 0; i < TEMPDEVS; i++)
  {
-  p = writeTemp(p,temp1[i]);
+  p = writeTemp(p, temp1[i]);
   *p++ = ',';
  }
- p = writeTemp(p,temp2);
+ p = writeTemp(p, temp2);
  *p++ = ',';
- p = writeTemp(p,h);
+ p = writeTemp(p, h);
  *p++ = ',';
- writeTemp(p,t);
+ writeTemp(p, t);
  emonData(buf);
 }
 
@@ -979,14 +979,14 @@ void alarmPoll()
  if ((digitalRead(WATER0) == STATE_ALARM) /* if either alarm */
  ||  (digitalRead(WATER1) == STATE_ALARM))
  {
-  digitalWrite(LED,HIGH); 	/* turn on led */
+  digitalWrite(LED, HIGH); 	/* turn on led */
  }
  else				/* if no alarm */
  {
   if (digitalRead(LED))		/* if led on */
-   digitalWrite(LED,LOW); 	/* turn off led */
+   digitalWrite(LED, LOW); 	/* turn off led */
   else
-   digitalWrite(LED,HIGH); 	/* turn on led */
+   digitalWrite(LED, HIGH); 	/* turn on led */
  }
 }
 
@@ -997,8 +997,8 @@ void loopWater()
  if (DBG)
   printTime();
  checkIn();
- procAlarm(&water0,(boolean) digitalRead(WATER0));
- procAlarm(&water1,(boolean) digitalRead(WATER1));
+ procAlarm(&water0, (boolean) digitalRead(WATER0));
+ procAlarm(&water1, (boolean) digitalRead(WATER1));
 
  if (beeperOn)
  {
@@ -1025,9 +1025,9 @@ void loopWater()
   char tmp = BEEPS;
   while (--tmp >= 0)
   {
-   digitalWrite(BEEPER,HIGH);
+   digitalWrite(BEEPER, HIGH);
    delay(BEEPLEN);
-   digitalWrite(BEEPER,LOW);
+   digitalWrite(BEEPER, LOW);
    delay(BEEPSPACE);
   }
  }
@@ -1036,7 +1036,7 @@ void loopWater()
 void procAlarm(P_INPUT water, boolean inp)
 {
  printf(F3("inp %d alarm%d cur %d counter %d state %d\n"),
-	inp,water->index,water->inp,water->counter,water->state);
+	inp, water->index, water->inp, water->counter, water->state);
  if (water->inp != inp)		// if input state changed
  {
   water->inp = inp;		// save state
@@ -1055,7 +1055,7 @@ void procAlarm(P_INPUT water, boolean inp)
     if (water->state != inp)	// if state changed
     {
      water->state = inp;	// save current state
-     if (!notify(water->index,inp == STATE_ALARM)) // if notify failure
+     if (!notify(water->index, inp == STATE_ALARM)) // if notify failure
      {
       water->counter = 1;	// set counter to send again
      }
@@ -1066,10 +1066,10 @@ void procAlarm(P_INPUT water, boolean inp)
  printf("procAlarm done\n");
 }
 
-char notify(int alarm,boolean val)
+char notify(int alarm, boolean val)
 {
  sprintf((char *) dataBuffer,
-	 F3("GET " SITE "/notify?id=%s&alarm=%d&val=%d"),id,alarm,val);
+	 F3("GET " SITE "/notify?id=%s&alarm=%d&val=%d"), id, alarm, val);
  return(sendHTTP(dataBuffer));
 }
 
@@ -1081,7 +1081,7 @@ void checkIn()
  if (water1.state == STATE_ALARM)
   state |= 2;
  sprintf((char *) dataBuffer,
-	 F0("GET " SITE "/check?id=%s&st=%d"),id,state);
+	 F0("GET " SITE "/check?id=%s&st=%d"), id, state);
  sendHTTP(dataBuffer);
 }
 
@@ -1099,11 +1099,11 @@ char sendHTTP(char *data)
 
  if (serverIP[0] != 0)
  {
-  strcat(data,F3(HTTP));
-  char *p = sendData(serverIP,TCPPORT,data,10000);
+  strcat(data, F3(HTTP));
+  char *p = sendData(serverIP, TCPPORT, data, 10000);
   if (p != 0)
   {
-   if (find(lc(p),(char *) F0("*ok*")) >= 0)
+   if (find(lc(p), (char *) F0("*ok*")) >= 0)
    {
     failCount = 0;
     return(1);
@@ -1156,7 +1156,7 @@ void printTemp(float temp)
  int tmp = (int) (temp * 10);
  int deg = tmp / 10;
  int frac = tmp % 10;
- printf("%d.%d",deg,frac);
+ printf("%d.%d", deg, frac);
 }
 
 char *writeTemp(char *buf, float temp)
@@ -1164,7 +1164,7 @@ char *writeTemp(char *buf, float temp)
  int tmp = (int) (temp * 10);
  int deg = tmp / 10;
  int frac = tmp % 10;
- sprintf(buf,"%d.%d",deg,frac);
+ sprintf(buf, "%d.%d", deg, frac);
  char *p = buf;
  int ofs = 0;
  while (1)
@@ -1206,8 +1206,8 @@ float printTemperature(DeviceAddress deviceAddress)
 void tsData(char *data)
 {
  sprintf((char *) dataBuffer,
-	 "GET /update?key=" TS_KEY "&%s\n",data);
- sendData("184.106.153.149",(const char *) dataBuffer);
+	 "GET /update?key=" TS_KEY "&%s\n", data);
+ sendData("184.106.153.149", (const char *) dataBuffer);
 }
 #endif
 
@@ -1217,7 +1217,7 @@ void emonData(char *data)
 	 "get /emoncms/input/post.json?%s"
 	 "&apikey=" EMONCMS_KEY "\n",
 	 data);
- sendData("192.168.1.111",(const char *) dataBuffer);
+ sendData("192.168.1.111", (const char *) dataBuffer);
 }
 
 #if RTC_CLOCK
@@ -1264,7 +1264,7 @@ void findAddresses(void)
   printf("Found one wire device with address: \n");
   for( i = 0; i < 8; i++)
   {
-   printf("0x%02x",addr[i]);
+   printf("0x%02x", addr[i]);
    if (i < 7)
     printf(", ");
    else
@@ -1319,9 +1319,9 @@ void initCurrent(char isr)
   pinMode(9, OUTPUT);		// ph6
   pinMode(17, OUTPUT);		// pd4
   printf("attach interrupt\n");
-  digitalWrite(7,HIGH);
-  Timer3.attachInterrupt(timer3,1000000L / 600);
-  digitalWrite(7,LOW);
+  digitalWrite(7, HIGH);
+  Timer3.attachInterrupt(timer3, 1000000L / 600);
+  digitalWrite(7, LOW);
  }
 }
 
@@ -1329,13 +1329,13 @@ void printCurrent()
 {
  char tmp[10];
 
- printf("iVcc %d\n",vcc);
+ printf("iVcc %d\n", vcc);
  for (unsigned char i = 0; i < ADCCHANS; i++)
  {
   P_CURRENT p = &iData[i];
-//  printf("iRatio %s\n",dtostrf(p->iRatio,8,6,tmp));
-//  printf("iCal %s\n",dtostrf(p->iCal,8,6,tmp));
-  printf("iRms %s\n",dtostrf(p->iRms,4,2,tmp));
+//  printf("iRatio %s\n", dtostrf(p->iRatio, 8, 6, tmp));
+//  printf("iCal %s\n", dtostrf(p->iCal, 8, 6, tmp));
+  printf("iRms %s\n", dtostrf(p->iRms, 4, 2, tmp));
   if (p->iTime != 0)
    printTime(p->iTime);
    
@@ -1343,7 +1343,7 @@ void printCurrent()
   if (abs(p->iRms - p->lastIRms) > .05)
   {
    p->lastIRms = p->iRms;
-   printf("iRms %s\n",dtostrf(p->iRms,4,2,tmp));
+   printf("iRms %s\n", dtostrf(p->iRms, 4, 2, tmp));
   }
  }
 }
@@ -1369,9 +1369,9 @@ void currentCheck()
      char tmp[10];
      printTime();
      p->lastTime = now();
-     sprintf(buf,"time=%ld&node=%d&csv=%s",
-	     p->lastTime,p->node,dtostrf(p->iRms,4,2,tmp));
-     printf("%s\n",buf);
+     sprintf(buf, "time=%ld&node=%d&csv=%s",
+	     p->lastTime, p->node, dtostrf(p->iRms, 4, 2, tmp));
+     printf("%s\n", buf);
      emonData(buf);
     }
     p = 0;
@@ -1385,20 +1385,20 @@ void currentCheck()
   char tmp[10];
   if (cState == 0)
   {
-   sprintf(buf,"time=%ld&node=%d&csv=%s",
-           p->iTime - 1,p->node,dtostrf(p->lastIRms1,4,2,tmp));
+   sprintf(buf, "time=%ld&node=%d&csv=%s",
+           p->iTime - 1, p->node, dtostrf(p->lastIRms1, 4, 2, tmp));
    cState = 1;
   }
   else
   {
-   sprintf(buf,"time=%ld&node=%d&csv=%s",
-           p->iTime,p->node,dtostrf(p->lastIRms0,4,2,tmp));
+   sprintf(buf, "time=%ld&node=%d&csv=%s",
+           p->iTime, p->node, dtostrf(p->lastIRms0, 4, 2, tmp));
    p->iTime = 0;
    cState = 0;
    curPSave = 0;
   }
   printTime();
-  printf("%s\n",buf);
+  printf("%s\n", buf);
   emonData(buf);
  }
 }
