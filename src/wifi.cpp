@@ -126,6 +126,7 @@ int getVal(char *p, int pos, int *rtnVal, int size);
 void getData(char *dst, unsigned int dstSize, char *buf, unsigned int bufSize);
 void wifiInitSio();
 
+void wifiReset();
 #if 0
 char wifiRead();
 #endif
@@ -544,6 +545,13 @@ void getData(char *dst, unsigned int dstSize, char *buf, unsigned int bufSize)
   }
  }
  *dst++ = 0;
+}
+
+void wifiReset()
+{
+ digitalWrite(WIFI_RESET, LOW);
+ delay(200);
+ digitalWrite(WIFI_RESET, HIGH);
 }
 
 void wifiInitSio()
