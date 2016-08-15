@@ -2,6 +2,7 @@
 #ifdef ARDUINO_ARCH_AVR
 #include <Arduino.h>
 #include <EEPROM.h>
+#include <CRC32.h>
 #endif
 
 #ifdef MEGA32
