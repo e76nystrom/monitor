@@ -404,12 +404,26 @@ void setup()
 #endif  /* WATER_MONITOR */
 
  wifiInitSio();
+ memset(&serverIP, 0, sizeof(serverIP));
+ memset(&ntpIP, 0, sizeof(ntpIP));
+ failCount = 0;
 
+ nextSetTime = 0;
+
+ uint32_t checksum = sumEE();
+ uint32_t csum;
+ readEE((char *) &csum, CSUM_LOC, CSUM_LEN);
+ if (checksum != csum)
+ {
+  if (DBG)
+   printf(F3("init eeprom with default\n"));
 #if INITEE
- writeEE(SSID,SSID_LOC,SSID_LEN);
- writeEE(PASS,PASS_LOC,PASS_LEN);
- writeEE(MONITOR_ID,ID_LOC,ID_LEN);
+  writeEE(SSID,SSID_LOC,SSID_LEN);
+  writeEE(PASS,PASS_LOC,PASS_LEN);
+  writeEE(MONITOR_ID,ID_LOC,ID_LEN);
 #endif  /* INITEE */
+  writeSumEE();
+ }
 
 #if MEGA32
  init_printf(NULL,putx0);
