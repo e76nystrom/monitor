@@ -716,7 +716,6 @@ void cmdLoop()
 #if DHT_SENSOR
    else if (ch == 'h')
    {
-    printf("\n");
     float h = dht.readHumidity();
     if (!isnan(h))
     {
