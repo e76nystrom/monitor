@@ -37,6 +37,8 @@
 #define WATER_MONITOR 0
 #endif	/* MEGA32 */
 
+#define THING_SPEAK 0
+
 #if TEMP_SENSOR
 #include <OneWire.h>
 #include <DallasTemperature.h>
@@ -289,7 +291,7 @@ char *strEnd(char *p);
 void printTemp(float temp);
 char *writeTemp(char *buf, float temp);
 float printTemperature(DeviceAddress deviceAddress);
-#endif
+#endif	/* TEMP_SENSOR */
 
 #if THING_SPEAK
 void tsData(char *data);
@@ -439,7 +441,7 @@ void setup()
   sensors.setResolution(tempDev[i], 12);
   lastTemp[i] = 0.0;
  }
-#endif
+#endif	/* TEMP_SENSOR */
  
 #if DHT_SENSOR
  dht.begin();
@@ -447,7 +449,7 @@ void setup()
  pinMode(DEHUM_CTL_PIN, OUTPUT);
  digitalWrite(DEHUM_CTL_PIN, LOW);
 #endif
-#endif
+#endif	/* DHT_SENSOR */
 
 #if 1
  printf("flush %x\n", wifiAvail());
@@ -944,7 +946,7 @@ void loopTemp()
 
  char buf[128];
  char *p;
-#ifdef THING_SPEAK
+#if THING_SPEAK
  p = cpyStr(buf, "field1=");
  p = writeTemp(p, temp1);
  p = cpyStr(p, "&field2=");
