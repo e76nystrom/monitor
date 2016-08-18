@@ -19,7 +19,7 @@
 #define TEMP_SENSOR 0
 #define RTC_CLOCK 1
 #define CURRENT_SENSOR 0
-#define DHT_SENSOR 0
+#define DHT_SENSOR 1
 #define WATER_MONITOR 1
 #define DEHUMIDIFIER 0
 #endif	/* ARDUINO_AVR_PRO */
