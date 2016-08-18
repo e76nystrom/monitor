@@ -257,7 +257,7 @@ DHT dht(DHTPIN, DHTTYPE, 15);
 #endif  /* DHT_SENSOR */
 
 #if DEHUMIDIFIER
-char dehumState;			/* dehumidifier state */
+char dehumState;		/* dehumidifier state */
 float dehumOn;			/* on humidity */
 float dehumOff;			/* off humidity */
 int dehumDelay;			/* on or off delay counter */
@@ -892,7 +892,7 @@ void loopTemp()
  printTemp(h);
  printf("\n");
 #if DEHUMIDIFIER
- if (dehumState)			// if dehumidifer on
+ if (dehumState)		// if dehumidifer on
  {
   if (h <= dehumOff)		// if humidity below turn off point
   {
