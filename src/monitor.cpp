@@ -17,7 +17,7 @@
 
 #if ARDUINO_AVR_PRO
 #define TEMP_SENSOR 0
-#define RTC_CLOCK 0
+#define RTC_CLOCK 1
 #define CURRENT_SENSOR 0
 #define DHT_SENSOR 0
 #define WATER_MONITOR 1
@@ -702,6 +702,7 @@ void cmdLoop()
    }
    else if (ch == 'd')
    {
+    nextSetTime = 0;
     char status = ntpSetTime();
 #if RTC_CLOCK
     if (status == 0)
