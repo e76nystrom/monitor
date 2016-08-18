@@ -243,7 +243,7 @@ float lastTemp[TEMPDEVS];
 #if ARDUINO_AVR_MEGA2560
 #define DHTPIN 3
 #if DEHUMIDIFIER
-#define DEHU_CTL_PIN 8
+#define DEHUM_CTL_PIN 8
 #endif
 #endif	/* ARDUINO_AVR_MEGA2560 */
 
@@ -257,11 +257,11 @@ DHT dht(DHTPIN, DHTTYPE, 15);
 #endif  /* DHT_SENSOR */
 
 #if DEHUMIDIFIER
-char dehuState;			/* dehumidifier state */
-float dehuOn;			/* on humidity */
-float dehuOff;			/* off humidity */
-int dehuDelay;			/* on or off delay counter */
-#define DEHU_DELAY 1		/* on or off delay time */
+char dehumState;			/* dehumidifier state */
+float dehumOn;			/* on humidity */
+float dehumOff;			/* off humidity */
+int dehumDelay;			/* on or off delay counter */
+#define DEHUM_DELAY 1		/* on or off delay time */
 #endif	/* DEHUMIDIFIER */
 
 // Target Access Point
@@ -444,8 +444,8 @@ void setup()
 #if DHT_SENSOR
  dht.begin();
 #if DEHUMIDIFIER
- pinMode(DEHU_CTL_PIN, OUTPUT);
- digitalWrite(DEHU_CTL_PIN, LOW);
+ pinMode(DEHUM_CTL_PIN, OUTPUT);
+ digitalWrite(DEHUM_CTL_PIN, LOW);
 #endif
 #endif
 
@@ -892,48 +892,48 @@ void loopTemp()
  printTemp(h);
  printf("\n");
 #if DEHUMIDIFIER
- if (dehuState)			// if dehumidifer on
+ if (dehumState)			// if dehumidifer on
  {
-  if (h <= dehuOff)		// if humidity below turn off point
+  if (h <= dehumOff)		// if humidity below turn off point
   {
-   if (dehuDelay != 0)		// if timer active
+   if (dehumDelay != 0)		// if timer active
    {
-    if (--dehuDelay == 0)	// if counts down to zero
+    if (--dehumDelay == 0)	// if counts down to zero
     {
-     dehuState = 1;		// set state to on
-     digitalWrite(DEHU_CTL_PIN, LOW); // turn dehumidifier off
+     dehumState = 1;		// set state to on
+     digitalWrite(DEHUM_CTL_PIN, LOW); // turn dehumidifier off
     }
    }
    else				// if timer not active
    {
-    dehuDelay = DEHU_DELAY;	// start counter
+    dehumDelay = DEHUM_DELAY;	// start counter
    }
   }
   else				// if not below turn off point
   {
-   dehuDelay = 0;		// reset counter
+   dehumDelay = 0;		// reset counter
   }
  }
  else				// if dehumidifier off
  {
-  if (h >= dehuOn)		// if humidity above turn on point
+  if (h >= dehumOn)		// if humidity above turn on point
   {
-   if (dehuDelay != 0)		// if timer active
+   if (dehumDelay != 0)		// if timer active
    {
-    if (--dehuDelay == 0)	// if counts down to zero
+    if (--dehumDelay == 0)	// if counts down to zero
     {
-     dehuState = 0;		// set state to off
-     digitalWrite(DEHU_CTL_PIN, HIGH); // turn dehumidifier on
+     dehumState = 0;		// set state to off
+     digitalWrite(DEHUM_CTL_PIN, HIGH); // turn dehumidifier on
     }
    }
    else				// if timer not active
    {
-    dehuDelay = DEHU_DELAY;	// start counter
+    dehumDelay = DEHUM_DELAY;	// start counter
    }
   }
   else				// if not above turn on point
   {
-   dehuDelay = 0;		// reset counter
+   dehumDelay = 0;		// reset counter
   }
  }
 #endif
