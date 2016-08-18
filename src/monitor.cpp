@@ -414,9 +414,7 @@ void setup()
  pinMode(WIFI_RESET, OUTPUT);
  digitalWrite(WIFI_RESET, HIGH);
  delay(200);
- digitalWrite(WIFI_RESET, LOW);
- delay(200);
- digitalWrite(WIFI_RESET, HIGH);
+ wifiReset();
 
 #if WATER_MONITOR
  pinMode(LED, OUTPUT);
