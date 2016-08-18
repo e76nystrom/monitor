@@ -245,8 +245,9 @@ float lastTemp[TEMPDEVS];
 #if ARDUINO_AVR_MEGA2560
 #define DHTPIN 3
 #if DEHUMIDIFIER
-#define DEHUM_CTL_PIN 8
-#endif
+#define DEHUM_ON_PIN 8
+#define DEHUM_OFF_PIN 9
+#endif	/* DEHUMIDIFIER */
 #endif	/* ARDUINO_AVR_MEGA2560 */
 
 #if MEGA32
@@ -358,6 +359,36 @@ float tempSumI;			// current sum accumulator
 void putx0(void *p, char c);
 void putx(char c);
 
+#ifdef ARDUINO_ARCH_AVR
+
+char updateEE(const char *prompt, char eeLoc, char eeLen)
+{
+ printf("%s", prompt);
+ readEE(stringBuffer, eeLoc, eeLen);
+ printf(" %s ", stringBuffer);
+ memset(stringBuffer, 0, eeLen);
+ char len = readStr(stringBuffer, eeLen);
+ printf("len %d\n", len);
+ if (len > 0)
+ {
+  if (len < eeLen)
+   len++;
+  char *p = stringBuffer;
+  char *dst = id;
+  char addr = eeLoc;
+  while (--len >= 0)
+  {
+   EEPROM.write(addr, *p);
+   addr++;
+   *dst++ = *p++;
+  }
+  return(1);
+ }
+ return(0);
+}
+
+#endif	/* ARDUINO_ARCH_AVR */
+
 /* setup routine */
 
 void setup()
@@ -446,8 +477,10 @@ void setup()
 #if DHT_SENSOR
  dht.begin();
 #if DEHUMIDIFIER
- pinMode(DEHUM_CTL_PIN, OUTPUT);
- digitalWrite(DEHUM_CTL_PIN, LOW);
+ pinMode(DEHUM_ON_PIN, OUTPUT);
+ pinMode(DEHUM_OFF_PIN, OUTPUT);
+ digitalWrite(DEHUM_ON_PIN, LOW);
+ digitalWrite(DEHUM_OFF_PIN, LOW);
 #endif
 #endif	/* DHT_SENSOR */
 
@@ -864,7 +897,9 @@ void loopTemp()
     if (--dehumDelay == 0)	// if counts down to zero
     {
      dehumState = 1;		// set state to on
-     digitalWrite(DEHUM_CTL_PIN, LOW); // turn dehumidifier off
+     digitalWrite(DEHUM_OFF_PIN, HIGH); // turn dehumidifier off
+     delay(100);
+     digitalWrite(DEHUM_OFF_PIN, LOW); // turn dehumidifier off
     }
    }
    else				// if timer not active
@@ -886,7 +921,9 @@ void loopTemp()
     if (--dehumDelay == 0)	// if counts down to zero
     {
      dehumState = 0;		// set state to off
-     digitalWrite(DEHUM_CTL_PIN, HIGH); // turn dehumidifier on
+     digitalWrite(DEHUM_ON_PIN, HIGH); // turn dehumidifier on
+     delay(100);
+     digitalWrite(DEHUM_ON_PIN, LOW); // turn dehumidifier on
     }
    }
    else				// if timer not active
