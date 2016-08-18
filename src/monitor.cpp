@@ -592,58 +592,18 @@ void cmdLoop()
 #if ARDUINO_ARCH_AVR
    else if (ch == 'w')
    {
-    printf("ssid ");
-    char len = readStr(stringBuffer, SSID_LEN);
-    if (len > 0)
-    {
-     if (len < SSID_LEN)
-      len++;
-     char *p = stringBuffer;
-     char addr = SSID_LOC;
-     while (--len >= 0)
-     {
-      EEPROM.write(addr, *p);
-      addr++;
-      p++;
-     }
-    }
-
-    printf("pass ");
-    len = readStr(stringBuffer, PASS_LEN);
-    if (len > 0)
-    {
-     if (len < PASS_LEN)
-      len++;
-     char *p = stringBuffer;
-     char addr = PASS_LOC;
-     while (--len >= 0)
-     {
-      EEPROM.write(addr, *p);
-      addr++;
-      p++;
-     }
-    }
+    newLine();
+    char flag = updateEE("ssid", SSID_LOC, SSID_LEN);
+    flag |= updateEE("pass", PASS_LOC, PASS_LEN);
+    if (flag)
+     writeSumEE();
    }
    else if (ch == 'i')
    {
-    readEE(id, ID_LOC, ID_LEN);
-    printf("%s id ", id);
-    char len = readStr(stringBuffer, ID_LEN);
-    printf("len %d\n", len);
-    if (len > 0)
-    {
-     if (len < ID_LEN)
-      len++;
-     char *p = stringBuffer;
-     char *dst = id;
-     char addr = ID_LOC;
-     while (--len >= 0)
-     {
-      EEPROM.write(addr, *p);
-      addr++;
-      *dst++ = *p++;
-     }
-    }
+    newLine();
+    char flag = updateEE("id", ID_LOC,ID_LEN);
+    if (flag)
+     writeSumEE();
    }
 #endif  /* ARDUINO_ARCH_AVR */
    else if (ch == 'u')
