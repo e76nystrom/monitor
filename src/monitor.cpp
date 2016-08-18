@@ -477,11 +477,13 @@ void setup()
 #if DHT_SENSOR
  dht.begin();
 #if DEHUMIDIFIER
+ dehumOn = 52.0;
+ dehumOff = 50.0;
  pinMode(DEHUM_ON_PIN, OUTPUT);
  pinMode(DEHUM_OFF_PIN, OUTPUT);
  digitalWrite(DEHUM_ON_PIN, LOW);
  digitalWrite(DEHUM_OFF_PIN, LOW);
-#endif
+#endif	/* DEHUMIDIFIER */
 #endif	/* DHT_SENSOR */
 
 #if 1
