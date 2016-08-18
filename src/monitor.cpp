@@ -269,7 +269,7 @@ int dehumDelay;			/* on or off delay counter */
 // Target Access Point
 #define SSID "nystrom"
 #define PASS "minidonk"
-#define MONITOR_ID "Monitor1"
+#define MONITOR_ID "Monitor3"
 
 unsigned long time = 0;
 
