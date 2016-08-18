@@ -11,4 +11,4 @@
 -P COM14 \
 -U flash:w:.pioenvs/megaatmega2560/firmware.hex:i
 
-/cygdrive/c/DevSoftware/Putty/putty.exe -load COM4-19200
+/cygdrive/c/DevSoftware/Putty/putty.exe -load COM14-19200
