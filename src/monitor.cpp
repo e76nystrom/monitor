@@ -896,7 +896,7 @@ void loopTemp()
    {
     if (--dehumDelay == 0)	// if counts down to zero
     {
-     dehumState = 1;		// set state to on
+     dehumState = 0;		// set state to off
      digitalWrite(DEHUM_OFF_PIN, HIGH); // turn dehumidifier off
      delay(100);
      digitalWrite(DEHUM_OFF_PIN, LOW); // turn dehumidifier off
@@ -920,7 +920,7 @@ void loopTemp()
    {
     if (--dehumDelay == 0)	// if counts down to zero
     {
-     dehumState = 0;		// set state to off
+     dehumState = 1;		// set state to off
      digitalWrite(DEHUM_ON_PIN, HIGH); // turn dehumidifier on
      delay(100);
      digitalWrite(DEHUM_ON_PIN, LOW); // turn dehumidifier on
@@ -936,8 +936,8 @@ void loopTemp()
    dehumDelay = 0;		// reset counter
   }
  }
-#endif
-#else
+#endif	/* DEHUMIDIFIER */
+#else  /* DHT_SENSOR */
  float h = 0;
  float t = 0;
 #endif  /* DHT_SENSOR */
