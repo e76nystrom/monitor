@@ -114,7 +114,6 @@ static int putx(char c, FILE *stream)
 #define TEST_NODE 0
 
 #ifdef ARDUINO_ARCH_AVR
-#define TS_KEY "86Z0KTDYLEC28FU3"
 
 #if !TEST_NODE
 #define EMONCMS_NODE "2"
@@ -296,6 +295,7 @@ float printTemperature(DeviceAddress deviceAddress);
 
 #if THING_SPEAK
 void tsData(char *data);
+#define TS_KEY "86Z0KTDYLEC28FU3"
 #endif
 
 void emonData(char *data);
@@ -873,9 +873,9 @@ void loopTemp()
 #endif  /* TEMP_SENSOR */
 
 #if RTC_CLOCK
- float temp2 = rtcTemp();
+ float rtcTemp = rtcTemp();
 #else
- float temp2 = 0;
+ float rtcTemp = 0;
 #endif /* RTC_CLOCK */
 
 #if DHT_SENSOR
@@ -937,8 +937,8 @@ void loopTemp()
  }
 #endif	/* DEHUMIDIFIER */
 #else  /* DHT_SENSOR */
- float h = 0;
- float t = 0;
+ float dhtHumidity = 0;
+ float dhtTemp = 0;
 #endif  /* DHT_SENSOR */
 
  char buf[128];
@@ -947,25 +947,25 @@ void loopTemp()
  p = cpyStr(buf, "field1=");
  p = writeTemp(p, temp1);
  p = cpyStr(p, "&field2=");
- p = writeTemp(p, temp2);
+ p = writeTemp(p, rtcTemp);
  p = cpyStr(p, "&field3=");
- p = writeTemp(p, h);
+ p = writeTemp(p, dhtHUmidity);
  p = cpyStr(p, "&field4=");
- writeTemp(p, t);
+ writeTemp(p, dhtTemp);
  tsData(buf);
 #endif  /* THING_SPEAK */
 
  p = cpyStr(buf, "node=" EMONCMS_NODE "&csv=");
  for (unsigned char i = 0; i < TEMPDEVS; i++)
  {
-  p = writeTemp(p, temp1[i]);
+  p = writeTemp(p, temp1[i]);	/* output data from each temp sensor */
   *p++ = ',';
  }
- p = writeTemp(p, temp2);
+ p = writeTemp(p, rtcTemp);	/* output real time clock temp data */
  *p++ = ',';
- p = writeTemp(p, h);
+ p = writeTemp(p, dhtHumidity);	/* output dht sensor humidity */
  *p++ = ',';
- writeTemp(p, t);
+ writeTemp(p, dhtTemp);		/* output dht sensor temp */
  emonData(buf);
 }
 
