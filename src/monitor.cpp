@@ -254,13 +254,13 @@ char beeperCount;
 
 void printTemp(float temp);
 char *writeTemp(char *buf, float temp);
-float printTemperature(DeviceAddress deviceAddress);
 
 #if TEMP_SENSOR
 
 void findAddresses(void);
 OneWire oneWire(ONE_WIRE_BUS);	/* one wire instance */
 DallasTemperature sensors(&oneWire); /* dallas temp sensor instance */
+float printTemperature(DeviceAddress deviceAddress);
 
 float lastTemp[TEMPDEVS];
 
