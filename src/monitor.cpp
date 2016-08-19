@@ -1350,55 +1350,57 @@ void printCurrent()
 void currentCheck()
 {
  P_CURRENT p = curPSave;
- if (p == 0)
+ if (p == 0)			/* if no current saved */
  {
-  for (unsigned char i = 0; i < ADCCHANS; i++)
+  for (unsigned char i = 0; i < ADCCHANS; i++) /* for all channels */
   {
    p = &iData[i];
-   if (p->iTime != 0)
-   {    p->lastTime = p->iTime;
-    curPSave = p;
+   if (p->iTime != 0)		/* if current reading */
+   {
+    p->lastTime = p->iTime;
+    curPSave = p;		/* save current pointer */
     break;
    }
-   else
+   else				/* if no current reading */
    {
-    if ((now() - p->lastTime) > CSENDTIME)
+    if ((now() - p->lastTime) > CSENDTIME) /* if time to send */
     {
      char buf[64];
      char tmp[10];
      printTime();
      p->lastTime = now();
+     /* format time, node, and current value */
      sprintf(buf, "time=%ld&node=%d&csv=%s",
 	     p->lastTime, p->node, dtostrf(p->iRms, 4, 2, tmp));
      printf("%s\n", buf);
-     emonData(buf);
+     emonData(buf);		/* send current data */
     }
     p = 0;
    }
   }
  }
 
- if (p)
+ if (p)				/* if current saved */
  {
   char buf[64];
   char tmp[10];
-  if (cState == 0)
+  if (cState == 0)		/* if time to send last value */
   {
-   sprintf(buf, "time=%ld&node=%d&csv=%s",
+   sprintf(buf, "time=%ld&node=%d&csv=%s", /* format last reading sent */
            p->iTime - 1, p->node, dtostrf(p->lastIRms1, 4, 2, tmp));
-   cState = 1;
+   cState = 1;			/* set to send current value */
   }
   else
   {
-   sprintf(buf, "time=%ld&node=%d&csv=%s",
+   sprintf(buf, "time=%ld&node=%d&csv=%s", /* format current reading */
            p->iTime, p->node, dtostrf(p->lastIRms0, 4, 2, tmp));
-   p->iTime = 0;
-   cState = 0;
-   curPSave = 0;
+   p->iTime = 0;		/* reset time */
+   cState = 0;			/* reset state */
+   curPSave = 0;		/* clear save pointer */
   }
   printTime();
   printf("%s\n", buf);
-  emonData(buf);
+  emonData(buf);		/* send data */
  }
 }
 
