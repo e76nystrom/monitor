@@ -906,8 +906,8 @@ void loopTemp()
 #endif /* RTC_CLOCK */
 
 #if DHT_SENSOR
- float h = dht.readHumidity();
- float t = dht.readTemperature(true);
+ float dhtHumidity = dht.readHumidity();
+ float dhtTemp = dht.readTemperature(true);
  printf("temp ");
  printTemp(t);
  printf(" F humidity ");
@@ -976,7 +976,7 @@ void loopTemp()
  p = cpyStr(p, "&field2=");
  p = writeTemp(p, rtcTempVal);
  p = cpyStr(p, "&field3=");
- p = writeTemp(p, dhtHUmidity);
+ p = writeTemp(p, dhtHumidity);
  p = cpyStr(p, "&field4=");
  writeTemp(p, dhtTemp);
  tsData(buf);
