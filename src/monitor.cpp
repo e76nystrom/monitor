@@ -2,8 +2,17 @@
 #include <Arduino.h>
 #include <Wire.h>
 
+#define EMONCMS_KEY "b53ec1abe610c66009b207d6207f2c9e"
+#define TEST_NODE 0
+#define THING_SPEAK 0
+#define MONITOR_INDEX 3
+
 #if ARDUINO_AVR_MEGA2560
-#define TEMP_SENSOR 1
+
+/* outside temperature */
+
+#if (MONITOR_INDEX == 0)
+#define TEMP_SENSOR 0
 #define RTC_CLOCK 1
 #define DHT_SENSOR 1
 #define CURRENT_SENSOR 1
@@ -13,13 +22,59 @@
 #else
 #define DEHUMIDIFIER 0
 #endif
+#endif	/* MONITOR_INDEX == 0 */
+
+/* basement dehumidifer and furnace monitor */
+
+#if (MONITOR_INDEX == 1)
+#define TEMP_SENSOR 0
+#define RTC_CLOCK 1
+#define DHT_SENSOR 1
+#define CURRENT_SENSOR 1
+#define WATER_MONITOR 1
+#if DHT_SENSOR
+#define DEHUMIDIFIER 1
+#else
+#define DEHUMIDIFIER 0
+#endif
+#define EMONCMS_NODE "2"
+#define CURRENT0_NODE 3
+#define CURRENT1_NODE 4
+#endif	/* MONITOR_INDEX == 1 */
+
+/* basement water alarm and pump shutoff */
+
+#if (MONITOR_INDEX == 3)
+#define TEMP_SENSOR 0
+#define RTC_CLOCK 1
+#define DHT_SENSOR 1
+#define CURRENT_SENSOR 1
+#define WATER_MONITOR 1
+#if DHT_SENSOR
+#define DEHUMIDIFIER 1
+#else
+#define DEHUMIDIFIER 0
+#endif
+#endif
+
 #endif	/* ARDUINO_AVR_MEGA2560 */
+
+#if TEST_NODE
+#undef EMONCMS_NODE
+#define EMONCMS_NODE "12"
+#if CURRENT_SENSOR
+#undef CURRENT0_NODE
+#define CURRENT0_NODE 13
+#undef CURRENT1_NODE
+#define CURRENT1_NODE 14
+#endif	/* CURRENT_SENSOR */
+#endif	/* TEST_MODE */
 
 #if ARDUINO_AVR_PRO
 #define TEMP_SENSOR 0
-#define RTC_CLOCK 1
+#define RTC_CLOCK 0
 #define CURRENT_SENSOR 0
-#define DHT_SENSOR 1
+#define DHT_SENSOR 0
 #define WATER_MONITOR 1
 #define DEHUMIDIFIER 0
 #endif	/* ARDUINO_AVR_PRO */
@@ -35,9 +90,12 @@
 #define RTC_CLOCK 0
 #define CURRENT_SENSOR 0
 #define WATER_MONITOR 0
-#endif	/* MEGA32 */
+#define DEHUMIDIFIER 0
 
-#define THING_SPEAK 0
+#define TS_KEY "67TDONLKRDNVF7L4"
+#define EMONCMS_NODE "0"
+
+#endif	/* MEGA32 */
 
 #if TEMP_SENSOR
 #include <OneWire.h>
@@ -61,6 +119,7 @@
 #define ADC_BITS 10
 #define ADC_COUNTS (1<<ADC_BITS)
 #endif  /* CURRENT_SENSOR */
+
 #include "wdt.h"
 #include <Time.h>
 #include "serial.h"
@@ -107,23 +166,6 @@ static int putx(char c, FILE *stream)
  return 0;
 }
 #endif	/* ! PRINTF */
-#endif  /* ARDUINO_ARCH_AVR */
-
-#define EMONCMS_KEY "b53ec1abe610c66009b207d6207f2c9e"
-
-#define TEST_NODE 0
-
-#ifdef ARDUINO_ARCH_AVR
-
-#if !TEST_NODE
-#define EMONCMS_NODE "2"
-#define CURRENT0_NODE 3
-#define CURRENT1_NODE 4
-#else
-#define EMONCMS_NODE "12"
-#define CURRENT0_NODE 13
-#define CURRENT1_NODE 14
-#endif
 
 const char *argConv(const __FlashStringHelper *s)
 {
@@ -141,11 +183,6 @@ const char *argConv(const __FlashStringHelper *s)
 
 #endif  /* ARDUINO_ARCH_AVR */
 
-#ifdef MEGA32
-#define TS_KEY "67TDONLKRDNVF7L4"
-#define EMONCMS_NODE "0"
-#endif /* MEGA32 */
-
 #if WATER_MONITOR
 
 #if ARDUINO_AVR_PRO
@@ -153,9 +190,8 @@ const char *argConv(const __FlashStringHelper *s)
 #define WATER0 3
 #define WATER1 4
 
-#define LED 13
-
 #define BEEPER 10
+#define LED 13
 
 #endif	/* ARDUINO_AVR_PRO */
 
@@ -164,9 +200,8 @@ const char *argConv(const __FlashStringHelper *s)
 #define WATER0 6
 #define WATER1 7
 
-#define LED 13
-
 #define BEEPER 12
+#define LED 13
 
 #endif	/* ARDUINO_AVR_MEGA2560 */
 
@@ -212,15 +247,16 @@ DeviceAddress tempDev[TEMPDEVS] =
 
 #ifdef ARDUINO_ARCH_AVR
 #define ONE_WIRE_BUS 4		/* one wire bus pin */
-#if 0
-#define TEMPDEVS 2
+
+#if (MONITOR_INDEX == 0)
+#define TEMPDEVS 1
 DeviceAddress tempDev[TEMPDEVS] =
 {
  {0x28, 0xB8, 0x50, 0x9B, 0x06, 0x00, 0x00, 0x89
 };
 #endif
 
-#if 1
+#if (MONITOR_INDEX == 1)
 #define TEMPDEVS 2
 DeviceAddress tempDev[TEMPDEVS] =
 {
