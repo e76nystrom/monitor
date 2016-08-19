@@ -60,6 +60,7 @@ DeviceAddress tempDev[TEMPDEVS] =
 #define DEHUMIDIFIER 1
 #define EMONCMS_NODE "5"
 #define MONITOR_ID "Monitor3"
+#define TEMPDEVS 0
 #endif	/* MONITOR_INDEX == 3 */
 
 #endif	/* ARDUINO_AVR_MEGA2560 */
@@ -982,11 +983,13 @@ void loopTemp()
 #endif  /* THING_SPEAK */
 
  p = cpyStr(buf, "node=" EMONCMS_NODE "&csv=");
+#if TEMP_SENSOR
  for (unsigned char i = 0; i < TEMPDEVS; i++)
  {
   p = writeTemp(p, temp1[i]);	/* output data from each temp sensor */
   *p++ = ',';
  }
+#endif
  p = writeTemp(p, rtcTempVal);	/* output real time clock temp data */
  *p++ = ',';
  p = writeTemp(p, dhtHumidity);	/* output dht sensor humidity */
