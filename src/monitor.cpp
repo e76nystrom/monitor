@@ -252,6 +252,10 @@ char beeperCount;
 
 #endif	/* WATER_MONITOR */ 
 
+void printTemp(float temp);
+char *writeTemp(char *buf, float temp);
+float printTemperature(DeviceAddress deviceAddress);
+
 #if TEMP_SENSOR
 
 void findAddresses(void);
@@ -259,10 +263,6 @@ OneWire oneWire(ONE_WIRE_BUS);	/* one wire instance */
 DallasTemperature sensors(&oneWire); /* dallas temp sensor instance */
 
 float lastTemp[TEMPDEVS];
-
-void printTemp(float temp);
-char *writeTemp(char *buf, float temp);
-float printTemperature(DeviceAddress deviceAddress);
 
 #ifdef MEGA32
 #define ONE_WIRE_BUS 4		/* one wire bus pin */
