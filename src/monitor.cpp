@@ -236,6 +236,10 @@ char beeperCount;
 
 #if TEMP_SENSOR
 
+void findAddresses(void);
+OneWire oneWire(ONE_WIRE_BUS);	/* one wire instance */
+DallasTemperature sensors(&oneWire); /* dallas temp sensor instance */
+
 #ifdef MEGA32
 #define ONE_WIRE_BUS 4		/* one wire bus pin */
 #define TEMPDEVS 1
@@ -265,13 +269,9 @@ DeviceAddress tempDev[TEMPDEVS] =
 };
 #endif
 
-void findAddresses(void);
-OneWire oneWire(ONE_WIRE_BUS);	/* one wire instance */
-DallasTemperature sensors(&oneWire); /* dallas temp sensor instance */
+#endif	/* ARDUINO_ARCH_AVR */
 
 float lastTemp[TEMPDEVS];
-
-#endif	/* ARDUINO_ARCH_AVR */
 
 #endif	/* TEMP_SENSOR */
 
@@ -292,8 +292,6 @@ float lastTemp[TEMPDEVS];
 #define DHTTYPE DHT22
 DHT dht(DHTPIN, DHTTYPE, 15);
 
-#endif  /* DHT_SENSOR */
-
 #if DEHUMIDIFIER
 char dehumState;		/* dehumidifier state */
 float dehumOn;			/* on humidity */
@@ -301,6 +299,8 @@ float dehumOff;			/* off humidity */
 int dehumDelay;			/* on or off delay counter */
 #define DEHUM_DELAY 1		/* on or off delay time */
 #endif	/* DEHUMIDIFIER */
+
+#endif  /* DHT_SENSOR */
 
 // Target Access Point
 #define SSID "nystrom"
