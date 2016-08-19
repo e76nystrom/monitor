@@ -898,9 +898,9 @@ void loopTemp()
 #endif  /* TEMP_SENSOR */
 
 #if RTC_CLOCK
- float rtcTemp = rtcTemp();
+ float rtcTempVal = rtcTemp();
 #else
- float rtcTemp = 0;
+ float rtcTempVal = 0;
 #endif /* RTC_CLOCK */
 
 #if DHT_SENSOR
@@ -972,7 +972,7 @@ void loopTemp()
  p = cpyStr(buf, "field1=");
  p = writeTemp(p, temp1);
  p = cpyStr(p, "&field2=");
- p = writeTemp(p, rtcTemp);
+ p = writeTemp(p, rtcTempVal);
  p = cpyStr(p, "&field3=");
  p = writeTemp(p, dhtHUmidity);
  p = cpyStr(p, "&field4=");
@@ -986,7 +986,7 @@ void loopTemp()
   p = writeTemp(p, temp1[i]);	/* output data from each temp sensor */
   *p++ = ',';
  }
- p = writeTemp(p, rtcTemp);	/* output real time clock temp data */
+ p = writeTemp(p, rtcTempVal);	/* output real time clock temp data */
  *p++ = ',';
  p = writeTemp(p, dhtHumidity);	/* output dht sensor humidity */
  *p++ = ',';
