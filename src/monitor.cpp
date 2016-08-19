@@ -679,7 +679,7 @@ void cmdLoop()
     printf("%lx\n", tmp);
    }
 #if WATER_MONITOR
-   else if (ch == 'l')
+   else if (ch == 'L')
    {
     loopWater();
    }
