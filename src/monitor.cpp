@@ -58,7 +58,7 @@ DeviceAddress tempDev[TEMPDEVS] =
 #define CURRENT_SENSOR 1
 #define WATER_MONITOR 1
 #define DEHUMIDIFIER 1
-#define EMONCMS_NODE "3"
+#define EMONCMS_NODE "5"
 #define MONITOR_ID "Monitor3"
 #endif	/* MONITOR_INDEX == 3 */
 
