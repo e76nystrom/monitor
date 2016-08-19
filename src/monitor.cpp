@@ -1203,6 +1203,7 @@ char *writeTemp(char *buf, float temp)
  return(p);
 }
 
+#if TEMP_SENSOR
 float printTemperature(DeviceAddress deviceAddress)
 {
  char count = 5;
@@ -1227,6 +1228,7 @@ float printTemperature(DeviceAddress deviceAddress)
  printf(" F\n");
  return(temp);
 }
+#endif
 
 #ifdef THING_SPEAK
 void tsData(char *data)
