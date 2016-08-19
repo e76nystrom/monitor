@@ -895,8 +895,6 @@ void loopTemp()
   }
   temp1[i] = t;
  }
-#else
- float temp1 = 0.0;
 #endif  /* TEMP_SENSOR */
 
 #if RTC_CLOCK
@@ -909,9 +907,9 @@ void loopTemp()
  float dhtHumidity = dht.readHumidity();
  float dhtTemp = dht.readTemperature(true);
  printf("temp ");
- printTemp(t);
+ printTemp(dhtTemp);
  printf(" F humidity ");
- printTemp(h);
+ printTemp(dhtHumidity);
  printf("\n");
 #if DEHUMIDIFIER
  if (dehumState)		// if dehumidifer on
