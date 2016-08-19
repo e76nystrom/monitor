@@ -55,7 +55,7 @@ DeviceAddress tempDev[TEMPDEVS] =
 #define TEMP_SENSOR 0
 #define RTC_CLOCK 1
 #define DHT_SENSOR 1
-#define CURRENT_SENSOR 1
+#define CURRENT_SENSOR 0
 #define WATER_MONITOR 1
 #define DEHUMIDIFIER 1
 #define EMONCMS_NODE "5"
@@ -914,7 +914,7 @@ void loopTemp()
 #if DEHUMIDIFIER
  if (dehumState)		// if dehumidifer on
  {
-  if (h <= dehumOff)		// if humidity below turn off point
+  if (dhtHumidity <= dehumOff)	// if humidity below turn off point
   {
    if (dehumDelay != 0)		// if timer active
    {
@@ -938,7 +938,7 @@ void loopTemp()
  }
  else				// if dehumidifier off
  {
-  if (h >= dehumOn)		// if humidity above turn on point
+  if (dhtHumidity >= dehumOn)	// if humidity above turn on point
   {
    if (dehumDelay != 0)		// if timer active
    {
@@ -1232,7 +1232,7 @@ float printTemperature(DeviceAddress deviceAddress)
 
 #endif
 
-#ifdef THING_SPEAK
+#if THING_SPEAK
 void tsData(char *data)
 {
  sprintf((char *) dataBuffer,
