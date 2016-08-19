@@ -11,36 +11,43 @@
 
 /* outside temperature */
 
-#if (MONITOR_INDEX == 0)
-#define TEMP_SENSOR 0
+#if (MONITOR_INDEX == 1)
+#define TEMP_SENSOR 1
 #define RTC_CLOCK 1
-#define DHT_SENSOR 1
-#define CURRENT_SENSOR 1
-#define WATER_MONITOR 1
-#if DHT_SENSOR
-#define DEHUMIDIFIER 1
-#else
-#define DEHUMIDIFIER 0
-#endif
+#define DHT_SENSOR 0
+#define CURRENT_SENSOR 0
+#define WATER_MONITOR 0
+#define MONITOR_ID "Monitor1"
+
+#define TEMPDEVS 1
+DeviceAddress tempDev[TEMPDEVS] =
+{
+ {0x28, 0xB8, 0x50, 0x9B, 0x06, 0x00, 0x00, 0x89
+};
+
 #endif	/* MONITOR_INDEX == 0 */
 
 /* basement dehumidifer and furnace monitor */
 
-#if (MONITOR_INDEX == 1)
-#define TEMP_SENSOR 0
+#if (MONITOR_INDEX == 2)
+#define TEMP_SENSOR 1
 #define RTC_CLOCK 1
 #define DHT_SENSOR 1
 #define CURRENT_SENSOR 1
 #define WATER_MONITOR 1
-#if DHT_SENSOR
-#define DEHUMIDIFIER 1
-#else
 #define DEHUMIDIFIER 0
-#endif
 #define EMONCMS_NODE "2"
 #define CURRENT0_NODE 3
 #define CURRENT1_NODE 4
-#endif	/* MONITOR_INDEX == 1 */
+#define MONITOR_ID "Monitor2"
+
+#define TEMPDEVS 2
+DeviceAddress tempDev[TEMPDEVS] =
+{
+ {0x28, 0xff, 0xd3, 0x09, 0x63, 0x14, 0x02, 0xe1},
+ {0x28, 0xc8, 0xae, 0x9b, 0x06, 0x00, 0x00, 0x15}
+};
+#endif	/* MONITOR_INDEX == 2 */
 
 /* basement water alarm and pump shutoff */
 
@@ -50,33 +57,38 @@
 #define DHT_SENSOR 1
 #define CURRENT_SENSOR 1
 #define WATER_MONITOR 1
-#if DHT_SENSOR
 #define DEHUMIDIFIER 1
-#else
-#define DEHUMIDIFIER 0
-#endif
-#endif
+#define MONITOR_ID "Monitor3"
+#endif	/* MONITOR_INDEX == 3 */
 
 #endif	/* ARDUINO_AVR_MEGA2560 */
 
 #if TEST_NODE
+
 #undef EMONCMS_NODE
 #define EMONCMS_NODE "12"
+
 #if CURRENT_SENSOR
 #undef CURRENT0_NODE
 #define CURRENT0_NODE 13
 #undef CURRENT1_NODE
 #define CURRENT1_NODE 14
 #endif	/* CURRENT_SENSOR */
+
 #endif	/* TEST_MODE */
 
 #if ARDUINO_AVR_PRO
+
+#if (MONITOR_INDEX == 4)
 #define TEMP_SENSOR 0
 #define RTC_CLOCK 0
 #define CURRENT_SENSOR 0
 #define DHT_SENSOR 0
 #define WATER_MONITOR 1
 #define DEHUMIDIFIER 0
+#define MONITOR_ID "Monitor4"
+#endif
+
 #endif	/* ARDUINO_AVR_PRO */
 
 #endif	/* ARDUINO_ARCH_AVR */
@@ -91,6 +103,12 @@
 #define CURRENT_SENSOR 0
 #define WATER_MONITOR 0
 #define DEHUMIDIFIER 0
+
+#define TEMPDEVS 1
+DeviceAddress tempDev[TEMPDEVS] =
+{
+ {0x10, 0xDC, 0x5D, 0xD4, 0x01, 0x08, 0x00, 0xE9}
+};
 
 #define TS_KEY "67TDONLKRDNVF7L4"
 #define EMONCMS_NODE "0"
@@ -240,38 +258,19 @@ void findAddresses(void);
 OneWire oneWire(ONE_WIRE_BUS);	/* one wire instance */
 DallasTemperature sensors(&oneWire); /* dallas temp sensor instance */
 
+float lastTemp[TEMPDEVS];
+
+void printTemp(float temp);
+char *writeTemp(char *buf, float temp);
+float printTemperature(DeviceAddress deviceAddress);
+
 #ifdef MEGA32
 #define ONE_WIRE_BUS 4		/* one wire bus pin */
-#define TEMPDEVS 1
-DeviceAddress tempDev[TEMPDEVS] =
-{
- {0x10, 0xDC, 0x5D, 0xD4, 0x01, 0x08, 0x00, 0xE9}
-};
 #endif	/* MEGA32 */
 
 #ifdef ARDUINO_ARCH_AVR
 #define ONE_WIRE_BUS 4		/* one wire bus pin */
-
-#if (MONITOR_INDEX == 0)
-#define TEMPDEVS 1
-DeviceAddress tempDev[TEMPDEVS] =
-{
- {0x28, 0xB8, 0x50, 0x9B, 0x06, 0x00, 0x00, 0x89
-};
-#endif
-
-#if (MONITOR_INDEX == 1)
-#define TEMPDEVS 2
-DeviceAddress tempDev[TEMPDEVS] =
-{
- {0x28, 0xff, 0xd3, 0x09, 0x63, 0x14, 0x02, 0xe1},
- {0x28, 0xc8, 0xae, 0x9b, 0x06, 0x00, 0x00, 0x15}
-};
-#endif
-
 #endif	/* ARDUINO_ARCH_AVR */
-
-float lastTemp[TEMPDEVS];
 
 #endif	/* TEMP_SENSOR */
 
@@ -305,7 +304,6 @@ int dehumDelay;			/* on or off delay counter */
 // Target Access Point
 #define SSID "nystrom"
 #define PASS "minidonk"
-#define MONITOR_ID "Monitor3"
 
 unsigned long time = 0;
 
@@ -322,12 +320,6 @@ char sendHTTP(char *data);
 
 char *cpyStr(char *dst, const char *str);
 char *strEnd(char *p);
-
-#if TEMP_SENSOR
-void printTemp(float temp);
-char *writeTemp(char *buf, float temp);
-float printTemperature(DeviceAddress deviceAddress);
-#endif	/* TEMP_SENSOR */
 
 #if THING_SPEAK
 void tsData(char *data);
@@ -724,11 +716,26 @@ void cmdLoop()
    {
     wifiClose(4, 15000);
    }
+   else if (ch == 'c')
+   {
+    printf(F3("enter command\n"));
+    char len = readStr(dataBuffer, sizeof(dataBuffer));
+    if (len != 0)
+    {
+     printf(F3("send command\n"));
+     wifiClrRx();
+     wifiWrite(dataBuffer, len, 2000);
+     wifiTerm();
+     newLine();
+    }
+   }
+#if TEMP_SENSOR
    else if (ch == 'g')
    {
     printf("\n");
     loopTemp();
    }
+#endif	/* TEMP_SENSOR */
    else if (ch == 'd')
    {
     nextSetTime = 0;
@@ -791,19 +798,6 @@ void cmdLoop()
    else if (ch == '?')
    {
     printf("\nmonitor.cpp\n");
-   }
-   else if (ch == 'c')
-   {
-    printf(F3("enter command\n"));
-    char len = readStr(dataBuffer, sizeof(dataBuffer));
-    if (len != 0)
-    {
-     printf(F3("send command\n"));
-     wifiClrRx();
-     wifiWrite(dataBuffer, len, 2000);
-     wifiTerm();
-     newLine();
-    }
    }
   }
  }
