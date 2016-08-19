@@ -594,6 +594,10 @@ void cmdLoop()
    newLine();
    if (ch == 'x')
     break;
+   else if (ch == '?')
+   {
+    printf("monitor.cpp\n");
+   }
 #if CURRENT_SENSOR
    else if (ch == 'e')
    {
@@ -653,7 +657,6 @@ void cmdLoop()
 #if ARDUINO_ARCH_AVR
    else if (ch == 'w')
    {
-    newLine();
     char flag = updateEE("ssid", SSID_LOC, SSID_LEN);
     flag |= updateEE("pass", PASS_LOC, PASS_LEN);
     if (flag)
@@ -661,7 +664,6 @@ void cmdLoop()
    }
    else if (ch == 'i')
    {
-    newLine();
     char flag = updateEE("id", ID_LOC,ID_LEN);
     if (flag)
      writeSumEE();
@@ -729,13 +731,6 @@ void cmdLoop()
      newLine();
     }
    }
-#if TEMP_SENSOR
-   else if (ch == 'g')
-   {
-    printf("\n");
-    loopTemp();
-   }
-#endif	/* TEMP_SENSOR */
    else if (ch == 'd')
    {
     nextSetTime = 0;
@@ -794,11 +789,11 @@ void cmdLoop()
      printf("F\n");
     }
    }
-#endif  /* TEMP_SENSOR */
-   else if (ch == '?')
+   else if (ch == 'g')
    {
-    printf("\nmonitor.cpp\n");
+    loopTemp();
    }
+#endif  /* TEMP_SENSOR */
   }
  }
  wdt_enable(WDT_TO);
@@ -858,13 +853,13 @@ void loop()
  {
   loopTemp();
  }
- else if (loopCount == WATER_COUNT) // if time to check water alarm
- {
 #if WATER_MONITOR
+ if (loopCount == WATER_COUNT) // if time to check water alarm
+ {
   digitalWrite(LED, LOW); 	/* turn off led */
   loopWater();			/* loop processing */
-#endif
  }
+#endif
 
  loopCount++;			// update loop counter
  if (loopCount >= LOOP_MAX)	// if at maximum
