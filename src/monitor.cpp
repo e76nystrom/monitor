@@ -788,6 +788,7 @@ void cmdLoop()
    else if (ch == 'r')
    {
     if (getNum())
+    {
      if (val == 0)
      {
       digitalWrite(DEHUM_OFF_PIN, HIGH);
@@ -800,6 +801,7 @@ void cmdLoop()
       delay(100);
       digitalWrite(DEHUM_ON_PIN, LOW);
      }
+    }
    }
 #endif
 #if TEMP_SENSOR
