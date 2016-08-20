@@ -264,13 +264,6 @@ char *writeTemp(char *buf, float temp);
 
 #if TEMP_SENSOR
 
-void findAddresses(void);
-OneWire oneWire(ONE_WIRE_BUS);	/* one wire instance */
-DallasTemperature sensors(&oneWire); /* dallas temp sensor instance */
-float printTemperature(DeviceAddress deviceAddress);
-
-float lastTemp[TEMPDEVS];
-
 #ifdef MEGA32
 #define ONE_WIRE_BUS 4		/* one wire bus pin */
 #endif	/* MEGA32 */
@@ -278,6 +271,13 @@ float lastTemp[TEMPDEVS];
 #ifdef ARDUINO_ARCH_AVR
 #define ONE_WIRE_BUS 4		/* one wire bus pin */
 #endif	/* ARDUINO_ARCH_AVR */
+
+void findAddresses(void);
+OneWire oneWire(ONE_WIRE_BUS);	/* one wire instance */
+DallasTemperature sensors(&oneWire); /* dallas temp sensor instance */
+float printTemperature(DeviceAddress deviceAddress);
+
+float lastTemp[TEMPDEVS];
 
 #endif	/* TEMP_SENSOR */
 
