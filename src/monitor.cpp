@@ -1593,7 +1593,7 @@ unsigned char getNum()
  count = 0;
  while (1)
  {
-  ch = getChar();
+  getChar(ch);
   if ((ch >= '0')
   &&  (ch <= '9'))
   {
