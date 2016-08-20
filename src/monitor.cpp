@@ -239,7 +239,7 @@ static int putx(char c, FILE *stream)
 }
 #endif	/* ! PRINTF */
 
-unsigned char getnum();
+unsigned char getNum();
 int val;
 
 const char *argConv(const __FlashStringHelper *s)
@@ -786,7 +786,19 @@ void cmdLoop()
 #endif  /* DNT_SENSOR */
    else if (ch == 'r')
    {
-
+    if (getNum())
+     if (val == 0)
+     {
+      digitalWrite(DEHUM_OFF_PIN, HIGH); // turn dehumidifier on
+      delay(100);
+      digitalWrite(DEHUM_OFF_PIN, LOW); // turn dehumidifier on
+     }
+     else
+     {
+      digitalWrite(DEHUM_ON_PIN, HIGH); // turn dehumidifier on
+      delay(100);
+      digitalWrite(DEHUM_ON_PIN, LOW); // turn dehumidifier on
+     }
    }
 #if TEMP_SENSOR
    else if (ch == 'f')
@@ -1559,7 +1571,9 @@ int adcRead(char pin)
 
 #endif  /* CURRENT_MONITOR */
 
-unsigned char getnum()
+#define MAXDIG 10		/* maximum input digits */
+
+unsigned char getNum()
 {
  char ch;			/* input character */
  char chbuf[MAXDIG];		/* input digit buffer */
