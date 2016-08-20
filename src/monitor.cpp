@@ -106,7 +106,7 @@ DeviceAddress tempDev[TEMPDEVS] =
 {
  {0x28, 0xB8, 0x50, 0x9B, 0x06, 0x00, 0x00, 0x89
 };
-#endif
+#endif	/* MONITOR_INDEX == 1 */
 
 #if (MONITOR_INDEX == 2)
 #define TEMPDEVS 2
@@ -115,6 +115,7 @@ DeviceAddress tempDev[TEMPDEVS] =
  {0x28, 0xff, 0xd3, 0x09, 0x63, 0x14, 0x02, 0xe1},
  {0x28, 0xc8, 0xae, 0x9b, 0x06, 0x00, 0x00, 0x15}
 };
+#endif	/* MONITOR_INDEX == 2 */
 
 #if (MONITOR_INDEX == 3)
 #define TEMPDEVS 1
@@ -122,7 +123,7 @@ DeviceAddress tempDev[TEMPDEVS] =
 {
  {0x28, 0x7d, 0xe3, 0x96, 0x06, 0x00, 0x00, 0x61}
 };
-#endif
+#endif	/* MONITOR_INDEX == 3 */
 
 #ifdef MEGA32
 #define TEMPDEVS 1
@@ -130,7 +131,7 @@ DeviceAddress tempDev[TEMPDEVS] =
 {
  {0x10, 0xDC, 0x5D, 0xD4, 0x01, 0x08, 0x00, 0xE9}
 };
-#endif
+#endif	/* MEGA32 */
 
 float lastTemp[TEMPDEVS];
 
