@@ -784,22 +784,24 @@ void cmdLoop()
      printf("humidity read failure\n");
    }
 #endif  /* DNT_SENSOR */
+#if DEHUMIDIFIER
    else if (ch == 'r')
    {
     if (getNum())
      if (val == 0)
      {
-      digitalWrite(DEHUM_OFF_PIN, HIGH); // turn dehumidifier on
+      digitalWrite(DEHUM_OFF_PIN, HIGH);
       delay(100);
-      digitalWrite(DEHUM_OFF_PIN, LOW); // turn dehumidifier on
+      digitalWrite(DEHUM_OFF_PIN, LOW);
      }
      else
      {
-      digitalWrite(DEHUM_ON_PIN, HIGH); // turn dehumidifier on
+      digitalWrite(DEHUM_ON_PIN, HIGH);
       delay(100);
-      digitalWrite(DEHUM_ON_PIN, LOW); // turn dehumidifier on
+      digitalWrite(DEHUM_ON_PIN, LOW);
      }
    }
+#endif
 #if TEMP_SENSOR
    else if (ch == 'f')
    {
