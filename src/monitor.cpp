@@ -791,12 +791,14 @@ void cmdLoop()
     {
      if (val == 0)
      {
+      printf("turn relay off\n");
       digitalWrite(DEHUM_OFF_PIN, HIGH);
       delay(100);
       digitalWrite(DEHUM_OFF_PIN, LOW);
      }
      else
      {
+      printf("turn relay on\n");
       digitalWrite(DEHUM_ON_PIN, HIGH);
       delay(100);
       digitalWrite(DEHUM_ON_PIN, LOW);
