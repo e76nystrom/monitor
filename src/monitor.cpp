@@ -18,13 +18,6 @@
 #define CURRENT_SENSOR 0
 #define WATER_MONITOR 0
 #define MONITOR_ID "Monitor1"
-
-#define TEMPDEVS 1
-DeviceAddress tempDev[TEMPDEVS] =
-{
- {0x28, 0xB8, 0x50, 0x9B, 0x06, 0x00, 0x00, 0x89
-};
-
 #endif	/* MONITOR_INDEX == 0 */
 
 /* basement dehumidifer and furnace monitor */
@@ -40,13 +33,6 @@ DeviceAddress tempDev[TEMPDEVS] =
 #define CURRENT0_NODE 3
 #define CURRENT1_NODE 4
 #define MONITOR_ID "Monitor2"
-
-#define TEMPDEVS 2
-DeviceAddress tempDev[TEMPDEVS] =
-{
- {0x28, 0xff, 0xd3, 0x09, 0x63, 0x14, 0x02, 0xe1},
- {0x28, 0xc8, 0xae, 0x9b, 0x06, 0x00, 0x00, 0x15}
-};
 #endif	/* MONITOR_INDEX == 2 */
 
 /* basement water alarm and pump shutoff */
@@ -105,12 +91,6 @@ DeviceAddress tempDev[TEMPDEVS] =
 #define WATER_MONITOR 0
 #define DEHUMIDIFIER 0
 
-#define TEMPDEVS 1
-DeviceAddress tempDev[TEMPDEVS] =
-{
- {0x10, 0xDC, 0x5D, 0xD4, 0x01, 0x08, 0x00, 0xE9}
-};
-
 #define TS_KEY "67TDONLKRDNVF7L4"
 #define EMONCMS_NODE "0"
 
@@ -119,16 +99,82 @@ DeviceAddress tempDev[TEMPDEVS] =
 #if TEMP_SENSOR
 #include <OneWire.h>
 #include <DallasTemperature.h>
-#endif  /* TEMP_SENSOR */
 
+#if (MONITOR_INDEX == 1)
+#define TEMPDEVS 1
+DeviceAddress tempDev[TEMPDEVS] =
+{
+ {0x28, 0xB8, 0x50, 0x9B, 0x06, 0x00, 0x00, 0x89
+};
+#endif
+
+#if (MONITOR_INDEX == 2)
+#define TEMPDEVS 2
+DeviceAddress tempDev[TEMPDEVS] =
+{
+ {0x28, 0xff, 0xd3, 0x09, 0x63, 0x14, 0x02, 0xe1},
+ {0x28, 0xc8, 0xae, 0x9b, 0x06, 0x00, 0x00, 0x15}
+};
+
+#if (MONITOR_INDEX == 3)
 #define TEMPDEVS 1
 DeviceAddress tempDev[TEMPDEVS] =
 {
  {0x28, 0xB8, 0x50, 0x9B, 0x06, 0x00, 0x00, 0x89}
 };
+#endif
+
+#ifdef MEGA32
+#define TEMPDEVS 1
+DeviceAddress tempDev[TEMPDEVS] =
+{
+ {0x10, 0xDC, 0x5D, 0xD4, 0x01, 0x08, 0x00, 0xE9}
+};
+#endif
+
+float lastTemp[TEMPDEVS];
+
+#ifdef MEGA32
+#define ONE_WIRE_BUS 4		/* one wire bus pin */
+#endif	/* MEGA32 */
+
+#ifdef ARDUINO_ARCH_AVR
+#define ONE_WIRE_BUS 4		/* one wire bus pin */
+#endif	/* ARDUINO_ARCH_AVR */
+
+void findAddresses(void);
+OneWire oneWire(ONE_WIRE_BUS);	/* one wire instance */
+DallasTemperature sensors(&oneWire); /* dallas temp sensor instance */
+float printTemperature(DeviceAddress deviceAddress);
+
+#endif  /* TEMP_SENSOR */
 
 #if DHT_SENSOR
 #include <DHT.h>
+
+#if ARDUINO_AVR_MEGA2560
+#define DHTPIN 3
+#if DEHUMIDIFIER
+#define DEHUM_ON_PIN 8
+#define DEHUM_OFF_PIN 9
+#endif	/* DEHUMIDIFIER */
+#endif	/* ARDUINO_AVR_MEGA2560 */
+
+#if MEGA32
+#define DHTPIN 4
+#endif	/* MEGA32 */
+
+#define DHTTYPE DHT22
+DHT dht(DHTPIN, DHTTYPE, 15);
+
+#if DEHUMIDIFIER
+char dehumState;		/* dehumidifier state */
+float dehumOn;			/* on humidity */
+float dehumOff;			/* off humidity */
+int dehumDelay;			/* on or off delay counter */
+#define DEHUM_DELAY 1		/* on or off delay time */
+#endif	/* DEHUMIDIFIER */
+
 #endif  /* DHT_SENSOR */
 
 #if RTC_CLOCK
@@ -261,52 +307,6 @@ char beeperCount;
 
 void printTemp(float temp);
 char *writeTemp(char *buf, float temp);
-
-#if TEMP_SENSOR
-
-#ifdef MEGA32
-#define ONE_WIRE_BUS 4		/* one wire bus pin */
-#endif	/* MEGA32 */
-
-#ifdef ARDUINO_ARCH_AVR
-#define ONE_WIRE_BUS 4		/* one wire bus pin */
-#endif	/* ARDUINO_ARCH_AVR */
-
-void findAddresses(void);
-OneWire oneWire(ONE_WIRE_BUS);	/* one wire instance */
-DallasTemperature sensors(&oneWire); /* dallas temp sensor instance */
-float printTemperature(DeviceAddress deviceAddress);
-
-float lastTemp[TEMPDEVS];
-
-#endif	/* TEMP_SENSOR */
-
-#if DHT_SENSOR
-
-#if ARDUINO_AVR_MEGA2560
-#define DHTPIN 3
-#if DEHUMIDIFIER
-#define DEHUM_ON_PIN 8
-#define DEHUM_OFF_PIN 9
-#endif	/* DEHUMIDIFIER */
-#endif	/* ARDUINO_AVR_MEGA2560 */
-
-#if MEGA32
-#define DHTPIN 4
-#endif	/* MEGA32 */
-
-#define DHTTYPE DHT22
-DHT dht(DHTPIN, DHTTYPE, 15);
-
-#if DEHUMIDIFIER
-char dehumState;		/* dehumidifier state */
-float dehumOn;			/* on humidity */
-float dehumOff;			/* off humidity */
-int dehumDelay;			/* on or off delay counter */
-#define DEHUM_DELAY 1		/* on or off delay time */
-#endif	/* DEHUMIDIFIER */
-
-#endif  /* DHT_SENSOR */
 
 // Target Access Point
 #define SSID "nystrom"
