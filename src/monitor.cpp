@@ -60,11 +60,6 @@ DeviceAddress tempDev[TEMPDEVS] =
 #define DEHUMIDIFIER 1
 #define EMONCMS_NODE "5"
 #define MONITOR_ID "Monitor3"
-#define TEMPDEVS 1
-DeviceAddress tempDev[TEMPDEVS] =
-{
- {0x28, 0xB8, 0x50, 0x9B, 0x06, 0x00, 0x00, 0x89
-};
 #endif	/* MONITOR_INDEX == 3 */
 
 #endif	/* ARDUINO_AVR_MEGA2560 */
@@ -125,6 +120,12 @@ DeviceAddress tempDev[TEMPDEVS] =
 #include <OneWire.h>
 #include <DallasTemperature.h>
 #endif  /* TEMP_SENSOR */
+
+#define TEMPDEVS 1
+DeviceAddress tempDev[TEMPDEVS] =
+{
+ {0x28, 0xB8, 0x50, 0x9B, 0x06, 0x00, 0x00, 0x89
+};
 
 #if DHT_SENSOR
 #include <DHT.h>
