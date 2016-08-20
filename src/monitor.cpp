@@ -239,6 +239,9 @@ static int putx(char c, FILE *stream)
 }
 #endif	/* ! PRINTF */
 
+unsigned char getnum();
+int val;
+
 const char *argConv(const __FlashStringHelper *s)
 {
  PGM_P p = reinterpret_cast <PGM_P> (s);
@@ -781,6 +784,10 @@ void cmdLoop()
      printf("humidity read failure\n");
    }
 #endif  /* DNT_SENSOR */
+   else if (ch == 'r')
+   {
+
+   }
 #if TEMP_SENSOR
    else if (ch == 'f')
    {
@@ -1551,3 +1558,94 @@ int adcRead(char pin)
 #endif
 
 #endif  /* CURRENT_MONITOR */
+
+unsigned char getnum()
+{
+ char ch;			/* input character */
+ char chbuf[MAXDIG];		/* input digit buffer */
+ unsigned char chidx;		/* input character index */
+ unsigned char count;		/* input character count */
+ char neg;			/* negative flag */
+ char hex;			/* hex flag */
+
+ neg = 0;
+ hex = 0;
+ val = 0;
+ chidx = 0;
+ count = 0;
+ while (1)
+ {
+  ch = getChar();
+  if ((ch >= '0')
+  &&  (ch <= '9'))
+  {
+   if (chidx < MAXDIG)
+   {
+    putx(ch);
+    chbuf[chidx] = ch - '0';
+    chidx++;
+   }
+  }
+  else if ((ch >= 'a')
+  &&       (ch <= 'f'))
+  {
+   if (chidx < MAXDIG)
+   {
+    hex = 1;
+    putx(ch);
+    chbuf[chidx] = ch - 'a' + 10;
+    chidx++;
+   }
+  }
+  else if ((ch == 8)
+       ||  (ch == 127))
+  {
+   if (chidx > 0)
+   {
+    --chidx;
+    putx(8);
+    putx(' ');
+    putx(8);
+   }
+  }
+  else if ((ch == 13)
+       ||  (ch == ' '))
+  {
+   if (hex)
+   {
+    while (count < chidx)
+    {
+     val = (val << 4) + chbuf[count];
+     count++;
+    }
+   }
+   else
+   {
+    while (count < chidx)
+    {
+     val = val * 10 + chbuf[count];
+     count++;
+    }
+   }
+   if (neg)
+    val = -val;
+   return(count);
+  }
+  else if (chidx == 0)
+  {
+   if (ch == '-')
+   {
+    putx(ch);
+    neg = 1;
+   }
+   else if (ch == 'x')
+   {
+    putx(ch);
+    hex = 1;
+   }
+  }
+  else
+   printf("%d ",ch);
+ }
+}
+
