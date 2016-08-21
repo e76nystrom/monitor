@@ -156,8 +156,8 @@ float printTemperature(DeviceAddress deviceAddress);
 #if ARDUINO_AVR_MEGA2560
 #define DHTPIN 3
 #if DEHUMIDIFIER
-#define DEHUM_ON_PIN 8
-#define DEHUM_OFF_PIN 9
+#define DEHUM_ON_PIN 9
+#define DEHUM_OFF_PIN 8
 #endif	/* DEHUMIDIFIER */
 #endif	/* ARDUINO_AVR_MEGA2560 */
 
