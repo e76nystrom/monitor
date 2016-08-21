@@ -789,7 +789,6 @@ void cmdLoop()
    {
     if (getNum())
     {
-     int i;
      if (val == 0)
      {
       printf("turn relay off\n");
