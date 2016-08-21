@@ -519,6 +519,8 @@ void setup()
  pinMode(DEHUM_ON_PIN, OUTPUT);
  pinMode(DEHUM_OFF_PIN, OUTPUT);
  digitalWrite(DEHUM_ON_PIN, LOW);
+ digitalWrite(DEHUM_OFF_PIN, HIGH);
+ delay(100);
  digitalWrite(DEHUM_OFF_PIN, LOW);
 #endif	/* DEHUMIDIFIER */
 #endif	/* DHT_SENSOR */
