@@ -544,7 +544,7 @@ void setup()
 
  t = millis();
  ch = 0;
- printf("F3(\nany char for cmd mode..."));
+ printf(F3("\nany char for cmd mode..."));
  while ((unsigned long) (millis() - t) < 5000)
  {
   wdt_reset();
@@ -949,7 +949,7 @@ void loopTemp()
  printTemp(dhtHumidity);
  newLine();
 #if DEHUMIDIFIER
- printf(F3("dehumState %d dehumDelay %d\n", dehumState, dehumDelay);
+ printf(F3("dehumState %d dehumDelay %d\n"), dehumState, dehumDelay);
  if (dehumState)		// if dehumidifer on
  {
   if (dhtHumidity <= dehumOff)	// if humidity below turn off point
