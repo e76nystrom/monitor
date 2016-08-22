@@ -156,6 +156,7 @@ float printTemperature(DeviceAddress deviceAddress);
 #if ARDUINO_AVR_MEGA2560
 #define DHTPIN 3
 #if DEHUMIDIFIER
+void switchRelay(char pin);
 #define DEHUM_ON_PIN 9
 #define DEHUM_OFF_PIN 8
 #endif	/* DEHUMIDIFIER */
@@ -500,7 +501,7 @@ void setup()
 #endif
 
  if (DBG)
-  printf("starting 1\n");
+  printf(F3("starting 1\n"));
 
 #if TEMP_SENSOR
  sensors.begin();
@@ -519,14 +520,12 @@ void setup()
  pinMode(DEHUM_ON_PIN, OUTPUT);
  pinMode(DEHUM_OFF_PIN, OUTPUT);
  digitalWrite(DEHUM_ON_PIN, LOW);
- digitalWrite(DEHUM_OFF_PIN, HIGH);
- delay(100);
- digitalWrite(DEHUM_OFF_PIN, LOW);
+ switchRelay(DEHUM_OFF_PIN);
 #endif	/* DEHUMIDIFIER */
 #endif	/* DHT_SENSOR */
 
 #if 1
- printf("flush %x\n", wifiAvail());
+ printf(F3("flush %x\n"), wifiAvail());
  while (wifiAvail())
  {
   wdt_reset();
@@ -545,7 +544,7 @@ void setup()
 
  t = millis();
  ch = 0;
- printf("\nany char for cmd mode...");
+ printf("F3(\nany char for cmd mode..."));
  while ((unsigned long) (millis() - t) < 5000)
  {
   wdt_reset();
@@ -597,7 +596,7 @@ void setup()
 void cmdLoop()
 {
  wdt_disable();
- printf("command loop\n");
+ printf(F3("command loop\n"));
  while (1)
  {
   if (DBGPORT.available())
@@ -609,12 +608,12 @@ void cmdLoop()
     break;
    else if (ch == '?')
    {
-    printf("monitor.cpp\n");
+    printf(F3("monitor.cpp\n"));
    }
 #if CURRENT_SENSOR
    else if (ch == 'e')
    {
-    printf("chan: ");
+    printf(F3("chan: "));
     len = readStr(stringBuffer, sizeof(stringBuffer) - 1);
     unsigned char chan = 0;
     if (len != 0)
@@ -624,9 +623,9 @@ void cmdLoop()
       chan = ADCCHANS - 1;
     }
     P_CURRENT p = &iData[chan];
-    printf("value: ");
+    printf(F3("value: "));
     char len = readStr(stringBuffer, sizeof(stringBuffer) - 1);
-    printf("iTime %ld len %d cState %d\n", p->iTime, len, cState);
+    printf(F3("iTime %ld len %d cState %d\n"), p->iTime, len, cState);
     if (len != 0)
     {
      p->lastIRms1 = p->lastIRms0;
@@ -642,26 +641,26 @@ void cmdLoop()
    }
    else if (ch == 'T')
    {
-    printf("isr: ");
+    printf(F3("isr: "));
     char len = readStr(stringBuffer, sizeof(stringBuffer) - 1);
     initCurrent(len);
    }
    else if (ch == 'I')
    {
     char tmp[12];
-    printf("vcc %d\n", vcc);
+    printf(F3("vcc %d\n"), vcc);
     for (unsigned char i = 0; i < ADCCHANS; i++)
     {
      P_CURRENT p = &iData[i];
-     printf("iRms %s\n", dtostrf(p->iRms, 4, 2, tmp));
-     printf("iRatio %s\n", dtostrf(p->iRatio, 8, 6, tmp));
-     printf("node %d count %d sent %d adc %02x\n",
+     printf(F3("iRms %s\n"), dtostrf(p->iRms, 4, 2, tmp));
+     printf(F3("iRatio %s\n"), dtostrf(p->iRatio, 8, 6, tmp));
+     printf(F3("node %d count %d sent %d adc %02x\n"),
 	    p->node, p->count, p->sent, p->adc);
      if (p->iTime != 0)
      {
       printTime(p->iTime);
-      printf("lastIRms0 %s\n", dtostrf(p->lastIRms0, 4, 2, tmp));
-      printf("offset %s\n", dtostrf(p->offsetI, 4, 2, tmp));
+      printf(F3("lastIRms0 %s\n"), dtostrf(p->lastIRms0, 4, 2, tmp));
+      printf(F3("offset %s\n"), dtostrf(p->offsetI, 4, 2, tmp));
       p->iTime = 0;
      }
     }
@@ -773,17 +772,17 @@ void cmdLoop()
      float t = dht.readTemperature(true);
      if (!isnan(t))
      {
-      printf("temp ");
+      printf(F3("temp "));
       printTemp(t);
-      printf(" F humidity ");
+      printf(F3(" F humidity "));
       printTemp(h);
-      printf("\n");
+      newLine();
      }
      else
-      printf("temp read failure\n");
+      printf(F3("temp read failure\n"));
     }
     else
-     printf("humidity read failure\n");
+     printf(F3("humidity read failure\n"));
    }
 #endif  /* DNT_SENSOR */
 #if DEHUMIDIFIER
@@ -793,17 +792,13 @@ void cmdLoop()
     {
      if (val == 0)
      {
-      printf("turn relay off\n");
-      digitalWrite(DEHUM_OFF_PIN, HIGH);
-      delay(100);
-      digitalWrite(DEHUM_OFF_PIN, LOW);
+      printf(F3("turn relay off\n"));
+      switchRelay(DEHUM_OFF_PIN);
      }
      else
      {
-      printf("turn relay on\n");
-      digitalWrite(DEHUM_ON_PIN, HIGH);
-      delay(100);
-      digitalWrite(DEHUM_ON_PIN, LOW);
+      printf(F3("turn relay on\n"));
+      switchRelay(DEHUM_ON_PIN);
      }
     }
    }
@@ -819,9 +814,9 @@ void cmdLoop()
     for (unsigned char i = 0; i < TEMPDEVS; i++)
     {
      float temp = sensors.getTempF(tempDev[i]);
-     printf("temp ");
+     printf(F3("temp "));
      DBGPORT.print(temp);
-     printf("F\n");
+     printf(F3("F\n"));
     }
    }
    else if (ch == 'g')
@@ -901,9 +896,14 @@ void loop()
   loopCount = 0;		// reset to beginning
 }
 
+#if DEHUMIDIFIER
 void switchRelay(char pin)
- {
- }
+{
+ digitalWrite(pin, HIGH); // turn dehumidifier off
+ delay(100);
+ digitalWrite(pin, LOW); // turn dehumidifier off
+}
+#endif
 
 void loopTemp()
 {
@@ -925,7 +925,7 @@ void loopTemp()
    --count;
    if (count == 0)
    {
-    printf("Error getting temperature\n");
+    printf(F3("Error getting temperature sensor %d\n"), i);
     t = lastTemp[i];
     break;
    }
@@ -943,12 +943,13 @@ void loopTemp()
 #if DHT_SENSOR
  float dhtHumidity = dht.readHumidity();
  float dhtTemp = dht.readTemperature(true);
- printf("temp ");
+ printf(F3("temp "));
  printTemp(dhtTemp);
- printf(" F humidity ");
+ printf(F3(" F humidity "));
  printTemp(dhtHumidity);
- printf("\n");
+ newLine();
 #if DEHUMIDIFIER
+ printf(F3("dehumState %d dehumDelay %d\n", dehumState, dehumDelay);
  if (dehumState)		// if dehumidifer on
  {
   if (dhtHumidity <= dehumOff)	// if humidity below turn off point
@@ -958,9 +959,8 @@ void loopTemp()
     if (--dehumDelay == 0)	// if counts down to zero
     {
      dehumState = 0;		// set state to off
-     digitalWrite(DEHUM_OFF_PIN, HIGH); // turn dehumidifier off
-     delay(100);
-     digitalWrite(DEHUM_OFF_PIN, LOW); // turn dehumidifier off
+     switchRelay(DEHUM_OFF_PIN);
+     printf(F3("dehumidifier off\n"));
     }
    }
    else				// if timer not active
@@ -982,9 +982,8 @@ void loopTemp()
     if (--dehumDelay == 0)	// if counts down to zero
     {
      dehumState = 1;		// set state to off
-     digitalWrite(DEHUM_ON_PIN, HIGH); // turn dehumidifier on
-     delay(100);
-     digitalWrite(DEHUM_ON_PIN, LOW); // turn dehumidifier on
+     switchRelay(DEHUM_ON_PIN); // turn dehumidifier on
+     printf(F3("dehumidifier on\n"));
     }
    }
    else				// if timer not active
@@ -1126,7 +1125,7 @@ void procAlarm(P_INPUT water, boolean inp)
    }
   }
  }
- printf("procAlarm done\n");
+ printf(F3("procAlarm done\n"));
 }
 
 char notify(int alarm, boolean val)
@@ -1254,16 +1253,16 @@ float printTemperature(DeviceAddress deviceAddress)
   --count;
   if (count == 0)
   {
-   printf("Error getting temperature\n");
+   printf(F3("Error getting temperature\n"));
    return(DEVICE_DISCONNECTED_F);
   }
  }
- printf("sensor ");
+ printf(F3("sensor "));
  printTemp(temp);
- printf(" C ");
+ printf(F3(" C "));
  temp = DallasTemperature::toFahrenheit(temp);
  printTemp(temp);
- printf(" F\n");
+ printf(F3(" F\n"));
  return(temp);
 }
 
@@ -1293,12 +1292,12 @@ float rtcTemp()
 {
  int val = RTC.temperature();
  float degC = val / 4.0;
- printf("rtc temp ");
+ printf(F3("rtc temp "));
  printTemp(degC);
- printf(" C ");
+ printf(F3(" C "));
  float degF = (degC * 9.0) / 5.0 + 32.0;
  printTemp(degF);
- printf(" F\n");
+ printf(F3(" F\n"));
  return(degF);
 }
 
@@ -1325,10 +1324,10 @@ void findAddresses(void)
  byte i;
  byte addr[8];
   
- printf("Looking for 1-Wire devices\n");
+ printf(F3("Looking for 1-Wire devices\n"));
  while(oneWire.search(addr))
  {
-  printf("Found one wire device with address: \n");
+  printf(F3("Found one wire device with address: \n"));
   for( i = 0; i < 8; i++)
   {
    printf("0x%02x", addr[i]);
@@ -1339,11 +1338,11 @@ void findAddresses(void)
   }
   if (OneWire::crc8(addr, 7) != addr[7])
   {
-   printf("CRC is not valid!\n");
+   printf(F3("CRC is not valid!\n"));
    return;
   }
  }
- printf("done\n");
+ printf(F3("done\n"));
  oneWire.reset_search();
  return;
 }
@@ -1385,7 +1384,7 @@ void initCurrent(char isr)
   pinMode(8, OUTPUT);		// ph5
   pinMode(9, OUTPUT);		// ph6
   pinMode(17, OUTPUT);		// pd4
-  printf("attach interrupt\n");
+  printf(F3("attach interrupt\n"));
   digitalWrite(7, HIGH);
   Timer3.attachInterrupt(timer3, 1000000L / 600);
   digitalWrite(7, LOW);
@@ -1396,13 +1395,13 @@ void printCurrent()
 {
  char tmp[10];
 
- printf("iVcc %d\n", vcc);
+ printf(F3("iVcc %d\n"), vcc);
  for (unsigned char i = 0; i < ADCCHANS; i++)
  {
   P_CURRENT p = &iData[i];
 //  printf("iRatio %s\n", dtostrf(p->iRatio, 8, 6, tmp));
 //  printf("iCal %s\n", dtostrf(p->iCal, 8, 6, tmp));
-  printf("iRms %s\n", dtostrf(p->iRms, 4, 2, tmp));
+  printf(F3("iRms %s\n"), dtostrf(p->iRms, 4, 2, tmp));
   if (p->iTime != 0)
    printTime(p->iTime);
    
@@ -1410,7 +1409,7 @@ void printCurrent()
   if (abs(p->iRms - p->lastIRms) > .05)
   {
    p->lastIRms = p->iRms;
-   printf("iRms %s\n", dtostrf(p->iRms, 4, 2, tmp));
+   printf(F3("iRms %s\n"), dtostrf(p->iRms, 4, 2, tmp));
   }
  }
 }
