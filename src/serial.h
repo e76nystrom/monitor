@@ -20,8 +20,9 @@ extern SoftwareSerial dbgPort;
 #define DBGPORT Serial
 #endif
 
-#if ARDUINO_AVR_PRO
 const char *argConv(const __FlashStringHelper *s);
+
+#if ARDUINO_AVR_PRO
 //#define F0(x) ((const char *) F(x))
 #define F0(x) x
 #define F1(x) x
@@ -33,7 +34,8 @@ const char *argConv(const __FlashStringHelper *s);
 #define F0(x) x
 #define F1(x) x
 #define F2(x) x
-#define F3(x) x
+#define F3(x) argConv(F(x))
+//#define F3(x) x
 #endif
 
 #ifdef WIN32
