@@ -901,6 +901,10 @@ void loop()
   loopCount = 0;		// reset to beginning
 }
 
+void switchRelay(char pin)
+ {
+ }
+
 void loopTemp()
 {
 #if TEMP_SENSOR
