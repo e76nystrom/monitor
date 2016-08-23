@@ -515,8 +515,8 @@ void setup()
 #if DHT_SENSOR
  dht.begin();
 #if DEHUMIDIFIER
- dehumOn = 52.0;
- dehumOff = 50.0;
+ dehumOn = 63.0;
+ dehumOff = 60.5;
  pinMode(DEHUM_ON_PIN, OUTPUT);
  pinMode(DEHUM_OFF_PIN, OUTPUT);
  digitalWrite(DEHUM_ON_PIN, LOW);
