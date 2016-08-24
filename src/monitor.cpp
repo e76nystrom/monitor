@@ -748,9 +748,9 @@ void cmdLoop()
     if (status == 0)
     {
      RTC.set(now());
-     printTime(RTC.get());
-     setSyncProvider(RTC.get);
     }
+    printTime(RTC.get());
+    setSyncProvider(RTC.get);
 #endif  /* RTC_CLOCK */
     printTime();
    }
