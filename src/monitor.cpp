@@ -533,6 +533,20 @@ void setup()
 
  printf("id %s\n", id);
 
+ char retry = 3;
+ while (1)
+ {
+  char result = wifiJoin();
+  if (result)
+   break;
+  --retry;
+  if (retry <= 0)
+  {
+   retry = 3;
+   wifiReset();
+  }
+ }
+
 #if DBG
  unsigned long t = millis();
  while ((unsigned long) (millis() - t) < 1000)
