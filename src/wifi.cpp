@@ -864,7 +864,7 @@ char wifiJoin()
  strcpy(cmdBuffer, "AT+CWJAP=\"");
  readEE(stringBuffer, SSID_LOC, SSID_LEN);
  strcat(cmdBuffer, stringBuffer);
- strcat(cmdBuffer, "\", \"");
+ strcat(cmdBuffer, "\",\"");
  readEE(stringBuffer, PASS_LOC, PASS_LEN);
  strcat(cmdBuffer, stringBuffer);
  strcat(cmdBuffer, "\"");
