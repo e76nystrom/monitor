@@ -221,7 +221,7 @@ char *dnsDecode(char *buffer, int len, char *ip)
   p += sizeof(int32_t);		// skip time to live
   int16_t ansLen;
   p = ntohsCpy(p, &ansLen);	// read length
-//  printf("dnsType %d dnsClass %d ansLen %d\n", dnsType, dnsClass, ansLen);
+  printf(F3("dnsType %d dnsClass %d ansLen %d\n"), dnsType, dnsClass, ansLen);
   if ((dnsType == TYPE_A)	// if correct type
   &&  (dnsClass == CLASS_IN))
   {
