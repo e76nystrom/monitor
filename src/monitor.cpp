@@ -554,6 +554,7 @@ void setup()
   if (DBGPORT.available())
   {
    ch = DBGPORT.read();
+   newLine();
    break;
   }
  }
