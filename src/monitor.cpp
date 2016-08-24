@@ -451,6 +451,7 @@ void setup()
  if (DBG)
   printf(F3("\nstarting 0\n"));
 
+ wifiInitSio();			// enable wifi serial port
  pinMode(WIFI_RESET, OUTPUT);	// set wifi reset pin to output
  digitalWrite(WIFI_RESET, HIGH); // set it high
  delay(10);			// short wait
@@ -477,7 +478,6 @@ void setup()
  water1.index = 1;
 #endif  /* WATER_MONITOR */
 
- wifiInitSio();
  memset(&serverIP, 0, sizeof(serverIP));
  memset(&ntpIP, 0, sizeof(ntpIP));
  failCount = 0;
