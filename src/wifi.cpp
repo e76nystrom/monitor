@@ -348,27 +348,28 @@ char *sendData(const char *ip, int port, const char *data,
  if (DBG)
   printf(F0("sendData %d %s\n"), cmdLen, data);
 
+ char *p = 0;
  sprintf((char *) cmdBuffer, F0("AT+CIPSTART=4,\"TCP\",\"%s\",%d"), ip, port);
- wifiWriteStr(cmdBuffer, 4000);
-
- sprintf((char *) cmdBuffer, F0("AT+CIPSEND=4,%d"), cmdLen);
- wifiStartData((char *) cmdBuffer, strlen(cmdBuffer), 1000);
-
- int dataLen = 0;
- char *p = wifiWriteTCPx((char *) data, cmdLen, &dataLen, timeout);
-
- if (p != 0)
+ if (wifiWriteStr(cmdBuffer, 4000))
  {
-  if (find(p, (char *) F0(",CLOSED")) < 0)
+  sprintf((char *) cmdBuffer, F0("AT+CIPSEND=4,%d"), cmdLen);
+  wifiStartData((char *) cmdBuffer, strlen(cmdBuffer), 1000);
+
+  int dataLen = 0;
+  p = wifiWriteTCPx((char *) data, cmdLen, &dataLen, timeout);
+
+  if (p != 0)
   {
-   wifiClose(4, 1000);
+   if (find(p, (char *) F0(",CLOSED")) < 0)
+   {
+    wifiClose(4, 1000);
+   }
+
+   *(p + dataLen) = 0;
+   if (DBG)
+    printf(F0("\nlength %d dataLen %d %s\n"), len, dataLen, p);
   }
-
-  *(p + dataLen) = 0;
-  if (DBG)
-   printf(F0("\nlength %d dataLen %d %s\n"), len, dataLen, p);
  }
-
  return(p);
 }
 
