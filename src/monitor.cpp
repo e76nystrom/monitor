@@ -604,14 +604,14 @@ void cmdLoop()
    char ch = DBGPORT.read();
    DBGPORT.write(ch);
    newLine();
-   if (ch == 'x')
+   if (ch == 'x')		// exit command loop
     break;
    else if (ch == '?')
    {
     printf(F3("monitor.cpp\n"));
    }
 #if CURRENT_SENSOR
-   else if (ch == 'e')
+   else if (ch == 'e')		// read a to d converter
    {
     printf(F3("chan: "));
     len = readStr(stringBuffer, sizeof(stringBuffer) - 1);
@@ -634,18 +634,18 @@ void cmdLoop()
      printTime(p->iTime);
     }
    }
-   else if (ch == 'C')
+   else if (ch == 'C')		// run current check code
    {
     printCurrent();
     currentCheck();
    }
-   else if (ch == 'T')
+   else if (ch == 'T')		// setup current sensor isr
    {
     printf(F3("isr: "));
     char len = readStr(stringBuffer, sizeof(stringBuffer) - 1);
     initCurrent(len);
    }
-   else if (ch == 'I')
+   else if (ch == 'I')		// print current results
    {
     char tmp[12];
     printf(F3("vcc %d\n"), vcc);
@@ -667,14 +667,14 @@ void cmdLoop()
    }
 #endif  /* CURRENT_SENSOR */
 #if ARDUINO_ARCH_AVR
-   else if (ch == 'w')
+   else if (ch == 'w')		// write ssid and password to eeprom
    {
     char flag = updateEE("ssid", SSID_LOC, SSID_LEN);
     flag |= updateEE("pass", PASS_LOC, PASS_LEN);
     if (flag)
      writeSumEE();
    }
-   else if (ch == 'i')
+   else if (ch == 'i')		// write unit id to eeprom
    {
     char flag = updateEE("id", ID_LOC,ID_LEN);
     if (flag)
@@ -689,20 +689,20 @@ void cmdLoop()
     printf("%lx\n", tmp);
    }
 #if WATER_MONITOR
-   else if (ch == 'L')
+   else if (ch == 'L')		// loop water
    {
     loopWater();
    }
 #endif  /* WATER_MONITOR */
-   else if (ch == 'j')
+   else if (ch == 'j')		// join wifi
    {
     wifiJoin();
    }
-   else if (ch == 'o')
+   else if (ch == 'o')		// send at
    {
     wifiWriteStr("AT", 1000);
    }
-   else if (ch == 'l')
+   else if (ch == 'l')		// list access points
    {
     wifiWriteStr("AT+CWLAP", 3000);
    }
@@ -714,15 +714,15 @@ void cmdLoop()
    {
     wifiWriteStr("AT+CIFSR", 1000);
    }
-   else if (ch == 'u')
+   else if (ch == 'u')		// start udp connection
    {
     wifiWriteStr("AT+CIPSTART=\"UDP\",\"129.6.15.28\",123", 3000);
    }
-   else if (ch == 'm')
+   else if (ch == 'm')		// wifi mux
    {
     wifiMux();
    }
-   else if (ch == 't')
+   else if (ch == 't')		// start tcp connection
    {
     wifiWriteStr("AT+CIPSTART=4,\"TCP\",\"184.106.153.149\",80", 4000);
    }
@@ -730,7 +730,7 @@ void cmdLoop()
    {
     wifiClose(4, 15000);
    }
-   else if (ch == 'c')
+   else if (ch == 'c')		// enter wifi command
    {
     printf(F3("enter command\n"));
     char len = readStr(dataBuffer, sizeof(dataBuffer));
@@ -743,7 +743,7 @@ void cmdLoop()
      newLine();
     }
    }
-   else if (ch == 'd')
+   else if (ch == 'd')		// set time from ntp
    {
     nextSetTime = 0;
     char status = ntpSetTime();
@@ -758,13 +758,13 @@ void cmdLoop()
     printTime();
    }
 #if RTC_CLOCK
-   else if (ch == 'v')
+   else if (ch == 'v')		// read rtc temp
    {
     rtcTemp();
    }
 #endif  /* RTC_CLOCK */
 #if DHT_SENSOR
-   else if (ch == 'h')
+   else if (ch == 'h')		// read humidity sensor
    {
     float h = dht.readHumidity();
     if (!isnan(h))
@@ -786,7 +786,7 @@ void cmdLoop()
    }
 #endif  /* DNT_SENSOR */
 #if DEHUMIDIFIER
-   else if (ch == 'r')
+   else if (ch == 'r')		// set dehumidifier relay
    {
     if (getNum())
     {
@@ -804,11 +804,11 @@ void cmdLoop()
    }
 #endif
 #if TEMP_SENSOR
-   else if (ch == 'f')
+   else if (ch == 'f')		// find temp sensor addresses
    {
     findAddresses();
    }
-   else if (ch == 'y')
+   else if (ch == 'y')		// read temp sensors
    {
     sensors.requestTemperatures();
     for (unsigned char i = 0; i < TEMPDEVS; i++)
