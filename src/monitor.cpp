@@ -206,11 +206,11 @@ int dehumDelay;			/* on or off delay counter */
 #include <stdio.h>
 
 #define INITEE 1		/* init eeprom values on boot */
-#define LOCAL 0			/* use local server */
+#define LOCAL 1			/* use local server */
 
 #if LOCAL
 #define SERVER "10.0.0.2"
-#define TCPPORT 8181
+#define TCPPORT 8080
 #define HOST "10.0.0.2"
 #define SITE
 #else
