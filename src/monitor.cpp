@@ -533,7 +533,6 @@ void setup()
 
  printf("id %s\n", id);
 
-#if 0
  char retry = 3;
  while (1)
  {
@@ -550,7 +549,6 @@ void setup()
    wifiMux();			// set to mux mode
   }
  }
-#endif
 
 #if DBG
  unsigned long t = millis();
