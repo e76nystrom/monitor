@@ -590,7 +590,7 @@ void wifiReset()
  char retry = 5;
  while (--retry >= 0)
  {
-  delay(500);
+  delay(1000);
   if (wifiWriteStr(F2("AT"), 1000))
    break;
  }
