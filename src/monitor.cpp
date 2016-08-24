@@ -504,7 +504,7 @@ void setup()
 #endif
 
  if (DBG)
-  printf(F3("starting 1\n"));
+  printf(F3("\nstarting 1\n"));
 
 #if TEMP_SENSOR
  sensors.begin();
