@@ -451,10 +451,13 @@ void setup()
  if (DBG)
   printf(F3("\nstarting 0\n"));
 
- pinMode(WIFI_RESET, OUTPUT);
- digitalWrite(WIFI_RESET, HIGH);
- delay(200);
- wifiReset();
+ pinMode(WIFI_RESET, OUTPUT);	// set wifi reset pin to output
+ digitalWrite(WIFI_RESET, HIGH); // set it high
+ delay(10);			// short wait
+
+ wifiReset();			// reset wifi
+ wifiCWMode();			// set correct cw mode
+ wifiMux();			// set to mux mode
 
 #if WATER_MONITOR
  pinMode(LED, OUTPUT);
@@ -575,10 +578,6 @@ void setup()
  printf("id %s\n", id);
 
  wifiWriteStr("AT", 1000);	// send command to wifi
-
- wifiCWMode();			// set correct cw mode
- 
- wifiMux();			// set to mux mode
 
  ntpSetTime();			// look up ntp time
 
