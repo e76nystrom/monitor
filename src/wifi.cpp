@@ -985,7 +985,7 @@ char *wifiWriteTCPx(char *s, int size,
     len++;
     if (len > (unsigned int) size) // if past message echo
     {
-//     printf("%d %02x %c\n",rspNum,ch,ch);
+     printf("%d %02x %c\n",rspNum,ch,ch);
      switch (rspNum)
      {
      case 0:
