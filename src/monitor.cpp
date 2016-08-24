@@ -527,17 +527,6 @@ void setup()
 #endif	/* DEHUMIDIFIER */
 #endif	/* DHT_SENSOR */
 
-#if 1
- printf(F3("flush %x\n"), wifiAvail());
- while (wifiAvail())
- {
-  wdt_reset();
-  ch = wifiGetc();
-  putx('.');
- }
- putx('1');
-#endif
-
 #if ARDUINO_ARCH_AVR
  readEE(id, ID_LOC, ID_LEN);
 #endif
