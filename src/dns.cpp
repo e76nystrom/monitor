@@ -105,6 +105,10 @@ char dnsLookup(char *buf, char *hostName)
  {
   ip = dnsDecode(p, dataLen, (char *) stringBuffer); /* decode dns */
  }
+ else
+ {
+  printf(F3("**dns no data returned\n"));
+ }
 
  wifiWriteStr(F2("AT+CIPCLOSE=3"), 1000);
 
@@ -242,6 +246,7 @@ char *dnsDecode(char *buffer, int len, char *ip)
    }
    else				// if not correct answer
    {
+    printf(F3("dns incorrect type %x class %x\n", dnsType, dnsClass);
     ip = 0;
    }
    break;
