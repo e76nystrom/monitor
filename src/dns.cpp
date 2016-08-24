@@ -247,7 +247,7 @@ char *dnsDecode(char *buffer, int len, char *ip)
    }
    else				// if not correct answer
    {
-    printf(F3("dns incorrect type %x class %x\n", dnsType, dnsClass);
+    printf(F3("dns incorrect type %x class %x\n"), dnsType, dnsClass);
     ip = 0;
    }
    break;
