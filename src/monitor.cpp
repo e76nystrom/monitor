@@ -538,6 +538,12 @@ void setup()
  putx('1');
 #endif
 
+#if ARDUINO_ARCH_AVR
+ readEE(id, ID_LOC, ID_LEN);
+#endif
+
+ printf("id %s\n", id);
+
 #if DBG
  unsigned long t = millis();
  while ((unsigned long) (millis() - t) < 1000)
@@ -558,12 +564,6 @@ void setup()
    break;
   }
  }
-
-#if ARDUINO_ARCH_AVR
- readEE(id, ID_LOC, ID_LEN);
-#endif
-
- printf("id %s\n", id);
 
  if (ch != 0)
  {
