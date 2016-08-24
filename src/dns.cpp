@@ -206,7 +206,7 @@ char *dnsDecode(char *buffer, int len, char *ip)
    if (ch > 0)			// if len positive
     p += ch;
   }
-  else				// if points somewhere eles
+  else				// if points somewhere else
   {
    p++;				// skip over value
   }
