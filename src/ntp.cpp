@@ -66,8 +66,13 @@ char ntpSetTime()
  if (millis() > nextSetTime)
  {
   char status = 0;
-  wifiMux();
-  dnsLookup(ntpIP, (char *) "pool.ntp.org");
+  for (char retry = 0; retry < 3; retry++)
+  {
+   char result = dnsLookup(ntpIP, (char *) "pool.ntp.org");
+   if (result
+   || (ntpIp[0] != 0))
+    break;
+  }
 
   if (ntpIP[0] != 0)
   {
