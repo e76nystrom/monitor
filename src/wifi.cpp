@@ -583,6 +583,7 @@ void wifiReset()
   printf(F3("flushing wifi input\n"));
  while (wifiAvail())
  {
+  wdt_reset();
   char ch = wifiGetc();
   if (ch != 0)
    putChar(ch);
@@ -590,7 +591,7 @@ void wifiReset()
  char retry = 5;
  while (--retry >= 0)
  {
-  delay(1000);
+  delay(200);
   if (wifiWriteStr(F2("AT"), 1000))
    break;
  }
