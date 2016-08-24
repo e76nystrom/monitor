@@ -1029,7 +1029,7 @@ char *wifiWriteTCPx(char *s, int size,
        rspNum = 4;
        if (ok)
        {
-	timeout = millis() + 100;
+	timeout = millis() + 250;
 	rspNum = 6;
        }
       }
