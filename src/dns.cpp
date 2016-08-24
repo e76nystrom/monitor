@@ -202,7 +202,7 @@ char *dnsDecode(char *buffer, int len, char *ip)
  while ((ch = *p++) != 0)	// skip over name
   p += ch;
  p += 2 * sizeof(int16_t); 	// skip over type and class
- printf(F3("dns answerCount %d\n", answerCount);
+ printf(F3("dns answerCount %d\n"), answerCount);
  while (--answerCount >= 0)	// while answers to process
  {
   ch = *p++;			// read length
