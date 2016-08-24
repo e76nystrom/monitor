@@ -559,26 +559,17 @@ void setup()
   }
  }
 
+#if ARDUINO_ARCH_AVR
+ readEE(id, ID_LOC, ID_LEN);
+#endif
+
+ printf("id %s\n", id);
+
  if (ch != 0)
  {
   cmdLoop();
  }
 #endif /* DBG */
-
-#if ARDUINO_ARCH_AVR
- readEE(id, ID_LOC, ID_LEN);
-#endif
-
-#if 0
- if (strnlen(id, ID_LEN) == 0)
- {
-  wifiGetIP(id);
- }
-#endif
-
- printf("id %s\n", id);
-
- wifiWriteStr("AT", 1000);	// send command to wifi
 
  ntpSetTime();			// look up ntp time
 
