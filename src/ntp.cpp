@@ -70,7 +70,7 @@ char ntpSetTime()
   {
    char result = dnsLookup(ntpIP, (char *) "pool.ntp.org");
    if (result
-   || (ntpIp[0] != 0))
+   || (ntpIP[0] != 0))
     break;
   }
 
