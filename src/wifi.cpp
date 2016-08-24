@@ -584,7 +584,7 @@ void wifiReset()
  while (wifiAvail())
  {
   char ch = wifiGetc();
-  if (ch == 0)
+  if (ch != 0)
    putChar(ch);
  }
  char retry = 5;
@@ -593,7 +593,7 @@ void wifiReset()
   delay(500);
   if (wifiWriteStr(F2("AT"), 1000))
    break;
-}
+ }
 }
 
 void wifiInitSio()
