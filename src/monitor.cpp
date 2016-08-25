@@ -338,7 +338,7 @@ void tsData(char *data);
 #define TS_KEY "86Z0KTDYLEC28FU3"
 #endif
 
-void emonData(char *data);
+char emonData(char *data);
 
 #if RTC_CLOCK
 float rtcTemp();
