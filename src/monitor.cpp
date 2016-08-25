@@ -1183,6 +1183,9 @@ char sendHTTP(char *data)
    }
   }
  }
+ PORTG |= _BV(PG0);
+ delay(2);
+ PORTG &= ~_BV(PG0);
 
  if (failCount >= 3)
  {
