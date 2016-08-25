@@ -577,9 +577,13 @@ void setup()
  }
 #endif /* DBG */
 
- ntpSetTime();			// look up ntp time
+ char status = ntpSetTime();	// look up ntp time
 
 #if RTC_CLOCK
+ if (status)			// if valid time found
+ {
+  RTC.set(now());		// set the clock
+ }
  setSyncProvider(RTC.get);	// set rtc to provide clock time
 #endif
 
@@ -745,7 +749,7 @@ void cmdLoop()
     nextSetTime = 0;
     char status = ntpSetTime();
 #if RTC_CLOCK
-    if (status == 0)
+    if (status)
     {
      RTC.set(now());
     }
