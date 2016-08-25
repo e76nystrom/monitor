@@ -529,6 +529,8 @@ void setup()
  pinMode(WIFI_RESET, OUTPUT);	// set wifi reset pin to output
  digitalWrite(WIFI_RESET, HIGH); // set it high
  delay(10);			// short wait
+ pinMode(51, OUTPUT);		// pg0
+ pinMode(52, OUTPUT);		// pg1
 
  wifiReset();			// reset wifi
 
@@ -1299,6 +1301,9 @@ char emonData(char *data)
   failCount = 0;
   return(1);
  }
+ PORTG |= _BV(PG0);
+ delay(2);
+ PORTG &= ~_BV(PG0);
 
  if (failCount >= 3)
  {
