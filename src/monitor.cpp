@@ -1286,13 +1286,31 @@ void tsData(char *data)
 }
 #endif
 
-void emonData(char *data)
+char emonData(char *data)
 {
  sprintf((char *) dataBuffer,
 	 "get /emoncms/input/post.json?%s"
 	 "&apikey=" EMONCMS_KEY "\n",
 	 data);
- sendData("192.168.1.111", (const char *) dataBuffer);
+ char *p = sendData("192.168.1.111", (const char *) dataBuffer);
+ if (p != 0)
+ {
+  failCount = 0;
+  return(1)
+ }
+
+ if (failCount >= 3)
+ {
+  failCount = 0;
+  printf(F3("**reset wifi\n"));
+  wifiReset();
+ }
+ else
+ {
+  failCount += 1;
+  printf(F3("**send failure %d\n"), failCount);
+ }
+ return(0);
 }
 
 #if RTC_CLOCK
