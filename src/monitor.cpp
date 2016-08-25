@@ -1296,7 +1296,7 @@ char emonData(char *data)
  if (p != 0)
  {
   failCount = 0;
-  return(1)
+  return(1);
  }
 
  if (failCount >= 3)
