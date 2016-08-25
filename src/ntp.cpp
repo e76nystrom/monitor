@@ -127,14 +127,15 @@ char ntpSetTime()
      status = 1;
     }
     wifiClose(3, 1000);
-   }
-   if (status)
-    break;
-   else
-   {
-    nextSetTime = millis() + (10UL * 60UL * 1000UL);
-    if (DBG)
-     printf(F0("**err time not set\n"));
+    if (status)
+     break;
+    else
+    {
+     nextSetTime = millis() + (10UL * 60UL * 1000UL);
+     if (DBG)
+      printf(F0("**err time not set\n"));
+    }
+    delay(100);
    }
   }
   return(status);
