@@ -452,13 +452,6 @@ void setup()
  if (DBG)
   printf(F3("\nstarting 0\n"));
 
- wifiInitSio();			// enable wifi serial port
- pinMode(WIFI_RESET, OUTPUT);	// set wifi reset pin to output
- digitalWrite(WIFI_RESET, HIGH); // set it high
- delay(10);			// short wait
-
- wifiReset();			// reset wifi
-
 #if WATER_MONITOR
  pinMode(LED, OUTPUT);
  pinMode(WATER0, INPUT);
@@ -531,6 +524,13 @@ void setup()
 #endif
 
  printf("id %s\n", id);
+
+ wifiInitSio();			// enable wifi serial port
+ pinMode(WIFI_RESET, OUTPUT);	// set wifi reset pin to output
+ digitalWrite(WIFI_RESET, HIGH); // set it high
+ delay(10);			// short wait
+
+ wifiReset();			// reset wifi
 
  char retry = 3;
  while (1)
