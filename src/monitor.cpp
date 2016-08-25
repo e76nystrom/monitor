@@ -527,6 +527,7 @@ void setup()
 
  pinMode(51, OUTPUT);		// pg0
  pinMode(52, OUTPUT);		// pg1
+ PORTG &= ~(_BV(PG0) | _BV(PG1));
 
  PORTG |= _BV(PG0);
  delay(2);
