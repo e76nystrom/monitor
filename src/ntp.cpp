@@ -122,18 +122,16 @@ char ntpSetTime()
 
     setTime(epoch);
     nextSetTime = millis() + (24UL * 60UL * 60UL * 1000UL);
-   }
-   else
-   {
-    nextSetTime = millis() + (10UL * 60UL * 1000UL);
-    if (DBG)
-     printf(F0("**err time not set\n"));
     status = 1;
    }
    wifiClose(3,1000);
   }
-  else
-   status = 1;
+  if (status == 0)
+  {
+   nextSetTime = millis() + (10UL * 60UL * 1000UL);
+   if (DBG)
+    printf(F0("**err time not set\n"));
+  }
   return(status);
  }
  return(0);
