@@ -76,61 +76,66 @@ char ntpSetTime()
 
   if (ntpIP[0] != 0)
   {
-   sprintf((char *) cmdBuffer, F0("AT+CIPSTART=3,\"UDP\",\"%s\",123"), ntpIP);
-   wifiWriteStr(cmdBuffer, 3000);
-
-   memset(dataBuffer, 0, NTP_PACKET_SIZE);
-   // Initialize values needed to form NTP request
-   // (see URL above for details on the packets)
-   dataBuffer[0] = 0b11100011; // LI, Version, Mode
-   dataBuffer[1] = 0; // Stratum, or type of clock
-   dataBuffer[2] = 6; // Polling Interval
-   dataBuffer[3] = 0xEC; // Peer Clock Precision
-   // 8 bytes of zero for Root Delay & Root Dispersion
-   dataBuffer[12] = 49;
-   dataBuffer[13] = 0x4E;
-   dataBuffer[14] = 49;
-   dataBuffer[15] = 52;
-
-   newLine();
-   int timeLen = NTP_PACKET_SIZE;
-
-   sprintf((char *) cmdBuffer, "AT+CIPSEND=3,%d", timeLen);
-   wifiStartData((char *) cmdBuffer, strlen(cmdBuffer), 1000);
-
-   int dataLen;
-   wifiWriteTCPx((char *) dataBuffer, timeLen, &dataLen, 5000);
-   newLine();
-
-   if (0)
-    printBuf();
-
-   int pos = findData(timeLen, &dataLen);
-   if (pos >= 0)
+   for (retry = 0; return < 3; retry++)
    {
-    char *p = (char *) &packetRsp[pos + 40];
-    time_t val = 0;
-    for (int i = 0; i < 4; i++)
+    sprintf((char *) cmdBuffer, F0("AT+CIPSTART=3,\"UDP\",\"%s\",123"), ntpIP);
+    wifiWriteStr(cmdBuffer, 3000);
+
+    memset(dataBuffer, 0, NTP_PACKET_SIZE);
+    // Initialize values needed to form NTP request
+    // (see URL above for details on the packets)
+    dataBuffer[0] = 0b11100011; // LI, Version, Mode
+    dataBuffer[1] = 0; // Stratum, or type of clock
+    dataBuffer[2] = 6; // Polling Interval
+    dataBuffer[3] = 0xEC; // Peer Clock Precision
+    // 8 bytes of zero for Root Delay & Root Dispersion
+    dataBuffer[12] = 49;
+    dataBuffer[13] = 0x4E;
+    dataBuffer[14] = 49;
+    dataBuffer[15] = 52;
+
+    newLine();
+    int timeLen = NTP_PACKET_SIZE;
+
+    sprintf((char *) cmdBuffer, "AT+CIPSEND=3,%d", timeLen);
+    wifiStartData((char *) cmdBuffer, strlen(cmdBuffer), 1000);
+
+    int dataLen;
+    wifiWriteTCPx((char *) dataBuffer, timeLen, &dataLen, 5000);
+    newLine();
+
+    if (0)
+     printBuf();
+
+    int pos = findData(timeLen, &dataLen);
+    if (pos >= 0)
     {
-     val <<= 8;
-     val += *p++ & 0xff;
-    }
+     char *p = (char *) &packetRsp[pos + 40];
+     time_t val = 0;
+     for (int i = 0; i < 4; i++)
+     {
+      val <<= 8;
+      val += *p++ & 0xff;
+     }
 //  printf("time %ld %lx\n", val, val);
  
-    const time_t seventyYears = 2208988800UL;
-    time_t epoch = val - seventyYears;
+     const time_t seventyYears = 2208988800UL;
+     time_t epoch = val - seventyYears;
 
-    setTime(epoch);
-    nextSetTime = millis() + (24UL * 60UL * 60UL * 1000UL);
-    status = 1;
+     setTime(epoch);
+     nextSetTime = millis() + (24UL * 60UL * 60UL * 1000UL);
+     status = 1;
+    }
+    wifiClose(3, 1000);
    }
-   wifiClose(3, 1000);
-  }
-  if (status == 0)
-  {
-   nextSetTime = millis() + (10UL * 60UL * 1000UL);
-   if (DBG)
-    printf(F0("**err time not set\n"));
+   if (status)
+    break;
+   else
+   {
+    nextSetTime = millis() + (10UL * 60UL * 1000UL);
+    if (DBG)
+     printf(F0("**err time not set\n"));
+   }
   }
   return(status);
  }
