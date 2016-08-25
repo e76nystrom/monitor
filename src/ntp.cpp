@@ -76,7 +76,7 @@ char ntpSetTime()
 
   if (ntpIP[0] != 0)
   {
-   for (retry = 0; return < 3; retry++)
+   for (char retry = 0; return < 3; retry++)
    {
     sprintf((char *) cmdBuffer, F0("AT+CIPSTART=3,\"UDP\",\"%s\",123"), ntpIP);
     wifiWriteStr(cmdBuffer, 3000);
