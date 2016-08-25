@@ -596,6 +596,8 @@ void wifiReset()
   if (wifiWriteStr(F2("AT"), 1000))
    break;
  }
+ wifiCWMode();			// set correct cw mode
+ wifiMux();			// set to mux mode
 }
 
 void wifiInitSio()
