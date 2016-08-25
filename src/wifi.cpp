@@ -1058,9 +1058,7 @@ char *wifiWriteTCPx(char *s, int size,
      {
       if (cmp(rsp - RSP_ERRLEN, (char *) RSP_ERR, RSP_ERRLEN))
       {
-       PORTG |= _BV(PG0);
        printf("**error\n");
-       PORTG &= ~_BV(PG0);
        rspNum = 6;
        timeout = millis() + 10;
       }
