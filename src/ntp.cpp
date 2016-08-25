@@ -53,11 +53,11 @@ void printTime(time_t t)
  if (DBG)
  {
   tmElements_t tm;
-  breakTime(t,tm);
+  breakTime(t, tm);
 
   printf(F0("%02d/%02d/%d %2d:%02d:%02d\n"),
-	 tm.Month,tm.Day,tmYearToCalendar(tm.Year),
-	 tm.Hour,tm.Minute,tm.Second);
+	 tm.Month, tm.Day, tmYearToCalendar(tm.Year),
+	 tm.Hour, tm.Minute, tm.Second);
  }
 }
 
@@ -76,8 +76,8 @@ char ntpSetTime()
 
   if (ntpIP[0] != 0)
   {
-   sprintf((char *) cmdBuffer,F0("AT+CIPSTART=3,\"UDP\",\"%s\",123"),ntpIP);
-   wifiWriteStr(cmdBuffer,3000);
+   sprintf((char *) cmdBuffer, F0("AT+CIPSTART=3,\"UDP\",\"%s\",123"), ntpIP);
+   wifiWriteStr(cmdBuffer, 3000);
 
    memset(dataBuffer, 0, NTP_PACKET_SIZE);
    // Initialize values needed to form NTP request
@@ -95,17 +95,17 @@ char ntpSetTime()
    newLine();
    int timeLen = NTP_PACKET_SIZE;
 
-   sprintf((char *) cmdBuffer,"AT+CIPSEND=3,%d",timeLen);
-   wifiStartData((char *) cmdBuffer,strlen(cmdBuffer),1000);
+   sprintf((char *) cmdBuffer, "AT+CIPSEND=3,%d", timeLen);
+   wifiStartData((char *) cmdBuffer, strlen(cmdBuffer), 1000);
 
    int dataLen;
-   wifiWriteTCPx((char *) dataBuffer,timeLen,&dataLen,5000);
+   wifiWriteTCPx((char *) dataBuffer, timeLen, &dataLen, 5000);
    newLine();
 
-   if (DBG)
+   if (0)
     printBuf();
 
-   int pos = findData(timeLen,&dataLen);
+   int pos = findData(timeLen, &dataLen);
    if (pos >= 0)
    {
     char *p = (char *) &packetRsp[pos + 40];
@@ -115,7 +115,7 @@ char ntpSetTime()
      val <<= 8;
      val += *p++ & 0xff;
     }
-//  printf("time %ld %lx\n",val,val);
+//  printf("time %ld %lx\n", val, val);
  
     const time_t seventyYears = 2208988800UL;
     time_t epoch = val - seventyYears;
@@ -124,7 +124,7 @@ char ntpSetTime()
     nextSetTime = millis() + (24UL * 60UL * 60UL * 1000UL);
     status = 1;
    }
-   wifiClose(3,1000);
+   wifiClose(3, 1000);
   }
   if (status == 0)
   {
