@@ -525,12 +525,17 @@ void setup()
 
  printf("id %s\n", id);
 
+ pinMode(51, OUTPUT);		// pg0
+ pinMode(52, OUTPUT);		// pg1
+
+ PORTG |= _BV(PG0);
+ delay(2);
+ PORTG &= ~_BV(PG0);
+
  wifiInitSio();			// enable wifi serial port
  pinMode(WIFI_RESET, OUTPUT);	// set wifi reset pin to output
  digitalWrite(WIFI_RESET, HIGH); // set it high
  delay(10);			// short wait
- pinMode(51, OUTPUT);		// pg0
- pinMode(52, OUTPUT);		// pg1
 
  wifiReset();			// reset wifi
 
