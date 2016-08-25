@@ -1295,7 +1295,7 @@ char emonData(char *data)
  char *p = sendData("192.168.1.111", (const char *) dataBuffer);
  if (p != 0)
  {
-  print("%s\n", p);
+  printf("%s\n", p);
   failCount = 0;
   return(1);
  }
