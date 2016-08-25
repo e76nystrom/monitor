@@ -619,7 +619,7 @@ void cmdLoop()
    {
     if (getNum())
     {
-     char tmp = PORTG;
+     unsigned char tmp = PORTG;
      PORTG = (char) val;
      printf("F3(portg %x %x\n"), tmp, PORTG);
     }
