@@ -86,7 +86,6 @@ EXT char dnsBuffer[64];
 
 char dnsLookup(char *buf, char *hostName)
 {
- wifiMux();
  wifiWriteStr(F2("AT+CIPSTART=3,\"UDP\",\"" DNS_IP "\"," DNS_PORT), 3000);
  int dnsLen = dnsMsg(dnsBuffer, sizeof(dnsBuffer), hostName);
  if (DBG)
