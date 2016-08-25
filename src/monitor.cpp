@@ -544,8 +544,6 @@ void setup()
    retry = 3;
    wifiReset();
    delay(500);
-   wifiCWMode();		// set correct cw mode
-   wifiMux();			// set to mux mode
   }
  }
 
