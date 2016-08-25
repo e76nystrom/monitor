@@ -458,8 +458,6 @@ void setup()
  delay(10);			// short wait
 
  wifiReset();			// reset wifi
- wifiCWMode();			// set correct cw mode
- wifiMux();			// set to mux mode
 
 #if WATER_MONITOR
  pinMode(LED, OUTPUT);
