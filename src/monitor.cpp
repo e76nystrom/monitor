@@ -1191,7 +1191,7 @@ char sendHTTP(char *data)
  else
  {
   failCount += 1;
-  printf(F3("**send failure %d\n"), failCount);
+  printf(F3("**http send failure %d\n"), failCount);
  }
  return(0);
 }
@@ -1308,7 +1308,7 @@ char emonData(char *data)
  else
  {
   failCount += 1;
-  printf(F3("**send failure %d\n"), failCount);
+  printf(F3("**emoncms send failure %d\n"), failCount);
  }
  return(0);
 }
