@@ -621,7 +621,7 @@ void cmdLoop()
     {
      unsigned char tmp = PORTG;
      PORTG = (char) val;
-     printf("F3(portg %x %x\n"), tmp, PORTG);
+     printf(F3("portg %x %x\n"), tmp, PORTG);
     }
    }
 #if CURRENT_SENSOR
