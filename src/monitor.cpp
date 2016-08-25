@@ -352,6 +352,7 @@ int loopCount;
 #define T1SEC (1000)		// one second interval
 #define TEMP_COUNT (0)		// temp reading interval number
 #define WATER_COUNT (1)		// water alarm interval number
+#define NTP_COUNT (3)		// time setting
 #define LOOP_MAX (6)		// max number of intervals
 
 #if CURRENT_SENSOR
@@ -578,7 +579,6 @@ void setup()
 #endif /* DBG */
 
  char status = ntpSetTime();	// look up ntp time
-
 #if RTC_CLOCK
  if (status)			// if valid time found
  {
@@ -884,6 +884,7 @@ void loop()
  {
   loopTemp();
  }
+
 #if WATER_MONITOR
  if (loopCount == WATER_COUNT) // if time to check water alarm
  {
@@ -891,6 +892,17 @@ void loop()
   loopWater();			/* loop processing */
  }
 #endif
+
+ if (loopCount == NTP_COUNT)	// if time to set time
+ {
+  char status = ntpSetTime();
+#if RTC_CLOCK
+  if (status)
+  {
+   RTC.set(now());
+  }
+#endif
+ }
 
  loopCount++;			// update loop counter
  if (loopCount >= LOOP_MAX)	// if at maximum
