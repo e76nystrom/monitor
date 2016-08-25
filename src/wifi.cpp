@@ -344,6 +344,7 @@ char *sendData(const char *ip, const char *data, unsigned long timeout)
 char *sendData(const char *ip, int port, const char *data,
 	       unsigned long timeout)
 {
+ wifiMux();			// in case device restarted
  int cmdLen = strlen((const char *) data);
  if (DBG)
   printf(F0("sendData %d %s\n"), cmdLen, data);
