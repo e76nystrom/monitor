@@ -886,7 +886,7 @@ void loop()
  }
 
 #if WATER_MONITOR
- if (loopCount == WATER_COUNT) // if time to check water alarm
+ if (loopCount == WATER_COUNT)	// if time to check water alarm
  {
   digitalWrite(LED, LOW); 	/* turn off led */
   loopWater();			/* loop processing */
@@ -897,9 +897,9 @@ void loop()
  {
   char status = ntpSetTime();
 #if RTC_CLOCK
-  if (status)
+  if (status)			// if good reading
   {
-   RTC.set(now());
+   RTC.set(now());		// set the clock
   }
 #endif
  }
@@ -912,9 +912,9 @@ void loop()
 #if DEHUMIDIFIER
 void switchRelay(char pin)
 {
- digitalWrite(pin, HIGH); // turn dehumidifier off
+ digitalWrite(pin, HIGH);	// turn relay on
  delay(100);
- digitalWrite(pin, LOW); // turn dehumidifier off
+ digitalWrite(pin, LOW);	// turn relay off
 }
 #endif
 
