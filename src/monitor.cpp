@@ -326,7 +326,7 @@ void loopWater();
 void alarmPoll();
 void procAlarm(P_INPUT water, boolean inp);
 char notify(int alarm, boolean val);
-void checkIn();
+char checkIn();
 char sendHTTP(char *data);
 #endif  /* WATER_MONITOR */
 
@@ -1144,7 +1144,7 @@ char notify(int alarm, boolean val)
  return(sendHTTP(dataBuffer));
 }
 
-void checkIn()
+char checkIn()
 {
  char state = 0;
  if (water0.state == STATE_ALARM)
@@ -1153,7 +1153,7 @@ void checkIn()
   state |= 2;
  sprintf((char *) dataBuffer,
 	 F0("GET " SITE "/check?id=%s&st=%d"), id, state);
- sendHTTP(dataBuffer);
+ return(sendHTTP(dataBuffer));
 }
 
 #define HTTP " HTTP/1.1\r\n\
