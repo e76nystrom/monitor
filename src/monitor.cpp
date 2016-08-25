@@ -615,6 +615,15 @@ void cmdLoop()
    {
     printf(F3("monitor.cpp\n"));
    }
+   else if (ch == 'p')
+   {
+    if (getNum())
+    {
+     char tmp = PORTG;
+     PORTG = (char) val;
+     printf("F3(portg %x %x\n"), tmp, PORTG);
+    }
+   }
 #if CURRENT_SENSOR
    else if (ch == 'e')		// read a to d converter
    {
