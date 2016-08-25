@@ -861,7 +861,6 @@ void wifiQuit()
 
 char wifiJoin()
 {
- wifiCWMode();
 #if ARDUINO_ARCH_AVR
  strcpy(cmdBuffer, "AT+CWJAP=\"");
  readEE(stringBuffer, SSID_LOC, SSID_LEN);
