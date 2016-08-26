@@ -1061,7 +1061,7 @@ char *wifiWriteTCPx(char *s, int size,
       {
        printf("**error\n");
        rspNum = 6;
-       timeout = millis() + 10;
+       timeout = millis() + 2000;
       }
      }
     }
