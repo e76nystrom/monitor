@@ -365,7 +365,7 @@ char *sendData(const char *ip, int port, const char *data,
 
   if (p != 0)
   {
-   if (find(p, (char *) F0(",CLOSED")) < 0)
+   if (find(p, (char *) F1(",CLOSED")) < 0)
    {
     wifiClose(4, 1000);
    }
@@ -638,7 +638,7 @@ int getVal(char *p, int offset, int *rtnVal, int size)
 int findData(int cmdLen, int *dataLen)
 {
  *dataLen = 0;
- int pos = find((char *) packetRsp, (char *) F0("+IPD,"), cmdLen, (int) len);
+ int pos = find((char *) packetRsp, (char *) F1("+IPD,"), cmdLen, (int) len);
  if (pos >= 0)
  {
   pos = find((char *) packetRsp, (char *) ",", pos, (int) len);
@@ -929,7 +929,7 @@ char *wifiGetIP(char *buf)
  wifiWriteStr(F2("AT+CIFSR"), 1000);
 
  char *dst = buf;
- int pos = find((char *) packetRsp, (char *) F0("STAIP,\""), 0, (int) len);
+ int pos = find((char *) packetRsp, (char *) F1("STAIP,\""), 0, (int) len);
  if (pos > 0)
  {
   char *p = (char *) &packetRsp[pos];
