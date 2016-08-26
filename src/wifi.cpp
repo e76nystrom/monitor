@@ -917,7 +917,7 @@ char wifiWrite(const __FlashStringHelper *s, int size, unsigned long timeout)
  return(result);
 }
 
-#endif	// ARDUINO_AVR_PRO
+#endif	// ARDUINO_AVR_AVR
 
 void wifiMux()
 {
