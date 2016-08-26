@@ -405,16 +405,16 @@ void putx(char c);
 char updateEE(const char *prompt, char eeLoc, char eeLen)
 {
  printf(F3("%s"), prompt);
- readEE(stringBuffer, eeLoc, eeLen);
- printf(F3(" %s "), stringBuffer);
- memset(stringBuffer, 0, eeLen);
- char len = readStr(stringBuffer, eeLen);
+ readEE(cmdBuffer, eeLoc, eeLen);
+ printf(F3(" %s "), cmdBuffer);
+ memset(cmdBuffer, 0, eeLen);
+ char len = readStr(cmdBuffer, eeLen);
  printf(F3("len %d\n"), len);
  if (len > 0)
  {
   if (len < eeLen)
    len++;
-  char *p = stringBuffer;
+  char *p = cmdBuffer;
   char *dst = id;
   char addr = eeLoc;
   while (--len >= 0)
@@ -628,22 +628,22 @@ void cmdLoop()
    else if (ch == 'e')		// read a to d converter
    {
     printf(F3("chan: "));
-    len = readStr(stringBuffer, sizeof(stringBuffer) - 1);
+    len = readStr(cmdBuffer, sizeof(cmdBuffer) - 1);
     unsigned char chan = 0;
     if (len != 0)
     {
-     chan = atoi(stringBuffer);
+     chan = atoi(cmdBuffer);
      if (chan >= ADCCHANS)
       chan = ADCCHANS - 1;
     }
     P_CURRENT p = &iData[chan];
     printf(F3("value: "));
-    char len = readStr(stringBuffer, sizeof(stringBuffer) - 1);
+    char len = readStr(cmdBuffer, sizeof(cmdBuffer) - 1);
     printf(F3("iTime %ld len %d cState %d\n"), p->iTime, len, cState);
     if (len != 0)
     {
      p->lastIRms1 = p->lastIRms0;
-     p->lastIRms0 = atof(stringBuffer);
+     p->lastIRms0 = atof(cmdBuffer);
      p->iTime = now();
      printTime(p->iTime);
     }
