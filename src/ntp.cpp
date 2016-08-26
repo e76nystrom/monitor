@@ -97,7 +97,7 @@ char ntpSetTime()
     newLine();
     int timeLen = NTP_PACKET_SIZE;
 
-    sprintf((char *) cmdBuffer, "AT+CIPSEND=3,%d", timeLen);
+    sprintf((char *) cmdBuffer, F0("AT+CIPSEND=3,%d"), timeLen);
     wifiStartData((char *) cmdBuffer, strlen(cmdBuffer), 1000);
 
     int dataLen;
@@ -117,7 +117,7 @@ char ntpSetTime()
       val <<= 8;
       val += *p++ & 0xff;
      }
-//  printf("time %ld %lx\n", val, val);
+//  printf(F0("time %ld %lx\n"), val, val);
  
      const time_t seventyYears = 2208988800UL;
      time_t epoch = val - seventyYears;
