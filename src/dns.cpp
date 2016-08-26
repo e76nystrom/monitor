@@ -87,7 +87,7 @@ char dnsLookup(char *buf, char *hostName)
 {
  wifiMux();			// in case device restarted
  wifiWriteStr(F2("AT+CIPSTART=3,\"UDP\",\"" DNS_IP "\"," DNS_PORT), 3000);
- int dnsLen = dnsMsg(dataBuffer, sizeof(dnsBuffer), hostName);
+ int dnsLen = dnsMsg(dataBuffer, sizeof(dataBuffer), hostName);
  if (DBG)
   printf(F0("\nhost %s dnsLen %d\n"), hostName, dnsLen);
 
