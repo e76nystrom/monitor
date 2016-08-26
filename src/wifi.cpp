@@ -119,9 +119,6 @@ char *sendData(const char *ip, int port, const char *data,
 
 void printBuf();
 char *lc(char *p);
-#ifdef ARDUINO_ARCH_AVR 
-int strlen(const __FlashStringHelper *s);
-#endif
 int find(char *str1, char *str2);
 int find(char *str1, char *str2, int offset, int len1);
 int cmp(char *str1, char *str2, int size);
@@ -129,26 +126,26 @@ int cmp(char *str1, char *str2);
 int findData(int cmdLen, int *datalen);
 int getVal(char *p, int pos, int *rtnVal, int size);
 void getData(char *dst, unsigned int dstSize, char *buf, unsigned int bufSize);
-void wifiInitSio();
 
+#ifdef ARDUINO_ARCH_AVR 
+int strlen(const __FlashStringHelper *s);
+int find(char *str1, const __FlashStringHelper *str2);
+int find(char *str1, const __FlashStringHelper *str2, int offset, int len1);
+int cmp(char *str1, const __FlashStringHelper *str2, int size);
+int cmp(char *str1, const __FlashStringHelper *str2);
+#endif	// ARDUINO_ARCH_AVR
+
+void wifiInitSio();
 void wifiReset();
 #if 0
 char wifiRead();
 #endif
 void wifiClrRx();
-#ifdef ARDUINO_ARCH_AVR 
-void wifiPut(const __FlashStringHelper *s, int size);
-void wifiPut(const __FlashStringHelper *s);
-#endif	// ARDUINO_ARCH_AVR
 void wifiPut(char *s, int size);
 void wifiPut(char *s);
 void wifiTerm();
 char wifiWriteStr(const char *s, unsigned long timeout);
 char wifiWrite(char *s, int size, unsigned long timeout);
-#ifdef ARDUINO_ARCH_AVR 
-char wifiWriteStr(const __FlashStringHelper *s, unsigned long timeout);
-char wifiWrite(const __FlashStringHelper *s, int size, unsigned long timeout);
-#endif	// ARDUINO_ARCH_AVR
 void wifiMux();
 char *wifiGetIP(char *buf);
 void wifiCWMode();
@@ -160,6 +157,13 @@ void wifiStartData(char *s, int size, unsigned long timeout);
 void wifiWriteData(char *s, int size, unsigned long timeout);
 char *wifiWriteTCPx(char *s, int size, int *dataLen, unsigned long timeout);
 void wifiClose(int port, unsigned long timeout);
+
+#ifdef ARDUINO_ARCH_AVR 
+void wifiPut(const __FlashStringHelper *s, int size);
+void wifiPut(const __FlashStringHelper *s);
+char wifiWriteStr(const __FlashStringHelper *s, unsigned long timeout);
+char wifiWrite(const __FlashStringHelper *s, int size, unsigned long timeout);
+#endif	// ARDUINO_ARCH_AVR
 
 #define WIFI_RESET 2
 
@@ -488,6 +492,61 @@ int find(char *str1, char *str2, int offset, int len1)
  return(-1);
 }
 
+#ifdef ARDUINO_ARCH_AVR
+
+int find(char *str1, const __FlashStringHelper *str2)
+{
+ unsigned int len1 = strlen((const char *) str1);
+ unsigned int len2 = strlen((const char *) str2);
+ int offset = 0;
+// printf("find len1 %d len2 %d %s\n", len1, len2, str2);
+ len1 -= len2;
+ if (len1 > 0)
+ {
+  while (--len1 > 0)
+  {
+   if (cmp(str1, str2, len2))
+   {
+//    printf("offset %d\n", offset);
+    return(offset);
+   }
+   str1++;
+   offset++;
+  }
+ }
+// printf("not found\n");
+ return(-1);
+}
+
+int find(char *str1, const __FlashStringHelper *str2, int offset, int len1)
+{
+ int len2 = strlen((const char *) str2);
+// printf("find offset %d len1 %d len2 %d %s\n", offset, len1, len2, str2);
+ str1 += offset;
+ len1 -= offset;
+ len1 -= len2;
+ if (len1 > 0)
+ {
+  while (len1 >= 0)
+  {
+//   printf("%2d %c\n", len1, *str1);
+   if (cmp(str1, str2, len2))
+   {
+    offset += len2;
+//    printf("offset %d\n", offset);
+    return(offset);
+   }
+   str1++;
+   offset++;
+   --len1;
+  }
+ }
+// printf("not found\n");
+ return(-1);
+}
+
+#endif	// ARDUION_ARCH_AVR
+
 int cmp(char *str1, char *str2, int size)
 {
  while (--size >= 0)
@@ -515,6 +574,42 @@ int cmp(char *str1, char *str2)
  }
  return(1);
 }
+
+#ifdef ARDUINO_ARCH_AVR
+
+int cmp(char *str1, const __FlashStringHelper *str2, int size)
+{
+ PGM_P p = reinterpret_cast <PGM_P> (str2);
+ while (--size >= 0)
+ {
+  char ch = pgm_read_byte(p++);
+  if (*str1++ != ch)
+  {
+   return(0);
+  }
+ }
+ return(1);
+}
+
+int cmp(char *str1, const __FlashStringHelper *str2)
+{
+ PGM_P p = reinterpret_cast <PGM_P> (str2);
+ while (1)
+ {
+  char ch = pgm_read_byte(p++);
+  if (*str1 == 0)
+   return(0);
+  if (ch == 0)
+   return(0);
+  if (*str1++ != ch)
+  {
+   return(0);
+  }
+ }
+ return(1);
+}
+
+#endif	// ARDUINO_ARCH_AVR
 
 int getVal(char *p, int offset, int *rtnVal, int size)
 {
