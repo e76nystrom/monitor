@@ -1054,8 +1054,8 @@ char *wifiWriteTCPx(char *s, int size,
       if (cmp(rsp - IPDLEN, (char *) IPD, IPDLEN))
       { 
        rspNum = 1;
+       timeout = millis() + 100;
       }
-      timeout = millis() + 100;
       break;
      }
 
