@@ -404,12 +404,12 @@ void putx(char c);
 
 char updateEE(const char *prompt, char eeLoc, char eeLen)
 {
- printf("%s", prompt);
+ printf(F3("%s"), prompt);
  readEE(stringBuffer, eeLoc, eeLen);
- printf(" %s ", stringBuffer);
+ printf(F3(" %s "), stringBuffer);
  memset(stringBuffer, 0, eeLen);
  char len = readStr(stringBuffer, eeLen);
- printf("len %d\n", len);
+ printf(F3("len %d\n"), len);
  if (len > 0)
  {
   if (len < eeLen)
@@ -523,7 +523,7 @@ void setup()
  readEE(id, ID_LOC, ID_LEN);
 #endif
 
- printf("id %s\n", id);
+ printf(F3("id %s\n"), id);
 
  pinMode(51, OUTPUT);		// pg0
  pinMode(52, OUTPUT);		// pg1
@@ -700,7 +700,7 @@ void cmdLoop()
     long tmp = 0x55aa55aa;
     DBGPORT.print(tmp, 16);
     DBGPORT.println();
-    printf("%lx\n", tmp);
+    printf(F3("%lx\n"), tmp);
    }
 #if WATER_MONITOR
    else if (ch == 'L')		// loop water
@@ -890,7 +890,7 @@ void loop()
  printCurrent();
 #endif
 
- printf("%d ", loopCount);
+ printf(F3("%d "), loopCount);
  printTime();
 
  if (loopCount == TEMP_COUNT)	// if time for temperature reading
@@ -1256,7 +1256,7 @@ void printTemp(float temp)
  int tmp = (int) (temp * 10);
  int deg = tmp / 10;
  int frac = tmp % 10;
- printf("%d.%d", deg, frac);
+ printf(F3("%d.%d"), deg, frac);
 }
 
 char *writeTemp(char *buf, float temp)
@@ -1384,9 +1384,9 @@ void findAddresses(void)
   printf(F3("Found one wire device with address: \n"));
   for( i = 0; i < 8; i++)
   {
-   printf("0x%02x", addr[i]);
+   printf(F3("0x%02x"), addr[i]);
    if (i < 7)
-    printf(", ");
+    printf(F3(", "));
    else
     newLine();
   }
@@ -1493,7 +1493,7 @@ void currentCheck()
      /* format time, node, and current value */
      sprintf(buf, "time=%ld&node=%d&csv=%s",
 	     p->lastTime, p->node, dtostrf(p->iRms, 4, 2, tmp));
-     printf("%s\n", buf);
+     printf(F3("%s\n"), buf);
      emonData(buf);		/* send current data */
     }
     p = 0;
@@ -1520,7 +1520,7 @@ void currentCheck()
    curPSave = 0;		/* clear save pointer */
   }
   printTime();
-  printf("%s\n", buf);
+  printf(F3("%s\n"), buf);
   emonData(buf);		/* send data */
  }
 }
@@ -1724,7 +1724,7 @@ unsigned char getNum()
    }
   }
   else
-   printf("%d ",ch);
+   printf(F3("%d "),ch);
  }
 }
 
