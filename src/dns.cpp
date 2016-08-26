@@ -80,7 +80,6 @@ char *htonsCpy(char *p, int16_t val);
 int dnsMsg(char *buffer, int buflen, char *name);
 char *dnsDecode(char *buffer, int len, char *ip);
 char dnsLookup(char *buf, char *hostName);
-EXT char dnsBuffer[64];
 
 #if !INCLUDE
 
@@ -88,7 +87,7 @@ char dnsLookup(char *buf, char *hostName)
 {
  wifiMux();			// in case device restarted
  wifiWriteStr(F2("AT+CIPSTART=3,\"UDP\",\"" DNS_IP "\"," DNS_PORT), 3000);
- int dnsLen = dnsMsg(dnsBuffer, sizeof(dnsBuffer), hostName);
+ int dnsLen = dnsMsg(dataBuffer, sizeof(dnsBuffer), hostName);
  if (DBG)
   printf(F0("\nhost %s dnsLen %d\n"), hostName, dnsLen);
 
@@ -96,7 +95,7 @@ char dnsLookup(char *buf, char *hostName)
  wifiStartData((char *) cmdBuffer, strlen(cmdBuffer), 1000);
 
  int dataLen;
- char *p = wifiWriteTCPx((char *) dnsBuffer, dnsLen, &dataLen, 3000);
+ char *p = wifiWriteTCPx((char *) dataBuffer, dnsLen, &dataLen, 3000);
  newLine();
 // printBuf();
 
