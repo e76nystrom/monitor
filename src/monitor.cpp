@@ -1177,6 +1177,21 @@ char checkIn()
 Host: " HOST "\r\n\
 Connection: Close\r\n\r\n"
 
+void updateFail()
+{
+ if (failCount >= 3)
+ {
+  failCount = 0;
+  printf(F3("**reset wifi\n"));
+  wifiReset();
+ }
+ else
+ {
+  failCount += 1;
+  printf(F3("**updateFail %d\n"), failCount);
+ }
+}
+
 char sendHTTP(char *data)
 {
 #if LOCAL
@@ -1188,31 +1203,25 @@ char sendHTTP(char *data)
  if (serverIP[0] != 0)
  {
   strcat(data, F3(HTTP));
-  char *p = sendData(serverIP, TCPPORT, data, 10000);
-  if (p != 0)
+  for (char retry = 0; retry < 2; retry++)
   {
-   if (find(lc(p), (char *) F0("*ok*")) >= 0)
+   char *p = sendData(serverIP, TCPPORT, data, 10000);
+   if (p != 0)
    {
-    failCount = 0;
-    return(1);
+    if (find(lc(p), (char *) F0("*ok*")) >= 0)
+    {
+     failCount = 0;
+     return(1);
+    }
    }
+   print(F3("**sendHTTP retry %d\n"), retry);
+   PORTG |= _BV(PG0);
+   delay(2);
+   PORTG &= ~_BV(PG0);
+   delay(500);
   }
  }
- PORTG |= _BV(PG0);
- delay(2);
- PORTG &= ~_BV(PG0);
-
- if (failCount >= 3)
- {
-  failCount = 0;
-  printf(F3("**reset wifi\n"));
-  wifiReset();
- }
- else
- {
-  failCount += 1;
-  printf(F3("**http send failure %d\n"), failCount);
- }
+ updateFail();
  return(0);
 }
 
@@ -1312,28 +1321,22 @@ char emonData(char *data)
 	 "get /emoncms/input/post.json?%s"
 	 "&apikey=" EMONCMS_KEY "\n",
 	 data);
- char *p = sendData("192.168.1.111", (const char *) dataBuffer);
- if (p != 0)
+ for (char retry = 0; retry < 2; retry++)
  {
-  printf("%s\n", p);
-  failCount = 0;
-  return(1);
+  char *p = sendData("192.168.1.111", (const char *) dataBuffer);
+  if (p != 0)
+  {
+   printf(F3("%s\n"), p);
+   failCount = 0;
+   return(1);
+  }
+  print(F3("**emonData retry %d\n"), retry);
+  PORTG |= _BV(PG0);
+  delay(2);
+  PORTG &= ~_BV(PG0);
+  delay(500);
  }
- PORTG |= _BV(PG0);
- delay(2);
- PORTG &= ~_BV(PG0);
-
- if (failCount >= 3)
- {
-  failCount = 0;
-  printf(F3("**reset wifi\n"));
-  wifiReset();
- }
- else
- {
-  failCount += 1;
-  printf(F3("**emoncms send failure %d\n"), failCount);
- }
+ updateFail();
  return(0);
 }
 
