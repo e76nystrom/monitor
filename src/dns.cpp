@@ -103,7 +103,7 @@ char dnsLookup(char *buf, char *hostName)
  char *ip = 0;			/* pointer ip address */
  if (p != 0)			/* if wifi returned result */
  {
-  ip = dnsDecode(p, dataLen, (char *) stringBuffer); /* decode dns */
+  ip = dnsDecode(p, dataLen, (char *) cmdBuffer); /* decode dns */
  }
  else
  {
