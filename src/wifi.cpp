@@ -954,7 +954,7 @@ void wifiWriteData(char *s, int size, unsigned long timeout)
 #define RSP_ERRLEN (sizeof(RSP_ERR) - 1)
 
 #define RSP_FAIL F1("SEND FAIL")
-#define RSP_RAILLEN (sizeof(RSP_FAIL) - 1)
+#define RSP_FAILLEN (sizeof(RSP_FAIL) - 1)
 
 #define CLOSE F1("CLOSED")
 #define CLOSE_LEN (sizeof(CLOSED) - 1)
