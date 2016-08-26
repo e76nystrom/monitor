@@ -1197,7 +1197,7 @@ char sendHTTP(char *data)
 #if LOCAL
  strncpy(serverIP, HOST, sizeof(serverIP));
 #else
- dnsLookup(serverIP, (char *) F0(HOST));
+ dnsLookup(serverIP, (char *) HOST);
 #endif
 
  if (serverIP[0] != 0)
