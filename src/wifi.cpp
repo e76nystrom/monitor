@@ -577,12 +577,12 @@ void getData(char *dst, unsigned int dstSize, char *buf, unsigned int bufSize)
 
 void wifiReset()
 {
- printf(F3("wifiReset\n"));
+ printf(F0("wifiReset\n"));
  digitalWrite(WIFI_RESET, LOW);
  delay(200);
  digitalWrite(WIFI_RESET, HIGH);
  if (DBG)
-  printf(F3("flushing wifi input\n"));
+  printf(F0("flushing wifi input\n"));
  while (wifiAvail())
  {
   wdt_reset();
@@ -1069,7 +1069,7 @@ char *wifiWriteTCPx(char *s, int size,
 
       if (cmp(rsp - RSP_FAILLEN, (char *) RSP_FAIL, RSP_FAILLEN))
       {
-       printf("**fail\n");
+       printf(F0("**fail\n"));
        rspNum = 6;
        timeout = millis() + 10;
       }
