@@ -27,15 +27,14 @@ const char *argConv(const __FlashStringHelper *s);
 #define F0(x) x
 #define F1(x) x
 #define F2(x) F(x)
-#define F3(x) argConv(F(x))
+#define F3(x) argConv(F(x))	/* printf strings */
 #endif
 
 #ifdef ARDUINO_AVR_MEGA2560
 #define F0(x) x
 #define F1(x) x
 #define F2(x) x
-#define F3(x) argConv(F(x))
-//#define F3(x) x
+#define F3(x) argConv(F(x))	/* printf strings */
 #endif
 
 #ifdef WIN32
