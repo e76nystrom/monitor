@@ -1214,7 +1214,7 @@ char sendHTTP(char *data)
      return(1);
     }
    }
-   print(F3("**sendHTTP retry %d\n"), retry);
+   printf(F3("**sendHTTP retry %d\n"), retry);
    PORTG |= _BV(PG0);
    delay(2);
    PORTG &= ~_BV(PG0);
@@ -1330,7 +1330,7 @@ char emonData(char *data)
    failCount = 0;
    return(1);
   }
-  print(F3("**emonData retry %d\n"), retry);
+  printf(F3("**emonData retry %d\n"), retry);
   PORTG |= _BV(PG0);
   delay(2);
   PORTG &= ~_BV(PG0);
