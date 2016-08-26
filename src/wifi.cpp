@@ -163,7 +163,7 @@ void wifiClose(int port, unsigned long timeout);
 
 #define WIFI_RESET 2
 
-EXT char stringBuffer[80];
+EXT char stringBuffer[80];	// buffer for strings made from program data
 EXT char dataBuffer[128];	// buffer for input data
 EXT char packetRsp[384];
 EXT char cmdBuffer[64];
