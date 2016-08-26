@@ -168,9 +168,9 @@ char wifiWrite(const __FlashStringHelper *s, int size, unsigned long timeout);
 #define WIFI_RESET 2
 
 EXT char stringBuffer[80];	// buffer for strings made from program data
-EXT char dataBuffer[128];	// buffer for input data
-EXT char packetRsp[384];
-EXT char cmdBuffer[64];
+EXT char dataBuffer[128];	// buffer for data sent
+EXT char cmdBuffer[64];		// buffer for command sent
+EXT char packetRsp[384];	// buffer for response
 EXT char *rsp;
 EXT unsigned int len;
 EXT char id[ID_LEN];
