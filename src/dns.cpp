@@ -107,7 +107,7 @@ char dnsLookup(char *buf, char *hostName)
  }
  else
  {
-  printf(F3("**dns no data returned\n"));
+  printf(F0("**dns no data returned\n"));
  }
 
  wifiWriteStr(F2("AT+CIPCLOSE=3"), 1000);
@@ -122,7 +122,7 @@ char dnsLookup(char *buf, char *hostName)
   return(1);
  }
  else				/* if failure */
-  printf(F3("**dns fail using %s\n"), buf);
+  printf(F0("**dns fail using %s\n"), buf);
 
  return(0);
 }
@@ -202,7 +202,7 @@ char *dnsDecode(char *buffer, int len, char *ip)
  while ((ch = *p++) != 0)	// skip over name
   p += ch;
  p += 2 * sizeof(int16_t); 	// skip over type and class
- printf(F3("dns answerCount %d\n"), answerCount);
+ printf(F0("dns answerCount %d\n"), answerCount);
  while (--answerCount >= 0)	// while answers to process
  {
   ch = *p++;			// read length
@@ -222,7 +222,7 @@ char *dnsDecode(char *buffer, int len, char *ip)
   p += sizeof(int32_t);		// skip time to live
   int16_t ansLen;
   p = ntohsCpy(p, &ansLen);	// read length
-  printf(F3("dnsType %d dnsClass %d ansLen %d\n"), dnsType, dnsClass, ansLen);
+  printf(F0("dnsType %d dnsClass %d ansLen %d\n"), dnsType, dnsClass, ansLen);
   if ((dnsType == TYPE_A)	// if correct type
   &&  (dnsClass == CLASS_IN))
   {
@@ -247,7 +247,7 @@ char *dnsDecode(char *buffer, int len, char *ip)
    }
    else				// if not correct answer
    {
-    printf(F3("dns incorrect type %x class %x\n"), dnsType, dnsClass);
+    printf(F0("dns incorrect type %x class %x\n"), dnsType, dnsClass);
     ip = 0;
    }
    break;
