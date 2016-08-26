@@ -59,7 +59,7 @@ void writeSumEE();
 void readEE(char *buf, char addr, char len);
 void writeEE(const char *buf, char addr, char eeLen);
 
-#endif
+#endif	// ARDUINO_ARCH_AVR
 
 #ifdef MEGA32
 
@@ -70,7 +70,7 @@ void writeEE(const char *buf, char addr, char eeLen);
 #define putChar(c) Serial.write(c)
 #define putChar1(c) Serial.write(c)
 
-#endif
+#endif	// MEGA32
 
 #ifdef WIN32
 
@@ -108,7 +108,7 @@ uint32_t millis();
 EXT char ssid[SSID_LEN];
 EXT char pass[PASS_LEN];
 
-#endif	/* WIN32 */
+#endif	// WIN32
 
 void dbgChar(char ch);
 char readStr(char *buf, int bufLen);
@@ -139,7 +139,7 @@ void wifiClrRx();
 #ifdef ARDUINO_ARCH_AVR 
 void wifiPut(const __FlashStringHelper *s, int size);
 void wifiPut(const __FlashStringHelper *s);
-#endif
+#endif	// ARDUINO_ARCH_AVR
 void wifiPut(char *s, int size);
 void wifiPut(char *s);
 void wifiTerm();
@@ -148,7 +148,7 @@ char wifiWrite(char *s, int size, unsigned long timeout);
 #ifdef ARDUINO_ARCH_AVR 
 char wifiWriteStr(const __FlashStringHelper *s, unsigned long timeout);
 char wifiWrite(const __FlashStringHelper *s, int size, unsigned long timeout);
-#endif
+#endif	// ARDUINO_ARCH_AVR
 void wifiMux();
 char *wifiGetIP(char *buf);
 void wifiCWMode();
@@ -236,7 +236,7 @@ void writeEE(const char *buf, char addr, char eeLen)
  }
 }
 
-#endif
+#endif	// ARDUINO_ARCH_AVR
 
 #ifdef WIN32
 
@@ -262,7 +262,7 @@ void readEE(char *buf, char addr, char len)
  *p++ = 0;
 }
 
-#endif
+#endif	// WIN32
 
 #define WIFIBAUDRATE 9600
 
@@ -278,7 +278,7 @@ void putx4(char c)
    ;
   U4TXREG = '\r';
  }
-#endif
+#endif	// MEGA32
 
 #ifdef ARDUINO_ARCH_AVR
  WIFI.write(c);
@@ -286,7 +286,7 @@ void putx4(char c)
  {
   WIFI.write('\r');
  }
-#endif
+#endif	// ARDUINO_ARCH_AVR
 }
 
 char readStr(char *buf, int bufLen)
@@ -403,11 +403,11 @@ void printBuf()
  printf(F0("\n"));
 }
 
-#else
+#else  // DBG
 void printBuf()
 {
 }
-#endif
+#endif	// DBG
 
 #ifdef ARDUINO_ARCH_AVR
 
@@ -421,7 +421,7 @@ int strlen(const __FlashStringHelper *s)
  return(len);
 }
 
-#endif
+#endif	// ARDUINO_ARCH_AVR
 
 char *lc(char *p)
 {
@@ -612,11 +612,11 @@ void wifiInitSio()
  U4STA = 0;
  U4STAbits.URXEN = 1;
  U4STAbits.UTXEN = 1;
-#endif
+#endif	// MEGA32
 
 #ifdef ARDUINO_ARCH_AVR
  WIFI.begin(WIFIBAUDRATE);
-#endif
+#endif	// ARDUINO_ARCH_AVR
 
  }
 
@@ -627,18 +627,18 @@ char wifiRead()
  while (!U4STAbits.URXDA)
   ;
  return(U4RXREG);
-#endif
+#endif	// MEGA32
 
 #ifdef ARDUINO_ARCH_AVR
  int ch;
  while ((ch = WIFI.read()) < 0)
   ;
  return((char) ch);
-#endif
+#endif	// ARDUINO_ARCH_AVR
 
 #ifdef WIN32
  return(sioGetc());
-#endif
+#endif	// WIN32
 }
 #endif
 
@@ -650,7 +650,7 @@ void  wifiClrRx()
 #ifdef MEGA32
  if (U4STAbits.OERR)
   U4STACLR = _U4STA_OERR_MASK;
-#endif
+#endif	// MEGA32
 
  while (wifiAvail())
  {
@@ -714,7 +714,7 @@ void wifiPut(const __FlashStringHelper *s, int size)
  }
 }
 
-#endif
+#endif	// ARDUINO_ARCH_AVR
 
 void wifiTerm()
 {
@@ -779,7 +779,7 @@ char wifiWrite(char *s, int size, unsigned long timeout)
  return(result);
 }
 
-#ifdef ARDUINO_AVR_PRO
+#ifdef ARDUINO_ARCH_AVR
 
 char wifiWriteStr(const __FlashStringHelper *s, unsigned long timeout)
 {
@@ -822,7 +822,7 @@ char wifiWrite(const __FlashStringHelper *s, int size, unsigned long timeout)
  return(result);
 }
 
-#endif
+#endif	// ARDUINO_AVR_PRO
 
 void wifiMux()
 {
@@ -870,7 +870,7 @@ char wifiJoin()
  readEE(stringBuffer, PASS_LOC, PASS_LEN);
  strcat(cmdBuffer, stringBuffer);
  strcat(cmdBuffer, "\"");
-#endif
+#endif	// arduino_ARCH_AVR
 #if MEGA32
 #endif
  return(wifiWrite(cmdBuffer, strlen(cmdBuffer), 8000));
@@ -953,6 +953,9 @@ void wifiWriteData(char *s, int size, unsigned long timeout)
 #define RSP_ERR F1("ERROR")
 #define RSP_ERRLEN (sizeof(RSP_ERR) - 1)
 
+#define RSP_FAIL F1("SEND FAIL")
+#define RSP_RAILLEN (sizeof(RSP_FAIL) - 1)
+
 #define CLOSE F1("CLOSED")
 #define CLOSE_LEN (sizeof(CLOSED) - 1)
 
@@ -992,7 +995,7 @@ char *wifiWriteTCPx(char *s, int size,
      // printf("% d %02x %c\n", rspNum, ch, ch);
      switch (rspNum)
      {
-     case 0:
+     case 0:			// wait for data
       if (cmp(rsp - IPDLEN, (char *) IPD, IPDLEN))
       { 
        rspNum = 1;
@@ -1038,7 +1041,7 @@ char *wifiWriteTCPx(char *s, int size,
       }
       break;
 
-     case 4:
+     case 4:			// read ok
      case 5:
       timeout = millis() + 100;
       if (cmp(rsp - OKLEN, (char *) OK, OKLEN))
@@ -1047,7 +1050,7 @@ char *wifiWriteTCPx(char *s, int size,
       }
       break;
 
-     case 6:
+     case 6:			// wait for data
       if (cmp(rsp - IPDLEN, (char *) IPD, IPDLEN))
       { 
        rspNum = 1;
@@ -1055,13 +1058,21 @@ char *wifiWriteTCPx(char *s, int size,
       timeout = millis() + 100;
       break;
      }
-     if (rspNum != 3)
+
+     if (rspNum != 3)		// if not reading data
      {
       if (cmp(rsp - RSP_ERRLEN, (char *) RSP_ERR, RSP_ERRLEN))
       {
        printf("**error\n");
        rspNum = 6;
        timeout = millis() + 2000;
+      }
+
+      if (cmp(rsp - RSP_FAILLEN, (char *) RSP_FAIL, RSP_FAILLEN))
+      {
+       printf("**fail\n");
+       rspNum = 6;
+       timeout = millis() + 10;
       }
      }
     }
