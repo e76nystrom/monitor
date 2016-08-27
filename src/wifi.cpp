@@ -534,7 +534,7 @@ int find(char *str1, const __FlashStringHelper *str2)
  if (fdbg)
  {
   char *tmp[12];
-  printf("find len1 %d len2 %d %s\n", len1, len2, argConv(str2, tmp));
+  printf("find len1 %d len2 %d %s\n", len1, len2, argConv(str2, (char *) tmp));
  }
  len1 -= len2;
  if (len1 > 0)
@@ -563,7 +563,7 @@ int find(char *str1, const __FlashStringHelper *str2, int offset, int len1)
  {
   char *tmp[12];
   printf("find offset %d len1 %d len2 %d %s\n",
-	 offset, len1, len2, argConv(str2, tmp));
+	 offset, len1, len2, argConv(str2, (char *) tmp));
  }
  str1 += offset;
  len1 -= offset;
