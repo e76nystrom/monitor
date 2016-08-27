@@ -1078,7 +1078,7 @@ void wifiWriteData(char *s, int size, unsigned long timeout)
 
 #define dbg0 1
 #define dbg1 0
-#define dbg2 1
+#define dbg2 0
 
 char *wifiWriteTCPx(char *s, int size, 
 		    int *dataLen, unsigned long timeout)
