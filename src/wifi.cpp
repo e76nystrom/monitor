@@ -737,6 +737,10 @@ void wifiReset()
 
 void wifiInitSio()
 {
+#ifdef ARDUINO_ARCH_AVR
+ WIFI.begin(WIFIBAUDRATE);
+#endif	// ARDUINO_ARCH_AVR
+
 #ifdef MEGA32
  IEC0bits.INT4IE = 0;
  IFS0bits.INT4IF = 0;
@@ -747,11 +751,6 @@ void wifiInitSio()
  U4STAbits.URXEN = 1;
  U4STAbits.UTXEN = 1;
 #endif	// MEGA32
-
-#ifdef ARDUINO_ARCH_AVR
- WIFI.begin(WIFIBAUDRATE);
-#endif	// ARDUINO_ARCH_AVR
-
  }
 
 #if 0
