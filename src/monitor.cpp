@@ -923,12 +923,14 @@ void loop()
 
  if (loopCount == NTP_COUNT)	// if time to set time
  {
-  char status = ntpSetTime();
 #if RTC_CLOCK
+  char status = ntpSetTime();
   if (status)			// if good reading
   {
    RTC.set(now());		// set the clock
   }
+#else
+  ntpSetTime();
 #endif
  }
 
