@@ -646,6 +646,21 @@ void cmdLoop()
    {
     printf(F3("monitor.cpp\n"));
    }
+#if ARDUINO_ARCH_AVR
+   else if (ch == 'w')		// write ssid and password to eeprom
+   {
+    char flag = updateEE("ssid", SSID_LOC, SSID_LEN);
+    flag |= updateEE("pass", PASS_LOC, PASS_LEN);
+    if (flag)
+     writeSumEE();
+   }
+   else if (ch == 'i')		// write unit id to eeprom
+   {
+    char flag = updateEE("id", ID_LOC,ID_LEN);
+    if (flag)
+     writeSumEE();
+   }
+#endif  /* ARDUINO_ARCH_AVR */
 #if ARDUINO_AVR_MEGA2560
    else if (ch == 'p')
    {
@@ -713,21 +728,6 @@ void cmdLoop()
     }
    }
 #endif  /* CURRENT_SENSOR */
-#if ARDUINO_ARCH_AVR
-   else if (ch == 'w')		// write ssid and password to eeprom
-   {
-    char flag = updateEE("ssid", SSID_LOC, SSID_LEN);
-    flag |= updateEE("pass", PASS_LOC, PASS_LEN);
-    if (flag)
-     writeSumEE();
-   }
-   else if (ch == 'i')		// write unit id to eeprom
-   {
-    char flag = updateEE("id", ID_LOC,ID_LEN);
-    if (flag)
-     writeSumEE();
-   }
-#endif  /* ARDUINO_ARCH_AVR */
    else if (ch == 'u')
    {
     long tmp = 0x55aa55aa;
