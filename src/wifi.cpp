@@ -1090,7 +1090,7 @@ char *wifiWriteTCPx(char *s, int size,
   if  (wifiAvail())
   {
    char ch = wifiGetc();
-   dbgChar(ch);
+//   dbgChar(ch);
    if (len < RSPLEN)		// if room in buffer
    {
     *rsp++ = ch;
@@ -1098,7 +1098,7 @@ char *wifiWriteTCPx(char *s, int size,
     len++;
     if (len > (unsigned int) size) // if past message echo
     {
-     // printf("% d %02x %c\n", rspNum, ch, ch);
+     printf("% d %02x %c\n", rspNum, ch, ch);
      switch (rspNum)
      {
      case 0:			// wait for data
