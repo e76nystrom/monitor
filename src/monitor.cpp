@@ -691,7 +691,7 @@ void cmdLoop()
    }
    else if (ch == 'W')		// test watchdog timer
    {
-    printf(F3('test watchdog timer'));
+    printf(F3("test watchdog timer"));
     while (1)
      ;
    }
