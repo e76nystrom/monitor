@@ -90,7 +90,7 @@
 
 SoftwareSerial dbgPort = SoftwareSerial(rxPin, txPin);
 
-#define MONITOR_INDEX 0
+#define MONITOR_INDEX 2
 
 #if (MONITOR_INDEX == 0)
 #define TEMP_SENSOR 0
