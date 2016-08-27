@@ -5,7 +5,7 @@
 #define EMONCMS_KEY "b53ec1abe610c66009b207d6207f2c9e"
 #define TEST_NODE 0
 #define THING_SPEAK 0
-#define MONITOR_INDEX 3
+#define MONITOR_INDEX 4
 
 #if ARDUINO_AVR_MEGA2560
 
