@@ -593,13 +593,15 @@ void setup()
  }
 #endif /* DBG */
 
- char status = ntpSetTime();	// look up ntp time
 #if RTC_CLOCK
+ char status = ntpSetTime();	// look up ntp time
  if (status)			// if valid time found
  {
   RTC.set(now());		// set the clock
  }
  setSyncProvider(RTC.get);	// set rtc to provide clock time
+#else
+ ntpSetTime();			// look up ntp time
 #endif
 
 #if CURRENT_SENSOR
