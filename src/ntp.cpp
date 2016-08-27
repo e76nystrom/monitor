@@ -68,7 +68,7 @@ char ntpSetTime()
   char status = 0;
   for (char retry = 0; retry < 3; retry++)
   {
-   char result = dnsLookup(ntpIP, (char *) "pool.ntp.org");
+   char result = dnsLookup(ntpIP, F0("pool.ntp.org"));
    if (result
    || (ntpIP[0] != 0))
     break;
