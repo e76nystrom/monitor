@@ -1067,6 +1067,10 @@ void wifiWriteData(char *s, int size, unsigned long timeout)
  }
 }
 
+#define dbg0 1
+#define dbg1 0
+#define dbg2 0
+
 char *wifiWriteTCPx(char *s, int size, 
 		    int *dataLen, unsigned long timeout)
 {
@@ -1090,7 +1094,8 @@ char *wifiWriteTCPx(char *s, int size,
   if  (wifiAvail())
   {
    unsigned char ch = wifiGetc();
-   dbgChar(ch);
+   if (dbg0)
+    dbgChar(ch);
    if (len < RSPLEN)		// if room in buffer
    {
     *rsp++ = ch;
@@ -1098,10 +1103,13 @@ char *wifiWriteTCPx(char *s, int size,
     len++;
     if (len > (unsigned int) size) // if past message echo
     {
-     // if (rspNum == 3)
-     //  printf("%d %02x %c %3d\n", rspNum, ch, ch, dLen);
-     // else
-     //  printf("%d %02x %c\n", rspNum, ch, ch);
+     if (dbg1)
+     {
+      if (rspNum == 3)
+       printf("%d %02x %c %3d\n", rspNum, ch, ch, dLen);
+      else
+       printf("%d %02x %c\n", rspNum, ch, ch);
+     }
      switch (rspNum)
      {
      case 0:			// wait for data
@@ -1111,6 +1119,8 @@ char *wifiWriteTCPx(char *s, int size,
       }
       else if (cmp(rsp - OKLEN, OK, OKLEN))
       {
+       if (dbg2)
+	printf("ok set\n");
        ok = 1;
       }
       break;
@@ -1147,7 +1157,8 @@ char *wifiWriteTCPx(char *s, int size,
 	timeout = millis() + 250;
 	rspNum = 6;
        }
-       printf("\ndata done %d\n", rspNum);
+       if (dbg2)
+	printf("\ndata done %d\n", rspNum);
       }
       break;
 
@@ -1157,7 +1168,8 @@ char *wifiWriteTCPx(char *s, int size,
       if (cmp(rsp - OKLEN, OK, OKLEN))
       {
        rspNum++;
-       printf("\nok %d\n", rspNum);
+       if (dbg2)
+	printf("\nok %d\n", rspNum);
       }
       break;
 
