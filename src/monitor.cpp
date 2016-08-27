@@ -1079,6 +1079,7 @@ void loopTemp()
  tsData(buf);
 #endif  /* THING_SPEAK */
 
+#if TEMP_SENSOR | DNT_SENSOR
  p = cpyStr(buf, "node=" EMONCMS_NODE "&csv=");
 #if TEMP_SENSOR
  for (unsigned char i = 0; i < TEMPDEVS; i++)
@@ -1093,6 +1094,7 @@ void loopTemp()
  *p++ = ',';
  writeTemp(p, dhtTemp);		/* output dht sensor temp */
  emonData(buf);
+#endif
 }
 
 #if WATER_MONITOR
