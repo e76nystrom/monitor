@@ -532,7 +532,7 @@ int find(char *str1, const __FlashStringHelper *str2)
  unsigned int len2 = strlen((const char *) str2);
  int offset = 0;
  if (fdbg)
-  printf("find len1 %d len2 %d %s\n", len1, len2, str2);
+  printf("find len1 %d len2 %d %s\n", len1, len2, argConv(str2));
  len1 -= len2;
  if (len1 > 0)
  {
@@ -557,7 +557,8 @@ int find(char *str1, const __FlashStringHelper *str2, int offset, int len1)
 {
  int len2 = strlen((const char *) str2);
  if (fdbg)
-  printf("find offset %d len1 %d len2 %d %s\n", offset, len1, len2, str2);
+  printf("find offset %d len1 %d len2 %d %s\n",
+	 offset, len1, len2, argConv(str2));
  str1 += offset;
  len1 -= offset;
  len1 -= len2;
