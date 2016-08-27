@@ -268,9 +268,10 @@ const char *argConv(const __FlashStringHelper *s)
  return((const char *) stringBuffer);
 }
 
-const char *argConv(const __FlashStringHelper *s, char *dst)
+const char *argConv(const __FlashStringHelper *s, char *buf)
 {
  PGM_P p = reinterpret_cast <PGM_P> (s);
+ char *dst = buf;
  while (1)
  {
   unsigned char c = pgm_read_byte(p++);
@@ -278,7 +279,7 @@ const char *argConv(const __FlashStringHelper *s, char *dst)
   if (c == 0)
    break;
  }
- return((const char *) dst);
+ return((const char *) buf);
 }
 
 #endif  /* ARDUINO_ARCH_AVR */
