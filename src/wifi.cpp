@@ -947,21 +947,21 @@ char *wifiGetIP(char *buf)
 
 void wifiCWMode()
 {
- wifiWriteStr("AT+CWMODE=1", 1000);
+ wifiWriteStr(F2("AT+CWMODE=1"), 1000);
 }
 
 void wifiQuit()
 {
- wifiWriteStr("AT+CWQAP", 1000);
+ wifiWriteStr(F2("AT+CWQAP"), 1000);
 }
 
 char wifiJoin()
 {
 #if ARDUINO_ARCH_AVR
- strcpy(cmdBuffer, "AT+CWJAP=\"");
+ strcpy(cmdBuffer, F3("AT+CWJAP=\""));
  readEE(stringBuffer, SSID_LOC, SSID_LEN);
  strcat(cmdBuffer, stringBuffer);
- strcat(cmdBuffer, "\",\"");
+ strcat(cmdBuffer, F3("\",\""));
  readEE(stringBuffer, PASS_LOC, PASS_LEN);
  strcat(cmdBuffer, stringBuffer);
  strcat(cmdBuffer, "\"");
