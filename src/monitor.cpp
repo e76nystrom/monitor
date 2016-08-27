@@ -87,7 +87,7 @@
 #define WATER_MONITOR 1
 #define DEHUMIDIFIER 0
 #define MONITOR_ID "Monitor4"
-#endif
+#endif	/* MONITOR_INDEX == 4 */
 
 #endif	/* ARDUINO_AVR_PRO */
 
