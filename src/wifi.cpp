@@ -524,12 +524,15 @@ int find(char *str1, const char *str2, int offset, int len1)
 
 #ifdef ARDUINO_ARCH_AVR
 
+#define fdbg 1
+
 int find(char *str1, const __FlashStringHelper *str2)
 {
  unsigned int len1 = strlen((const char *) str1);
  unsigned int len2 = strlen((const char *) str2);
  int offset = 0;
-// printf("find len1 %d len2 %d %s\n", len1, len2, str2);
+ if (fdbg)
+  printf("find len1 %d len2 %d %s\n", len1, len2, str2);
  len1 -= len2;
  if (len1 > 0)
  {
@@ -537,21 +540,24 @@ int find(char *str1, const __FlashStringHelper *str2)
   {
    if (cmp(str1, str2, len2))
    {
-//    printf("offset %d\n", offset);
+    if (fdbg)
+    printf("offset %d\n", offset);
     return(offset);
    }
    str1++;
    offset++;
   }
  }
-// printf("not found\n");
+ if (fdbg)
+  printf("not found\n");
  return(-1);
 }
 
 int find(char *str1, const __FlashStringHelper *str2, int offset, int len1)
 {
  int len2 = strlen((const char *) str2);
-// printf("find offset %d len1 %d len2 %d %s\n", offset, len1, len2, str2);
+ if (fdbg)
+  printf("find offset %d len1 %d len2 %d %s\n", offset, len1, len2, str2);
  str1 += offset;
  len1 -= offset;
  len1 -= len2;
@@ -559,11 +565,13 @@ int find(char *str1, const __FlashStringHelper *str2, int offset, int len1)
  {
   while (len1 >= 0)
   {
-//   printf("%2d %c\n", len1, *str1);
+   if (fdbg)
+    printf("%2d %c\n", len1, *str1);
    if (cmp(str1, str2, len2))
    {
     offset += len2;
-//    printf("offset %d\n", offset);
+    if (fdbg)
+     printf("offset %d\n", offset);
     return(offset);
    }
    str1++;
@@ -571,7 +579,8 @@ int find(char *str1, const __FlashStringHelper *str2, int offset, int len1)
    --len1;
   }
  }
-// printf("not found\n");
+ if (fdbg)
+  printf("not found\n");
  return(-1);
 }
 
