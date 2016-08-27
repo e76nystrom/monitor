@@ -78,7 +78,7 @@
 
 #if ARDUINO_AVR_PRO
 
-extern SoftwareSerial dbgPort;
+SoftwareSerial dbgPort;
 
 #define MONITOR_INDEX 4
 
@@ -1009,6 +1009,7 @@ void loopTemp()
  float rtcTempVal = 0;
 #endif /* RTC_CLOCK */
 
+#if DHT_SENSOR
  float dhtHumidity = dht.readHumidity();
  float dhtTemp = dht.readTemperature(true);
  printf(F3("temp "));
