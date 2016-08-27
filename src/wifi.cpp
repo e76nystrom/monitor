@@ -401,7 +401,7 @@ char *sendData(const char *ip, int port, const char *data,
    }
 
    *(p + dataLen) = 0;
-   if (DBG)
+   if (0)
     printf(F0("\nlength %d dataLen %d %s\n"), len, dataLen, p);
   }
  }
