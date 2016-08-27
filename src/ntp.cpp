@@ -104,7 +104,7 @@ char ntpSetTime()
     wifiWriteTCPx((char *) dataBuffer, timeLen, &dataLen, 5000);
     newLine();
 
-    if (0)
+    if (1)
      printBuf();
 
     int pos = findData(timeLen, &dataLen);
