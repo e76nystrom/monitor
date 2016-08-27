@@ -1,6 +1,7 @@
 #ifdef ARDUINO_ARCH_AVR
 #include <Arduino.h>
 #include <Wire.h>
+#include "serial.h"
 
 #define EMONCMS_KEY "b53ec1abe610c66009b207d6207f2c9e"
 #define TEST_NODE 0
@@ -210,7 +211,6 @@ int dehumDelay;			/* on or off delay counter */
 
 #include "wdt.h"
 #include <Time.h>
-#include "serial.h"
 #include "string.h"
 #include "dns.h"
 #include "ntp.h"
