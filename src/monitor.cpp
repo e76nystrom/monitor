@@ -689,6 +689,12 @@ void cmdLoop()
     if (flag)
      writeSumEE();
    }
+   else if (ch == 'W')		// test watchdog timer
+   {
+    printf(F3('test watchdog timer'));
+    while (1)
+     ;
+   }
 #endif  /* ARDUINO_ARCH_AVR */
 #if ARDUINO_AVR_MEGA2560
    else if (ch == 'p')
