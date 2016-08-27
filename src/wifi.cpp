@@ -1056,7 +1056,7 @@ void wifiWriteData(char *s, int size, unsigned long timeout)
     len++;
     if (len > SEND_OK_LEN)
     {
-     if (cmp(rsp - chklen, SEND_OK, SEND_OK_LEN))
+     if (cmp(rsp - SEND_OK_LEN, SEND_OK, SEND_OK_LEN))
      {
       timeout = millis() + 10;
      }
