@@ -1147,7 +1147,7 @@ char *wifiWriteTCPx(char *s, int size,
 	timeout = millis() + 250;
 	rspNum = 6;
        }
-       printf("\data done %d\n", rspNum);
+       printf("\ndata done %d\n", rspNum);
       }
       break;
 
