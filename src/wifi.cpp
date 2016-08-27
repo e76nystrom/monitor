@@ -671,7 +671,7 @@ int findData(int cmdLen, int *dataLen)
  int pos = find((char *) packetRsp, IPD, cmdLen, (int) len);
  if (pos >= 0)
  {
-  pos = find((char *) packetRsp, (char *) ",", pos, (int) len);
+  pos = find((char *) packetRsp, ",", pos, (int) len);
   if (pos > 0)
   {
    pos = getVal((char *) packetRsp, pos, dataLen, (int) (len - pos));
