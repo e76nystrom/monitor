@@ -1,4 +1,4 @@
-#ifdef ARDUINO_AVR_PRO
+#if ARDUINO_AVR_PRO
 #include <SoftwareSerial.h>
 
 extern SoftwareSerial dbgPort;
