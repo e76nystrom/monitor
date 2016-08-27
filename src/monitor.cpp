@@ -5,9 +5,10 @@
 #define EMONCMS_KEY "b53ec1abe610c66009b207d6207f2c9e"
 #define TEST_NODE 0
 #define THING_SPEAK 0
-#define MONITOR_INDEX 3
 
 #if ARDUINO_AVR_MEGA2560
+
+#define MONITOR_INDEX 3
 
 /* outside temperature */
 
@@ -58,8 +59,6 @@
 #define MONITOR_ID "Monitor4"
 #endif	/* MONITOR_INDEX == 4 */
 
-#endif	/* ARDUINO_AVR_MEGA2560 */
-
 #if TEST_NODE
 
 #undef EMONCMS_NODE
@@ -72,9 +71,13 @@
 #define CURRENT1_NODE 14
 #endif	/* CURRENT_SENSOR */
 
+#endif	/* ARDUINO_AVR_MEGA2560 */
+
 #endif	/* TEST_MODE */
 
 #if ARDUINO_AVR_PRO
+
+#define MONITOR_INDEX 4
 
 #if (MONITOR_INDEX == 4)
 #define TEMP_SENSOR 0
