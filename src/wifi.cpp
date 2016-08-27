@@ -1208,7 +1208,7 @@ void wifiClose(int chan, unsigned long timeout)
     len++;
     if (len > CLOSED_LEN)
     {
-     if (cmp(rsp - chklen, CLOSED, CLOSED_LEN))
+     if (cmp(rsp - CLOSED_LEN, CLOSED, CLOSED_LEN))
      {
       timeout = millis() + 10;
      }
