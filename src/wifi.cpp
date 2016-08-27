@@ -443,20 +443,6 @@ void printBuf()
 }
 #endif	// DBG
 
-#ifdef ARDUINO_ARCH_AVR
-
-int strlen(const __FlashStringHelper *s)
-{
- PGM_P p = reinterpret_cast <PGM_P> (s);
- int len = 0;
- char ch;
- while ((ch = pgm_read_byte(p++)) != 0)
-  len++;
- return(len);
-}
-
-#endif	// ARDUINO_ARCH_AVR
-
 char *lc(char *p)
 {
  char *p0 = p;
@@ -522,9 +508,47 @@ int find(char *str1, const char *str2, int offset, int len1)
  return(-1);
 }
 
+int cmp(char *str1, const char *str2, int size)
+{
+ while (--size >= 0)
+ {
+  if (*str1++ != *str2++)
+  {
+   return(0);
+  }
+ }
+ return(1);
+}
+
+int cmp(char *str1, const char *str2)
+{
+ while (1)
+ {
+  if (*str1 == 0)
+   return(0);
+  if (*str2 == 0)
+   return(0);
+  if (*str1++ != *str2++)
+  {
+   return(0);
+  }
+ }
+ return(1);
+}
+
 #ifdef ARDUINO_ARCH_AVR
 
-#define fdbg 1
+int strlen(const __FlashStringHelper *s)
+{
+ PGM_P p = reinterpret_cast <PGM_P> (s);
+ int len = 0;
+ char ch;
+ while ((ch = pgm_read_byte(p++)) != 0)
+  len++;
+ return(len);
+}
+
+#define fdbg 0
 
 int find(char *str1, const __FlashStringHelper *str2)
 {
@@ -591,38 +615,6 @@ int find(char *str1, const __FlashStringHelper *str2, int offset, int len1)
   printf("not found\n");
  return(-1);
 }
-
-#endif	// ARDUION_ARCH_AVR
-
-int cmp(char *str1, const char *str2, int size)
-{
- while (--size >= 0)
- {
-  if (*str1++ != *str2++)
-  {
-   return(0);
-  }
- }
- return(1);
-}
-
-int cmp(char *str1, const char *str2)
-{
- while (1)
- {
-  if (*str1 == 0)
-   return(0);
-  if (*str2 == 0)
-   return(0);
-  if (*str1++ != *str2++)
-  {
-   return(0);
-  }
- }
- return(1);
-}
-
-#ifdef ARDUINO_ARCH_AVR
 
 int cmp(char *str1, const __FlashStringHelper *str2, int size)
 {
