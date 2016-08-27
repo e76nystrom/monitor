@@ -529,7 +529,7 @@ int find(char *str1, const char *str2, int offset, int len1)
 int find(char *str1, const __FlashStringHelper *str2)
 {
  unsigned int len1 = strlen((const char *) str1);
- unsigned int len2 = strlen((const char *) str2);
+ unsigned int len2 = strlen(str2);
  int offset = 0;
  if (fdbg)
  {
@@ -558,7 +558,7 @@ int find(char *str1, const __FlashStringHelper *str2)
 
 int find(char *str1, const __FlashStringHelper *str2, int offset, int len1)
 {
- int len2 = strlen((const char *) str2);
+ int len2 = strlen(str2);
  if (fdbg)
  {
   char *tmp[12];
