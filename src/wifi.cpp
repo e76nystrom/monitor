@@ -193,7 +193,7 @@ EXT char id[ID_LEN];
 
 #define CLOSED_STR "CLOSED" 
 #define CLOSED F1(CLOSED_STR)
-#define CLOSED_LEN (sizeof(CLOSE_STR) - 1)
+#define CLOSED_LEN (sizeof(CLOSED_STR) - 1)
 
 #define STAIP_STR "STAIP,\""
 #define STAIP F1(STAIP_STR)
@@ -1054,9 +1054,9 @@ void wifiWriteData(char *s, int size, unsigned long timeout)
    {
     *rsp++ = ch;
     len++;
-    if (len > chklen)
+    if (len > SEND_OK_LEN)
     {
-     if (cmp(rsp - chklen, SEND_OK, SEND_OK_LEN)
+     if (cmp(rsp - chklen, SEND_OK, SEND_OK_LEN))
      {
       timeout = millis() + 10;
      }
@@ -1206,7 +1206,7 @@ void wifiClose(int chan, unsigned long timeout)
    {
     *rsp++ = ch;
     len++;
-    if (len > chklen)
+    if (len > CLOSED_LEN)
     {
      if (cmp(rsp - chklen, CLOSED, CLOSED_LEN))
      {
