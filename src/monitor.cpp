@@ -48,6 +48,17 @@
 #define MONITOR_ID "Monitor3"
 #endif	/* MONITOR_INDEX == 3 */
 
+#if (MONITOR_INDEX == 4)
+#define TEMP_SENSOR 0
+#define RTC_CLOCK 0
+#define DHT_SENSOR 0
+#define CURRENT_SENSOR 0
+#define WATER_MONITOR 1
+#define DEHUMIDIFIER 0
+#define EMONCMS_NODE "6"
+#define MONITOR_ID "Monitor4"
+#endif	/* MONITOR_INDEX == 4 */
+
 #endif	/* ARDUINO_AVR_MEGA2560 */
 
 #if TEST_NODE
