@@ -191,9 +191,13 @@ EXT char id[ID_LEN];
 #define RSP_FAIL F1(FAIL_STR)
 #define RSP_FAILLEN (sizeof(FAIL_STR) - 1)
 
-#define CLOSE_STR "CLOSED" 
-#define CLOSE F1(CLOSE_STR)
-#define CLOSE_LEN (sizeof(CLOSE_STR) - 1)
+#define CLOSED_STR "CLOSED" 
+#define CLOSED F1(CLOSED_STR)
+#define CLOSED_LEN (sizeof(CLOSE_STR) - 1)
+
+#define STAIP_STR "STAIP,\""
+#define STAIP F1(STAIP_STR)
+#define STAIP_LEN (sizeof(STAIP_STR) - 1)
 
 #define CHKLEN RSP_ERRLEN
 
@@ -951,7 +955,7 @@ char *wifiGetIP(char *buf)
  wifiWriteStr(F2("AT+CIFSR"), 1000);
 
  char *dst = buf;
- int pos = find((char *) packetRsp, F1("STAIP,\""), 0, (int) len);
+ int pos = find((char *) packetRsp, STAIP, 0, (int) len);
  if (pos > 0)
  {
   char *p = (char *) &packetRsp[pos];
@@ -1191,7 +1195,7 @@ void wifiClose(int chan, unsigned long timeout)
  wifiTerm();
 
  const char *chkstr;
- chkstr = F1("CLOSED");
+ chkstr = CLOSED;
  unsigned int chklen = strlen(chkstr);
  while (timeout >= millis())
  {
