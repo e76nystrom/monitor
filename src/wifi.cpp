@@ -1199,7 +1199,6 @@ char *wifiWriteTCPx(char *s, int size,
 
       if (cmp(rsp - RSP_FAILLEN, RSP_FAIL, RSP_FAILLEN))
       {
-       printf(F0("**fail\n"));
        rspNum = 6;
        timeout = millis() + 10;
       }
