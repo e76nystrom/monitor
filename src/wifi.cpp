@@ -1089,7 +1089,7 @@ char *wifiWriteTCPx(char *s, int size,
   wdt_reset();
   if  (wifiAvail())
   {
-   char ch = wifiGetc();
+   unsigned char ch = wifiGetc();
 //   dbgChar(ch);
    if (len < RSPLEN)		// if room in buffer
    {
