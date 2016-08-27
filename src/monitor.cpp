@@ -562,7 +562,7 @@ void setup()
  PORTG |= _BV(PG0);
  delay(2);
  PORTG &= ~_BV(PG0);
-#endif
+#endif	/* ARDUINO_AVR_MEGA2560 */
 
  wifiInitSio();			// enable wifi serial port
  pinMode(WIFI_RESET, OUTPUT);	// set wifi reset pin to output
@@ -622,11 +622,11 @@ void setup()
  setSyncProvider(RTC.get);	// set rtc to provide clock time
 #else
  ntpSetTime();			// look up ntp time
-#endif
+#endif	/* RTC_CLOCK */
 
 #if CURRENT_SENSOR
  initCurrent(1);		// initial current sensor
-#endif
+#endif	/* CURRENT_SENSOR */
 
  tLast = millis() + TINTERVAL;	// initialize loop timer
 }
@@ -673,7 +673,7 @@ void cmdLoop()
      printf(F3("\nportg %x %x\n"), tmp, PORTG);
     }
    }
-#endif
+#endif	/* ARDUINO_AVR_MEGA2560 */
 #if CURRENT_SENSOR
    else if (ch == 'e')		// read a to d converter
    {
@@ -853,7 +853,7 @@ void cmdLoop()
      }
     }
    }
-#endif
+#endif	/* DEHUMIDIFIER */
 #if TEMP_SENSOR
    else if (ch == 'f')		// find temp sensor addresses
    {
@@ -915,7 +915,7 @@ void loop()
    tPrev = t0;			// update previous time
 #if WATER_MONITOR
    alarmPoll();			// poll water alarm
-#endif
+#endif	/* WATER_MONITOR */
 
 #if CURRENT_SENSOR
    currentCheck();		// check and send current
@@ -943,7 +943,7 @@ void loop()
   digitalWrite(LED, LOW); 	/* turn off led */
   loopWater();			/* loop processing */
  }
-#endif
+#endif	/* WATER_MONITOR */
 
  if (loopCount == NTP_COUNT)	// if time to set time
  {
@@ -1243,7 +1243,7 @@ char sendHTTP(char *data)
  strncpy(serverIP, HOST, sizeof(serverIP));
 #else
  dnsLookup(serverIP, F0(HOST));
-#endif
+#endif	/* LOCAL */
 
  if (serverIP[0] != 0)
  {
@@ -1265,7 +1265,7 @@ char sendHTTP(char *data)
    delay(2);
    PORTG &= ~_BV(PG0);
    delay(500);
-#endif
+#endif	/* ARDUINO_AVR_MEGA2560 */
   }
  }
  updateFail();
@@ -1351,7 +1351,7 @@ float printTemperature(DeviceAddress deviceAddress)
  return(temp);
 }
 
-#endif
+#endif	/* TEMP_SENSOR */
 
 #if THING_SPEAK
 void tsData(char *data)
@@ -1360,7 +1360,7 @@ void tsData(char *data)
 	 "GET /update?key=" TS_KEY "&%s\n", data);
  sendData("184.106.153.149", (const char *) dataBuffer);
 }
-#endif
+#endif	/* THING_SPEAK */
 
 char emonData(char *data)
 {
@@ -1382,7 +1382,7 @@ char emonData(char *data)
   delay(2);
   PORTG &= ~_BV(PG0);
   delay(500);
-#endif
+#endif	/* ARDUINO_AVR_MEGA2560 */
  }
  updateFail();
  return(0);
