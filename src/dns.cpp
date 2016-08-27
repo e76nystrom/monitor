@@ -77,13 +77,13 @@ typedef struct
 #define IP_ADDRESS_LEN 16	/* ip address buffer length */
 
 char *htonsCpy(char *p, int16_t val);
-int dnsMsg(char *buffer, int buflen, char *name);
+int dnsMsg(char *buffer, int buflen, const char *name);
 char *dnsDecode(char *buffer, int len, char *ip);
 char dnsLookup(char *buf, char *hostName);
 
 #if !INCLUDE
 
-char dnsLookup(char *buf, char *hostName)
+char dnsLookup(char *buf, const char *hostName)
 {
  char dnsBuffer[64];
  int dnsLen = dnsMsg(dnsBuffer, sizeof(dnsBuffer), hostName);
@@ -135,7 +135,7 @@ char *htonsCpy(char *p, int16_t val)
  return(p);
 }
 
-int dnsMsg(char *buffer, int buflen, char *name)
+int dnsMsg(char *buffer, int buflen, const char *name)
 {
  P_DNS dns = (P_DNS) buffer;
  dns->id = (int16_t) millis();
