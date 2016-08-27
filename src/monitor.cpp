@@ -81,7 +81,7 @@
 
 #if ARDUINO_AVR_PRO
 
-SoftwareSerial dbgPort;
+SoftwareSerial dbgPort = SoftwareSerial(rxPin, txPin);
 
 #define MONITOR_INDEX 4
 
