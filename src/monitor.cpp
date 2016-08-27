@@ -77,6 +77,8 @@
 
 #if ARDUINO_AVR_PRO
 
+extern SoftwareSerial dbgPort;
+
 #define MONITOR_INDEX 4
 
 #if (MONITOR_INDEX == 4)
@@ -928,10 +930,12 @@ void loop()
  printf(F3("%d "), loopCount);
  printTime();
 
+#if TEMP_SENSOR | DHT_SENSOR
  if (loopCount == TEMP_COUNT)	// if time for temperature reading
  {
   loopTemp();
  }
+#endif
 
 #if WATER_MONITOR
  if (loopCount == WATER_COUNT)	// if time to check water alarm
@@ -968,6 +972,8 @@ void switchRelay(char pin)
 }
 #endif
 
+#if TEMP_SENSOR | DHT_SENSOR
+
 void loopTemp()
 {
 #if TEMP_SENSOR
@@ -1003,7 +1009,6 @@ void loopTemp()
  float rtcTempVal = 0;
 #endif /* RTC_CLOCK */
 
-#if DHT_SENSOR
  float dhtHumidity = dht.readHumidity();
  float dhtTemp = dht.readTemperature(true);
  printf(F3("temp "));
@@ -1079,7 +1084,6 @@ void loopTemp()
  tsData(buf);
 #endif  /* THING_SPEAK */
 
-#if TEMP_SENSOR | DNT_SENSOR
  p = cpyStr(buf, "node=" EMONCMS_NODE "&csv=");
 #if TEMP_SENSOR
  for (unsigned char i = 0; i < TEMPDEVS; i++)
@@ -1094,8 +1098,9 @@ void loopTemp()
  *p++ = ',';
  writeTemp(p, dhtTemp);		/* output dht sensor temp */
  emonData(buf);
-#endif
 }
+
+#endif	/* TEMP_SENSOR | DHT_SENSOR */
 
 #if WATER_MONITOR
 
