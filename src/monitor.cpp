@@ -80,17 +80,17 @@
 
 SoftwareSerial dbgPort = SoftwareSerial(rxPin, txPin);
 
-#define MONITOR_INDEX 4
+#define MONITOR_INDEX 2
 
-#if (MONITOR_INDEX == 4)
+#if (MONITOR_INDEX == 2)
 #define TEMP_SENSOR 0
 #define RTC_CLOCK 0
 #define CURRENT_SENSOR 0
 #define DHT_SENSOR 0
 #define WATER_MONITOR 1
 #define DEHUMIDIFIER 0
-#define MONITOR_ID "Monitor4"
-#endif	/* MONITOR_INDEX == 4 */
+#define MONITOR_ID "Monitor2"
+#endif	/* MONITOR_INDEX == 2 */
 
 #endif	/* ARDUINO_AVR_PRO */
 
