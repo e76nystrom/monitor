@@ -552,6 +552,7 @@ void setup()
 
  printf(F3("id %s\n"), id);
 
+#if ARDUINO_AVR_MEGA2560
  pinMode(51, OUTPUT);		// pg0
  pinMode(52, OUTPUT);		// pg1
  PORTG &= ~(_BV(PG0) | _BV(PG1));
@@ -559,6 +560,7 @@ void setup()
  PORTG |= _BV(PG0);
  delay(2);
  PORTG &= ~_BV(PG0);
+#endif
 
  wifiInitSio();			// enable wifi serial port
  pinMode(WIFI_RESET, OUTPUT);	// set wifi reset pin to output
@@ -644,6 +646,7 @@ void cmdLoop()
    {
     printf(F3("monitor.cpp\n"));
    }
+#if ARDUINO_AVR_MEGA2560
    else if (ch == 'p')
    {
     if (getNum())
@@ -652,6 +655,7 @@ void cmdLoop()
      PORTG = (char) val;
      printf(F3("\nportg %x %x\n"), tmp, PORTG);
     }
+#endif
    }
 #if CURRENT_SENSOR
    else if (ch == 'e')		// read a to d converter
@@ -1248,10 +1252,12 @@ char sendHTTP(char *data)
     }
    }
    printf(F3("**sendHTTP retry %d\n"), retry);
+#if ARDUINO_AVR_MEGA2560
    PORTG |= _BV(PG0);
    delay(2);
    PORTG &= ~_BV(PG0);
    delay(500);
+#endif
   }
  }
  updateFail();
@@ -1363,10 +1369,12 @@ char emonData(char *data)
    return(1);
   }
   printf(F3("**emonData retry %d\n"), retry);
+#if ARDUINO_AVR_MEGA2560
   PORTG |= _BV(PG0);
   delay(2);
   PORTG &= ~_BV(PG0);
   delay(500);
+#endif
  }
  updateFail();
  return(0);
