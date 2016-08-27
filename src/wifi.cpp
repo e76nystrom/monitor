@@ -1041,7 +1041,7 @@ void wifiWriteData(char *s, int size, unsigned long timeout)
  wifiTerm();
 
  const char *chkstr; 
- chkstr = F1("SEND OK");
+ chkstr = (const char *) F1("SEND OK");
  unsigned int chklen = strlen(chkstr);
  while (timeout >= millis())
  {
@@ -1195,7 +1195,7 @@ void wifiClose(int chan, unsigned long timeout)
  wifiTerm();
 
  const char *chkstr;
- chkstr = CLOSED;
+ chkstr = (const char *) CLOSED;
  unsigned int chklen = strlen(chkstr);
  while (timeout >= millis())
  {
