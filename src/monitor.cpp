@@ -714,23 +714,23 @@ void cmdLoop()
    }
    else if (ch == 'o')		// send at
    {
-    wifiWriteStr("AT", 1000);
+    wifiWriteStr(F2("AT"), 1000);
    }
    else if (ch == 'l')		// list access points
    {
-    wifiWriteStr("AT+CWLAP", 3000);
+    wifiWriteStr(F2("AT+CWLAP"), 3000);
    }
    else if (ch == 'q')
    {
-    wifiWriteStr("AT+CWQAP", 1000);
+    wifiWriteStr(F2("AT+CWQAP"), 1000);
    }
    else if (ch == 's')
    {
-    wifiWriteStr("AT+CIFSR", 1000);
+    wifiWriteStr(F2("AT+CIFSR"), 1000);
    }
    else if (ch == 'u')		// start udp connection
    {
-    wifiWriteStr("AT+CIPSTART=\"UDP\",\"129.6.15.28\",123", 3000);
+    wifiWriteStr(F2("AT+CIPSTART=\"UDP\",\"129.6.15.28\",123"), 3000);
    }
    else if (ch == 'm')		// wifi mux
    {
@@ -738,7 +738,7 @@ void cmdLoop()
    }
    else if (ch == 't')		// start tcp connection
    {
-    wifiWriteStr("AT+CIPSTART=4,\"TCP\",\"184.106.153.149\",80", 4000);
+    wifiWriteStr(F2("AT+CIPSTART=4,\"TCP\",\"184.106.153.149\",80"), 4000);
    }
    else if (ch == 'z')
    {
