@@ -22,7 +22,7 @@ extern SoftwareSerial dbgPort;
 #endif	/* ARDUINO_AVR_MEGA2560 */
 
 const char *argConv(const __FlashStringHelper *s);
-const char *argConv(const __FlashStringHelper *s, char *dst);
+const char *argConv(const __FlashStringHelper *s, char *buf);
 
 #if ARDUINO_AVR_PRO
 #define F0(x) argConv(F(x))
