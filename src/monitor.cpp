@@ -268,6 +268,19 @@ const char *argConv(const __FlashStringHelper *s)
  return((const char *) stringBuffer);
 }
 
+const char *argConv(const __FlashStringHelper *s, char *dst)
+{
+ PGM_P p = reinterpret_cast <PGM_P> (s);
+ while (1)
+ {
+  unsigned char c = pgm_read_byte(p++);
+  *dst++ = c;
+  if (c == 0)
+   break;
+ }
+ return((const char *) dst);
+}
+
 #endif  /* ARDUINO_ARCH_AVR */
 
 #if WATER_MONITOR
