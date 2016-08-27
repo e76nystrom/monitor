@@ -919,13 +919,13 @@ void loop()
 
 #if CURRENT_SENSOR
    currentCheck();		// check and send current
-#endif
+#endif	/* CURRENT_SENSOR */
   }
  }
 
 #if CURRENT_SENSOR
  printCurrent();
-#endif
+#endif	/* CURRENT_SENSOR */
 
  printf(F3("%d "), loopCount);
  printTime();
@@ -935,7 +935,7 @@ void loop()
  {
   loopTemp();
  }
-#endif
+#endif	/* TEMP_SENSOR | DHT_SENSOR */
 
 #if WATER_MONITOR
  if (loopCount == WATER_COUNT)	// if time to check water alarm
@@ -953,9 +953,9 @@ void loop()
   {
    RTC.set(now());		// set the clock
   }
-#else
+#else  /* RTC_CLOCK */
   ntpSetTime();
-#endif
+#endif	/* RTC_CLOCK */
  }
 
  loopCount++;			// update loop counter
@@ -970,7 +970,7 @@ void switchRelay(char pin)
  delay(100);
  digitalWrite(pin, LOW);	// turn relay off
 }
-#endif
+#endif	/* DEHUMIDIFIER */
 
 #if TEMP_SENSOR | DHT_SENSOR
 
@@ -1091,7 +1091,7 @@ void loopTemp()
   p = writeTemp(p, temp1[i]);	/* output data from each temp sensor */
   *p++ = ',';
  }
-#endif
+#endif	/* TEMP_SENSOR */
  p = writeTemp(p, rtcTempVal);	/* output real time clock temp data */
  *p++ = ',';
  p = writeTemp(p, dhtHumidity);	/* output dht sensor humidity */
