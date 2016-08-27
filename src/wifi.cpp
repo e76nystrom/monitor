@@ -1059,6 +1059,7 @@ void wifiWriteData(char *s, int size, unsigned long timeout)
      if (cmp(rsp - SEND_OK_LEN, SEND_OK, SEND_OK_LEN))
      {
       timeout = millis() + 10;
+      printf("send ok found\n");
      }
     }
    }
@@ -1211,6 +1212,7 @@ void wifiClose(int chan, unsigned long timeout)
      if (cmp(rsp - CLOSED_LEN, CLOSED, CLOSED_LEN))
      {
       timeout = millis() + 10;
+      printf("closed found\n");
      }
     }
    }
