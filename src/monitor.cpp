@@ -670,8 +670,8 @@ void cmdLoop()
      PORTG = (char) val;
      printf(F3("\nportg %x %x\n"), tmp, PORTG);
     }
-#endif
    }
+#endif
 #if CURRENT_SENSOR
    else if (ch == 'e')		// read a to d converter
    {
