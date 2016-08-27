@@ -16,7 +16,7 @@ extern SoftwareSerial dbgPort;
 #include "printf.h"
 #endif
 
-#ifdef ARDUINO_AVR_MEGA2560
+#if ARDUINO_AVR_MEGA2560
 #define DBGPORT Serial
 #define WIFI Serial1
 #endif	/* ARDUINO_AVR_MEGA2560 */
@@ -31,7 +31,7 @@ const char *argConv(const __FlashStringHelper *s);
 #define F3(x) argConv(F(x))	/* printf strings */
 #endif	/* ARDUINO_AVR_PRO */
 
-#ifdef ARDUINO_AVR_MEGA2560
+#if ARDUINO_AVR_MEGA2560
 //#define F0(x) x
 #define F0(x) argConv(F(x))
 #define F1(x) x
