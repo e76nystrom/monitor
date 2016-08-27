@@ -773,14 +773,16 @@ void cmdLoop()
    else if (ch == 'd')		// set time from ntp
    {
     nextSetTime = 0;
-    char status = ntpSetTime();
 #if RTC_CLOCK
+    char status = ntpSetTime();
     if (status)
     {
      RTC.set(now());
     }
     printTime(RTC.get());
     setSyncProvider(RTC.get);
+#else
+    ntpSetTime();
 #endif  /* RTC_CLOCK */
     printTime();
    }
