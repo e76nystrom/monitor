@@ -195,6 +195,10 @@ EXT char id[ID_LEN];
 #define CLOSED F1(CLOSED_STR)
 #define CLOSED_LEN (sizeof(CLOSE_STR) - 1)
 
+#define STAIP_STR "STAIP,\""
+#define STAIP F1(STAIP_STR)
+#define STAIP_LEN (sizeof(STAIP_STR) - 1)
+
 #define SEND_OK_STR "SEND OK"
 #define SEND_OK F1(SEND_OK_STR)
 #define SEND_OK_LEN (sizeof(SEND_OK_STR) - 1)
