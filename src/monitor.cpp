@@ -1,6 +1,9 @@
 #ifdef ARDUINO_ARCH_AVR
 #include <Arduino.h>
 #include <Wire.h>
+#if ARDUINO_AVR_PRO
+#include <SoftwareSerial.h>
+#endif
 #include "serial.h"
 
 #define EMONCMS_KEY "b53ec1abe610c66009b207d6207f2c9e"
