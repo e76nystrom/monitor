@@ -195,9 +195,9 @@ EXT char id[ID_LEN];
 #define CLOSED F1(CLOSED_STR)
 #define CLOSED_LEN (sizeof(CLOSE_STR) - 1)
 
-#define STAIP_STR "STAIP,\""
-#define STAIP F1(STAIP_STR)
-#define STAIP_LEN (sizeof(STAIP_STR) - 1)
+#define SEND_OK_STR "SEND OK"
+#define SEND_OK F1(SEND_OK_STR)
+#define SEND_OK_LEN (sizeof(SEND_OK_STR) - 1)
 
 #define CHKLEN RSP_ERRLEN
 
@@ -1040,9 +1040,6 @@ void wifiWriteData(char *s, int size, unsigned long timeout)
  wifiPut(s, size);
  wifiTerm();
 
- const char *chkstr; 
- chkstr = (const char *) F1("SEND OK");
- unsigned int chklen = strlen(chkstr);
  while (timeout >= millis())
  {
   wdt_reset();
@@ -1055,7 +1052,7 @@ void wifiWriteData(char *s, int size, unsigned long timeout)
     len++;
     if (len > chklen)
     {
-     if (cmp(rsp - chklen, chkstr, chklen))
+     if (cmp(rsp - chklen, SEND_OK, SEND_OK_LEN)
      {
       timeout = millis() + 10;
      }
@@ -1194,9 +1191,6 @@ void wifiClose(int chan, unsigned long timeout)
  wifiPut((char *) cmdBuffer);
  wifiTerm();
 
- const char *chkstr;
- chkstr = (const char *) CLOSED;
- unsigned int chklen = strlen(chkstr);
  while (timeout >= millis())
  {
   wdt_reset();
@@ -1210,7 +1204,7 @@ void wifiClose(int chan, unsigned long timeout)
     len++;
     if (len > chklen)
     {
-     if (cmp(rsp - chklen, chkstr, chklen))
+     if (cmp(rsp - chklen, CLOSED, CLOSED_LEN))
      {
       timeout = millis() + 10;
      }
