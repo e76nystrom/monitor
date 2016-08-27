@@ -79,7 +79,7 @@ typedef struct
 char *htonsCpy(char *p, int16_t val);
 int dnsMsg(char *buffer, int buflen, const char *name);
 char *dnsDecode(char *buffer, int len, char *ip);
-char dnsLookup(char *buf, char *hostName);
+char dnsLookup(char *buf, const char *hostName);
 
 #if !INCLUDE
 
