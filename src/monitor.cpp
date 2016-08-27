@@ -486,10 +486,15 @@ char updateEE(const char *prompt, char eeLoc, char eeLen)
 void setup()
 {
  char ch;
- wdt_enable(WDT_TO);
- DBGPORT.begin(19200);
-
 #ifdef ARDUINO_ARCH_AVR
+ wdt_enable(WDT_TO);
+#if ARDUINO_AVR_MEGA2560
+ DBGPORT.begin(19200);
+#endif
+#if ARDUINO_AVR_PRO
+ DBGPORT.begin(9600);
+#endif
+
 #if PRINTF
  init_printf(NULL, putx1);
 #endif
