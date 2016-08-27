@@ -31,9 +31,13 @@
 #define CURRENT_SENSOR 1
 #define WATER_MONITOR 1
 #define DEHUMIDIFIER 0
+
 #define EMONCMS_NODE "2"
 #define CURRENT0_NODE 3
 #define CURRENT1_NODE 4
+
+#define SSID "nystrom"
+#define PASS "minidonk"
 #define MONITOR_ID "Monitor2"
 #endif	/* MONITOR_INDEX == 2 */
 
@@ -47,6 +51,9 @@
 #define WATER_MONITOR 1
 #define DEHUMIDIFIER 1
 #define EMONCMS_NODE "5"
+
+#define SSID "nystrom"
+#define PASS "minidonk"
 #define MONITOR_ID "Monitor3"
 #endif	/* MONITOR_INDEX == 3 */
 
@@ -57,6 +64,9 @@
 #define CURRENT_SENSOR 0
 #define WATER_MONITOR 1
 #define DEHUMIDIFIER 0
+
+#define SSID "nystrom"
+#define PASS "minidonk"
 #define MONITOR_ID "Monitor4"
 #endif	/* MONITOR_INDEX == 4 */
 
@@ -80,7 +90,20 @@
 
 SoftwareSerial dbgPort = SoftwareSerial(rxPin, txPin);
 
-#define MONITOR_INDEX 2
+#define MONITOR_INDEX 0
+
+#if (MONITOR_INDEX == 0)
+#define TEMP_SENSOR 0
+#define RTC_CLOCK 0
+#define CURRENT_SENSOR 0
+#define DHT_SENSOR 0
+#define WATER_MONITOR 1
+#define DEHUMIDIFIER 0
+
+#define SSID "TKGCL"
+#define PASS "K4PLVFMCXGMLXM9P"
+#define MONITOR_ID "Monitor0"
+#endif	/* MONITOR_INDEX == 0 */
 
 #if (MONITOR_INDEX == 2)
 #define TEMP_SENSOR 0
@@ -89,6 +112,9 @@ SoftwareSerial dbgPort = SoftwareSerial(rxPin, txPin);
 #define DHT_SENSOR 0
 #define WATER_MONITOR 1
 #define DEHUMIDIFIER 0
+
+#define SSID "nystrom"
+#define PASS "minidonk"
 #define MONITOR_ID "Monitor2"
 #endif	/* MONITOR_INDEX == 2 */
 
@@ -341,10 +367,6 @@ char beeperCount;
 
 void printTemp(float temp);
 char *writeTemp(char *buf, float temp);
-
-// Target Access Point
-#define SSID "nystrom"
-#define PASS "minidonk"
 
 unsigned long time = 0;
 
