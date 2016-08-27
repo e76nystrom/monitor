@@ -119,10 +119,10 @@ char *sendData(const char *ip, int port, const char *data,
 
 void printBuf();
 char *lc(char *p);
-int find(char *str1, char *str2);
-int find(char *str1, char *str2, int offset, int len1);
-int cmp(char *str1, char *str2, int size);
-int cmp(char *str1, char *str2);
+int find(char *str1, const char *str2);
+int find(char *str1, const char *str2, int offset, int len1);
+int cmp(char *str1, const char *str2, int size);
+int cmp(char *str1, const char *str2);
 int findData(int cmdLen, int *datalen);
 int getVal(char *p, int pos, int *rtnVal, int size);
 void getData(char *dst, unsigned int dstSize, char *buf, unsigned int bufSize);
@@ -174,6 +174,28 @@ EXT char packetRsp[384];	// buffer for response
 EXT char *rsp;
 EXT unsigned int len;
 EXT char id[ID_LEN];
+
+#define IPD_STR "+IPD,"
+#define IPD F1(IPD_STR)
+#define IPDLEN (sizeof(IPD_STR) - 1)
+
+#define OK_STR "OK"
+#define OK F1(OK_STR)
+#define OKLEN (sizeof(OK_STR) - 1)
+
+#define ERR_STR "ERROR"
+#define RSP_ERR F1(ERR_STR)
+#define RSP_ERRLEN (sizeof(ERR_STR) - 1)
+
+#define FAIL_STR "SEND FAIL"
+#define RSP_FAIL F1(FAIL_STR)
+#define RSP_FAILLEN (sizeof(FAIL_STR) - 1)
+
+#define CLOSE_STR "CLOSED" 
+#define CLOSE F1(CLOSE_STR)
+#define CLOSE_LEN (sizeof(CLOSE_STR) - 1)
+
+#define CHKLEN RSP_ERRLEN
 
 #define RSPLEN (sizeof(packetRsp) - 1)
 
@@ -365,7 +387,7 @@ char *sendData(const char *ip, int port, const char *data,
 
   if (p != 0)
   {
-   if (find(p, (char *) F1(",CLOSED")) < 0)
+   if (find(p, CLOSED) < 0)
    {
     wifiClose(4, 1000);
    }
@@ -441,7 +463,7 @@ char *lc(char *p)
  return(p);
 }
 
-int find(char *str1, char *str2)
+int find(char *str1, const char *str2)
 {
  unsigned int len1 = strlen((const char *) str1);
  unsigned int len2 = strlen((const char *) str2);
@@ -465,7 +487,7 @@ int find(char *str1, char *str2)
  return(-1);
 }
 
-int find(char *str1, char *str2, int offset, int len1)
+int find(char *str1, const char *str2, int offset, int len1)
 {
  int len2 = strlen((const char *) str2);
 // printf("find offset %d len1 %d len2 %d %s\n", offset, len1, len2, str2);
@@ -547,7 +569,7 @@ int find(char *str1, const __FlashStringHelper *str2, int offset, int len1)
 
 #endif	// ARDUION_ARCH_AVR
 
-int cmp(char *str1, char *str2, int size)
+int cmp(char *str1, const char *str2, int size)
 {
  while (--size >= 0)
  {
@@ -559,7 +581,7 @@ int cmp(char *str1, char *str2, int size)
  return(1);
 }
 
-int cmp(char *str1, char *str2)
+int cmp(char *str1, const char *str2)
 {
  while (1)
  {
@@ -638,7 +660,7 @@ int getVal(char *p, int offset, int *rtnVal, int size)
 int findData(int cmdLen, int *dataLen)
 {
  *dataLen = 0;
- int pos = find((char *) packetRsp, (char *) F1("+IPD,"), cmdLen, (int) len);
+ int pos = find((char *) packetRsp, IPD, cmdLen, (int) len);
  if (pos >= 0)
  {
   pos = find((char *) packetRsp, (char *) ",", pos, (int) len);
@@ -929,7 +951,7 @@ char *wifiGetIP(char *buf)
  wifiWriteStr(F2("AT+CIFSR"), 1000);
 
  char *dst = buf;
- int pos = find((char *) packetRsp, (char *) F1("STAIP,\""), 0, (int) len);
+ int pos = find((char *) packetRsp, F1("STAIP,\""), 0, (int) len);
  if (pos > 0)
  {
   char *p = (char *) &packetRsp[pos];
@@ -1029,7 +1051,7 @@ void wifiWriteData(char *s, int size, unsigned long timeout)
     len++;
     if (len > chklen)
     {
-     if (cmp(rsp - chklen, (char *) chkstr, chklen))
+     if (cmp(rsp - chklen, chkstr, chklen))
      {
       timeout = millis() + 10;
      }
@@ -1038,28 +1060,6 @@ void wifiWriteData(char *s, int size, unsigned long timeout)
   }
  }
 }
-
-#define IPD_STR "+IPD,"
-#define IPD F1(IPD_STR)
-#define IPDLEN (sizeof(IPD_STR) - 1)
-
-#define OK_STR "OK"
-#define OK F1(OK_STR)
-#define OKLEN (sizeof(OK_STR) - 1)
-
-#define ERR_STR "ERROR"
-#define RSP_ERR F1(ERR_STR)
-#define RSP_ERRLEN (sizeof(ERR_STR) - 1)
-
-#define FAIL_STR "SEND FAIL"
-#define RSP_FAIL F1(FAIL_STR)
-#define RSP_FAILLEN (sizeof(FAIL_STR) - 1)
-
-#define CLOSE_STR "CLOSED" 
-#define CLOSE F1(CLOSE_STR)
-#define CLOSE_LEN (sizeof(CLOSE_STR) - 1)
-
-#define CHKLEN RSP_ERRLEN
 
 char *wifiWriteTCPx(char *s, int size, 
 		    int *dataLen, unsigned long timeout)
@@ -1096,11 +1096,11 @@ char *wifiWriteTCPx(char *s, int size,
      switch (rspNum)
      {
      case 0:			// wait for data
-      if (cmp(rsp - IPDLEN, (char *) IPD, IPDLEN))
+      if (cmp(rsp - IPDLEN, IPD, IPDLEN))
       { 
        rspNum = 1;
       }
-      else if (cmp(rsp - OKLEN, (char *) OK, OKLEN))
+      else if (cmp(rsp - OKLEN, OK, OKLEN))
       {
        ok = 1;
       }
@@ -1144,14 +1144,14 @@ char *wifiWriteTCPx(char *s, int size,
      case 4:			// read ok
      case 5:
       timeout = millis() + 100;
-      if (cmp(rsp - OKLEN, (char *) OK, OKLEN))
+      if (cmp(rsp - OKLEN, OK, OKLEN))
       {
        rspNum++;
       }
       break;
 
      case 6:			// wait for data
-      if (cmp(rsp - IPDLEN, (char *) IPD, IPDLEN))
+      if (cmp(rsp - IPDLEN, IPD, IPDLEN))
       { 
        rspNum = 1;
        timeout = millis() + 100;
@@ -1161,13 +1161,13 @@ char *wifiWriteTCPx(char *s, int size,
 
      if (rspNum != 3)		// if not reading data
      {
-      if (cmp(rsp - RSP_ERRLEN, (char *) RSP_ERR, RSP_ERRLEN))
+      if (cmp(rsp - RSP_ERRLEN, RSP_ERR, RSP_ERRLEN))
       {
        rspNum = 6;
        timeout = millis() + 2000;
       }
 
-      if (cmp(rsp - RSP_FAILLEN, (char *) RSP_FAIL, RSP_FAILLEN))
+      if (cmp(rsp - RSP_FAILLEN, RSP_FAIL, RSP_FAILLEN))
       {
        printf(F0("**fail\n"));
        rspNum = 6;
@@ -1206,7 +1206,7 @@ void wifiClose(int chan, unsigned long timeout)
     len++;
     if (len > chklen)
     {
-     if (cmp(rsp - chklen, (char *) chkstr, chklen))
+     if (cmp(rsp - chklen, chkstr, chklen))
      {
       timeout = millis() + 10;
      }
