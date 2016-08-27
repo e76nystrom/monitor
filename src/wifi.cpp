@@ -1039,20 +1039,25 @@ void wifiWriteData(char *s, int size, unsigned long timeout)
  }
 }
 
-#define IPD F1("+IPD,")
-#define IPDLEN (sizeof(IPD) - 1)
+#define IPD_STR "+IPD,"
+#define IPD F1(IPD_STR)
+#define IPDLEN (sizeof(IPD_STR) - 1)
 
-#define OK F1("OK")
-#define OKLEN (sizeof(OK) - 1)
+#define OK_STR "OK"
+#define OK F1(OK_STR)
+#define OKLEN (sizeof(OK_STR) - 1)
 
-#define RSP_ERR F1("ERROR")
-#define RSP_ERRLEN (sizeof(RSP_ERR) - 1)
+#define ERR_STR "ERROR"
+#define RSP_ERR F1(ERR_STR)
+#define RSP_ERRLEN (sizeof(ERR_STR) - 1)
 
-#define RSP_FAIL F1("SEND FAIL")
-#define RSP_FAILLEN (sizeof(RSP_FAIL) - 1)
+#define FAIL_STR "SEND FAIL"
+#define RSP_FAIL F1(FAIL_STR)
+#define RSP_FAILLEN (sizeof(FAIL_STR) - 1)
 
-#define CLOSE F1("CLOSED")
-#define CLOSE_LEN (sizeof(CLOSED) - 1)
+#define CLOSE_STR "CLOSED" 
+#define CLOSE F1(CLOSE_STR)
+#define CLOSE_LEN (sizeof(CLOSE_STR) - 1)
 
 #define CHKLEN RSP_ERRLEN
 
