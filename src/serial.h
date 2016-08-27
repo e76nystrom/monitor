@@ -1,8 +1,6 @@
 #ifdef ARDUINO_AVR_PRO
 #include <SoftwareSerial.h>
 
-extern SoftwareSerial dbgPort;
-
 #define WIFI Serial1
 #define DBGPORT Serial
 
@@ -18,6 +16,12 @@ extern SoftwareSerial dbgPort;
 #ifdef ARDUINO_AVR_MEGA2560
 #define WIFI Serial1
 #define DBGPORT Serial
+#endif
+
+#ifdef ARDUINO_AVR_PRO
+extern SoftwareSerial dbgPort;
+#define WIFI Serial
+#define DBGPORT dbgPort
 #endif
 
 const char *argConv(const __FlashStringHelper *s);
