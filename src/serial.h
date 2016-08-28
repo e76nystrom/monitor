@@ -26,7 +26,7 @@ const char *argConv(const __FlashStringHelper *s, char *buf);
 
 #if ARDUINO_AVR_PRO
 #define F0(x) argConv(F(x))
-#define F1(x) x
+#define F1(x) F(x)
 #define F2(x) F(x)
 #define F3(x) argConv(F(x))	/* printf strings */
 #endif	/* ARDUINO_AVR_PRO */
