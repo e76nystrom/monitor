@@ -3,7 +3,7 @@
 #include <Wire.h>
 #include "serial.h"
 
-#define INT_MILLIS 1
+#define INT_MILLIS 0
 
 #include "millis.h"
 
@@ -460,11 +460,11 @@ void putx(char c);
 unsigned int intMillis()
 {
  unsigned int m;
-// uint8_t oldSREG = SREG;
-// cli();
- m = timer0_millis;
-// SREG = oldSREG;
- return(m);
+ uint8_t oldSREG = SREG;	// save interrupt flag
+ cli();				// disable interrupts
+ m = timer0_millis;		// read low part of millis
+ SREG = oldSREG;		// enable interrupts
+ return(m);			// return value
 }
 
 char updateEE(const char *prompt, char eeLoc, char eeLen)
