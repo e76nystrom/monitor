@@ -457,6 +457,16 @@ void putx(char c);
 
 #ifdef ARDUINO_ARCH_AVR
 
+unsigned int intMillis()
+{
+ unsigned int m;
+// uint8_t oldSREG = SREG;
+// cli();
+ m = timer0_millis;
+// SREG = oldSREG;
+ return(m);
+}
+
 char updateEE(const char *prompt, char eeLoc, char eeLen)
 {
  printf(F3("%s"), prompt);
