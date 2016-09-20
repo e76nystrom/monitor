@@ -3,6 +3,10 @@
 #include <Wire.h>
 #include "serial.h"
 
+#define INT_MILLIS 1
+
+#include "millis.h"
+
 #define EMONCMS_KEY "b53ec1abe610c66009b207d6207f2c9e"
 #define TEST_NODE 0
 #define THING_SPEAK 0
