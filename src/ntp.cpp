@@ -37,7 +37,8 @@ void printTime();
 void printTime(time_t t);
 char ntpSetTime();
 
-EXT unsigned long nextSetTime;	/* millis for set time operation */
+EXT unsigned long ntpStart;	/* reference for time compare */
+EXT unsigned long ntpTimeout;	/* ntp timeout */
 EXT char ntpIP[IP_ADDRESS_LEN];	/* ntp ip address */
 
 #if !INCLUDE
@@ -63,7 +64,7 @@ void printTime(time_t t)
 
 char ntpSetTime()
 {
- if (millis() > nextSetTime)
+ if (millis() - ntpStart > ntpTimeout)
  {
   char status = 0;
   for (char retry = 0; retry < 3; retry++)
@@ -123,7 +124,8 @@ char ntpSetTime()
      time_t epoch = val - seventyYears;
 
      setTime(epoch);
-     nextSetTime = millis() + (24UL * 60UL * 60UL * 1000UL);
+     ntpTimeout = 24UL * 60UL * 60UL * 1000UL;
+     ntpStart = millis();
      status = 1;
     }
     wifiClose(3, 1000);
@@ -131,7 +133,8 @@ char ntpSetTime()
      break;
     else
     {
-     nextSetTime = millis() + (10UL * 60UL * 1000UL);
+     ntpTimeout = 10UL * 60UL * 1000UL;
+     ntpStart = millis();
      if (DBG)
       printf(F0("**err time not set\n"));
     }
