@@ -3,7 +3,7 @@
 #include <Wire.h>
 #include "serial.h"
 
-#define INT_MILLIS 0
+#define INT_MILLIS 1
 
 #include "millis.h"
 
@@ -544,7 +544,8 @@ void setup()
  memset(&ntpIP, 0, sizeof(ntpIP));
  failCount = 0;
 
- nextSetTime = 0;
+ ntpStart = millis();
+ ntpTimeout = 0;
 
  uint32_t checksum = sumEE();
  uint32_t csum;
@@ -842,7 +843,8 @@ void cmdLoop()
    }
    else if (ch == 'd')		// set time from ntp
    {
-    nextSetTime = 0;
+    ntpStart = millis();
+    ntpTimeout = 0;
 #if RTC_CLOCK
     char status = ntpSetTime();
     if (status)
