@@ -3,7 +3,7 @@
 #include <Wire.h>
 #include "serial.h"
 
-#define INT_MILLIS 1
+#define INT_MILLIS 0
 
 #include "millis.h"
 
