@@ -64,7 +64,7 @@ void printTime(time_t t)
 
 char ntpSetTime()
 {
- if (millis() - ntpStart > ntpTimeout)
+ if ((millis() - ntpStart) > ntpTimeout)
  {
   char status = 0;
   for (char retry = 0; retry < 3; retry++)
