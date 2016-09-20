@@ -59,6 +59,8 @@ void writeSumEE();
 void readEE(char *buf, char addr, char len);
 void writeEE(const char *buf, char addr, char eeLen);
 
+#define INT_MILLIS 1
+
 #endif	// ARDUINO_ARCH_AVR
 
 #ifdef MEGA32
@@ -109,6 +111,8 @@ EXT char ssid[SSID_LEN];
 EXT char pass[PASS_LEN];
 
 #endif	// WIN32
+
+#include "millis.h"
 
 void dbgChar(char ch);
 char readStr(char *buf, int bufLen);
@@ -889,7 +893,7 @@ char wifiWrite(char *s, int size, unsigned int timeout)
  char result = 0;
  char last = 0;
 // while (timeout >= millis())
- unsigned long start = millis();
+ millisDef start = millis();
  while ((millis() - start) < timeout)
  {
   wdt_reset();
@@ -936,7 +940,7 @@ char wifiWrite(const __FlashStringHelper *s, int size, unsigned int timeout)
  char result = 0;
  char last = 0;
 // while (timeout >= millis())
- unsigned long start = millis();
+ millisDef start = millis();
  while ((millis() - start) < timeout)
  {
   wdt_reset();
@@ -1037,7 +1041,7 @@ void wifiStartData(char *s, int size, unsigned int timeout)
 
  char last = 0;
 // while (timeout >= millis())
- unsigned long start = millis();
+ millisDef start = millis();
  while ((millis() - start) < timeout)
  {
   wdt_reset();
@@ -1067,7 +1071,7 @@ void wifiWriteData(char *s, int size, unsigned int timeout)
  wifiTerm();
 
 // while (timeout >= millis())
- unsigned long start = millis();
+ millisDef start = millis();
  while ((millis() - start) < timeout)
  {
   wdt_reset();
@@ -1114,7 +1118,7 @@ char *wifiWriteTCPx(char *s, int size,
  char ok = 0;
  size += IPDLEN;
 // while (timeout >= millis())
- unsigned long start = millis();
+ millisDef start = millis();
  while ((millis() - start) < timeout)
  {
   wdt_reset();
@@ -1250,7 +1254,7 @@ void wifiClose(int chan, unsigned int timeout)
  wifiTerm();
 
 // while (timeout >= millis())
- unsigned long start = millis();
+ millisDef start = millis();
  while ((millis() - start) < timeout)
  {
   wdt_reset();
