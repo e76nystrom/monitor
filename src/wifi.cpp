@@ -113,9 +113,9 @@ EXT char pass[PASS_LEN];
 void dbgChar(char ch);
 char readStr(char *buf, int bufLen);
 char *sendData(const char *ip, const char *data);
-char *sendData(const char *ip, const char *data, unsigned long timeout);
+char *sendData(const char *ip, const char *data, unsigned int timeout);
 char *sendData(const char *ip, int port, const char *data,
-	       unsigned long timeout);
+	       unsigned int timeout);
 
 void printBuf();
 char *lc(char *p);
@@ -144,25 +144,25 @@ void wifiClrRx();
 void wifiPut(char *s, int size);
 void wifiPut(char *s);
 void wifiTerm();
-char wifiWriteStr(const char *s, unsigned long timeout);
-char wifiWrite(char *s, int size, unsigned long timeout);
+char wifiWriteStr(const char *s, unsigned int timeout);
+char wifiWrite(char *s, int size, unsigned int timeout);
 void wifiMux();
 char *wifiGetIP(char *buf);
 void wifiCWMode();
 void wifiQuit();
 char wifiJoin();
 void wifiStart(int chan, char *protocol, char *ip, int port,
-	       unsigned long timeout);
-void wifiStartData(char *s, int size, unsigned long timeout);
-void wifiWriteData(char *s, int size, unsigned long timeout);
-char *wifiWriteTCPx(char *s, int size, int *dataLen, unsigned long timeout);
-void wifiClose(int port, unsigned long timeout);
+	       unsigned int timeout);
+void wifiStartData(char *s, int size, unsigned int timeout);
+void wifiWriteData(char *s, int size, unsigned int timeout);
+char *wifiWriteTCPx(char *s, int size, int *dataLen, unsigned int timeout);
+void wifiClose(int port, unsigned int timeout);
 
 #ifdef ARDUINO_ARCH_AVR 
 void wifiPut(const __FlashStringHelper *s, int size);
 void wifiPut(const __FlashStringHelper *s);
-char wifiWriteStr(const __FlashStringHelper *s, unsigned long timeout);
-char wifiWrite(const __FlashStringHelper *s, int size, unsigned long timeout);
+char wifiWriteStr(const __FlashStringHelper *s, unsigned int timeout);
+char wifiWrite(const __FlashStringHelper *s, int size, unsigned int timeout);
 #endif	// ARDUINO_ARCH_AVR
 
 #define WIFI_RESET 2
@@ -370,13 +370,13 @@ char *sendData(const char *ip, const char *data)
  return(sendData(ip, 80, data, 5000));
 }
 
-char *sendData(const char *ip, const char *data, unsigned long timeout)
+char *sendData(const char *ip, const char *data, unsigned int timeout)
 {
  return(sendData(ip, 80, data, timeout));
 }
 
 char *sendData(const char *ip, int port, const char *data,
-	       unsigned long timeout)
+	       unsigned int timeout)
 {
  wifiMux();			// in case device restarted
  int cmdLen = strlen((const char *) data);
@@ -871,12 +871,12 @@ void wifiTerm()
  }
 }
 
-char wifiWriteStr(const char *s, unsigned long timeout)
+char wifiWriteStr(const char *s, unsigned int timeout)
 {
  return(wifiWrite((char *) s, strlen(s), timeout));
 }
 
-char wifiWrite(char *s, int size, unsigned long timeout)
+char wifiWrite(char *s, int size, unsigned int timeout)
 {
  wifiClrRx();
  if (DBG)
@@ -918,12 +918,12 @@ char wifiWrite(char *s, int size, unsigned long timeout)
 
 #ifdef ARDUINO_ARCH_AVR
 
-char wifiWriteStr(const __FlashStringHelper *s, unsigned long timeout)
+char wifiWriteStr(const __FlashStringHelper *s, unsigned int timeout)
 {
  return(wifiWrite(s, strlen(s), timeout));
 }
 
-char wifiWrite(const __FlashStringHelper *s, int size, unsigned long timeout)
+char wifiWrite(const __FlashStringHelper *s, int size, unsigned int timeout)
 {
  wifiClrRx();
  if (DBG)
@@ -1018,14 +1018,14 @@ char wifiJoin()
 }
 
 void wifiStart(int chan, char *protocol, char *ip, int port,
-	       unsigned long timeout)
+	       unsigned int timeout)
 {
  sprintf(cmdBuffer, F0("AT+CIPSTART=%d,\"%s\",%s,%d\n"),
 	 chan, protocol, ip, port);
  wifiWrite(cmdBuffer, strlen(cmdBuffer), timeout);
 }
 
-void wifiStartData(char *s, int size, unsigned long timeout)
+void wifiStartData(char *s, int size, unsigned int timeout)
 {
  wifiClrRx();
  if (DBG)
@@ -1056,7 +1056,7 @@ void wifiStartData(char *s, int size, unsigned long timeout)
  }
 }
 
-void wifiWriteData(char *s, int size, unsigned long timeout)
+void wifiWriteData(char *s, int size, unsigned int timeout)
 {
  wifiClrRx();
  if (DBG)
@@ -1097,7 +1097,7 @@ void wifiWriteData(char *s, int size, unsigned long timeout)
 #define dbg2 0
 
 char *wifiWriteTCPx(char *s, int size, 
-		    int *dataLen, unsigned long timeout)
+		    int *dataLen, unsigned int timeout)
 {
  wifiClrRx();
  if (DBG)
@@ -1240,7 +1240,7 @@ char *wifiWriteTCPx(char *s, int size,
  return(p);
 }
 
-void wifiClose(int chan, unsigned long timeout)
+void wifiClose(int chan, unsigned int timeout)
 {
  wifiClrRx();
 // timeout += millis();
