@@ -1102,7 +1102,7 @@ char *wifiWriteTCPx(char *s, int size,
  wifiClrRx();
  if (DBG)
   printf(F0("Sending %d\n"), size);
- timeout += millis();
+// timeout += millis();
 
  wifiPut(s, size);
  wifiTerm();
@@ -1113,7 +1113,9 @@ char *wifiWriteTCPx(char *s, int size,
  p = 0;
  char ok = 0;
  size += IPDLEN;
- while (timeout >= millis())
+// while (timeout >= millis())
+ unsigned long start = millis();
+ while ((millis() - start) < timeout)
  {
   wdt_reset();
   if  (wifiAvail())
@@ -1179,7 +1181,9 @@ char *wifiWriteTCPx(char *s, int size,
        rspNum = 4;
        if (ok)
        {
-	timeout = millis() + 250;
+//	timeout = millis() + 250;
+	start = millis();
+	timeout = 250;
 	rspNum = 6;
        }
        if (dbg2)
@@ -1189,7 +1193,9 @@ char *wifiWriteTCPx(char *s, int size,
 
      case 4:			// read ok
      case 5:
-      timeout = millis() + 100;
+//      timeout = millis() + 100;
+      start = millis();
+      timeout = 100;
       if (cmp(rsp - OKLEN, OK, OKLEN))
       {
        rspNum++;
@@ -1202,7 +1208,9 @@ char *wifiWriteTCPx(char *s, int size,
       if (cmp(rsp - IPDLEN, IPD, IPDLEN))
       { 
        rspNum = 1;
-       timeout = millis() + 100;
+//       timeout = millis() + 100;
+       start = millis();
+       timeout = 100;
       }
       break;
      }
@@ -1212,13 +1220,17 @@ char *wifiWriteTCPx(char *s, int size,
       if (cmp(rsp - RSP_ERRLEN, RSP_ERR, RSP_ERRLEN))
       {
        rspNum = 6;
-       timeout = millis() + 2000;
+//       timeout = millis() + 2000;
+       start = millis();
+       timeout = 2000;
       }
 
       if (cmp(rsp - RSP_FAILLEN, RSP_FAIL, RSP_FAILLEN))
       {
        rspNum = 6;
-       timeout = millis() + 10;
+//       timeout = millis() + 10;
+       start = millis();
+       timeout = 10;
       }
      }
     }
@@ -1231,13 +1243,15 @@ char *wifiWriteTCPx(char *s, int size,
 void wifiClose(int chan, unsigned long timeout)
 {
  wifiClrRx();
- timeout += millis();
+// timeout += millis();
 
  sprintf(cmdBuffer, F0("AT+CIPCLOSE=%d"), chan);
  wifiPut((char *) cmdBuffer);
  wifiTerm();
 
- while (timeout >= millis())
+// while (timeout >= millis())
+ unsigned long start = millis();
+ while ((millis() - start) < timeout)
  {
   wdt_reset();
   if  (wifiAvail())
@@ -1252,7 +1266,9 @@ void wifiClose(int chan, unsigned long timeout)
     {
      if (cmp(rsp - CLOSED_LEN, CLOSED, CLOSED_LEN))
      {
-      timeout = millis() + 10;
+//      timeout = millis() + 10;
+      start = millis();
+      timeout = 10;
      }
     }
    }
