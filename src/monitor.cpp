@@ -400,11 +400,11 @@ float rtcTemp();
 #endif
 
 void cmdLoop();
-unsigned long tLast;
+unsigned int tLast;
 int loopCount;
 
-#define TINTERVAL (10000)	// timer interval
-#define T1SEC (1000)		// one second interval
+#define TINTERVAL (10000U)	// timer interval
+#define T1SEC (1000U)		// one second interval
 #define TEMP_COUNT (0)		// temp reading interval number
 #define WATER_COUNT (1)		// water alarm interval number
 #define NTP_COUNT (3)		// time setting
@@ -628,16 +628,16 @@ void setup()
  }
 
 #if DBG
- unsigned long t = millis();
- while ((unsigned long) (millis() - t) < 1000)
+ unsigned int t = intMillis();
+ while ((unsigned int) (intMillis() - t) < 1000U)
  {
   ch = DBGPORT.read();
  }
 
- t = millis();
+ t = intMillis();
  ch = 0;
  printf(F3("\nany char for cmd mode..."));
- while ((unsigned long) (millis() - t) < 5000)
+ while ((unsigned int) (intMillis() - t) < 5000U)
  {
   wdt_reset();
   if (DBGPORT.available())
@@ -669,7 +669,7 @@ void setup()
  initCurrent(1);		// initial current sensor
 #endif	/* CURRENT_SENSOR */
 
- tLast = millis() + TINTERVAL;	// initialize loop timer
+ tLast = intMillis();		// initialize loop timer
 }
 
 void cmdLoop()
@@ -941,13 +941,13 @@ void loop()
   }
  }
  
- unsigned long tPrev = millis(); // init time for short interval
+ unsigned int tPrev = intMillis(); // init time for short interval
  while (1)
  {
   wdt_reset();
   PORTD |= _BV(PD4);
-  unsigned long t0 = millis();	// read time
-  if ((unsigned long) (t0 - tLast) > TINTERVAL) // if long interval up
+  unsigned int t0 = intMillis(); // read time
+  if ((unsigned int) (t0 - tLast) > TINTERVAL) // if long interval up
   {
 //   printf("t0 %ld tLast %ld delta %ld\n", t0, tLast, t0 - tLast);
    tLast = t0;			// update previous time
@@ -956,7 +956,7 @@ void loop()
   }
 
   delay(100);			// wait a while
-  t0 = millis();		// read time
+  t0 = intMillis();		// read time
   if ((unsigned long) (t0 - tPrev) >= T1SEC) // if short interval up
   {
 //   printf("t0 %ld tPrev %ld delta %ld\n", t0, tPrev, t0 - tPrev);
