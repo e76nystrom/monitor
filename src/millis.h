@@ -11,5 +11,4 @@ unsigned int intMillis();
 
 #else
 #define millisDef unsigned long
-#define intMillis millis
 #endif
