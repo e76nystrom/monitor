@@ -881,14 +881,16 @@ char wifiWrite(char *s, int size, unsigned long timeout)
  wifiClrRx();
  if (DBG)
   printf(F0("\nSending %d "), size);
- timeout += millis();
+ // timeout += millis();
 
  wifiPut(s, size);
  wifiTerm();
 
  char result = 0;
  char last = 0;
- while (timeout >= millis())
+ unsigned long start = millis();
+// while (timeout >= millis())
+ while ((millis() - start) < timeout)
  {
   wdt_reset();
   if  (wifiAvail())
@@ -902,7 +904,9 @@ char wifiWrite(char *s, int size, unsigned long timeout)
    dbgChar(ch);
    if ((last == 'O') && (ch == 'K'))
    {
-    timeout = millis() + 10;
+//    timeout = millis() + 10;
+    start = millis();
+    timeout = 10;
     result = 1;
    }
    last = ch;
