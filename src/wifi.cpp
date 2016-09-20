@@ -3,6 +3,7 @@
 #include <Arduino.h>
 #include <EEPROM.h>
 #include <CRC32.h>
+#define INT_MILLIS 1
 #endif
 
 #ifdef MEGA32
@@ -18,6 +19,7 @@
 
 #include "wdt.h"
 #include "serial.h"
+#include "millis.h"
 
 #define EXT
 
@@ -58,8 +60,6 @@ uint32_t sumEE();
 void writeSumEE();
 void readEE(char *buf, char addr, char len);
 void writeEE(const char *buf, char addr, char eeLen);
-
-#define INT_MILLIS 1
 
 #endif	// ARDUINO_ARCH_AVR
 
@@ -111,8 +111,6 @@ EXT char ssid[SSID_LEN];
 EXT char pass[PASS_LEN];
 
 #endif	// WIN32
-
-#include "millis.h"
 
 void dbgChar(char ch);
 char readStr(char *buf, int bufLen);
