@@ -1,7 +1,7 @@
 #!/bin/bash
 
 avr-g++ \
--o .pioenvs\megaatmega2560\src\monitor.o \
+-o ../.pioenvs/megaatmega2560/src/monitor.o \
 -c \
 -fno-exceptions \
 -fno-threadsafe-statics \
@@ -30,5 +30,5 @@ avr-g++ \
 -IC:/cygwin/home/Eric/.platformio/packages/framework-arduinoavr/libraries/EEPROM/src \
 -Isrc \
 -save-temps \
--Wa,-adhln >monitor.lst \
-src/monitor.cpp
+-Wa,-adhln >$1.lst \
+$1.cpp
