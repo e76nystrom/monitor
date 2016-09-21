@@ -31,4 +31,4 @@ avr-g++ \
 -Isrc \
 -save-temps \
 -Wa,-adhln >monitor.lst \
-src\monitor.cpp
+src/monitor.cpp
