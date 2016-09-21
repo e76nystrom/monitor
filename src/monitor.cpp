@@ -463,7 +463,7 @@ uint16_t intMillis()
  uint16_t m;
  uint8_t oldSREG = SREG;	// save interrupt flag
  cli();				// disable interrupts
- m = (unit16_t) timer0_millis;	// read low part of millis
+ m = (uit16_t) timer0_millis;	// read low part of millis
  SREG = oldSREG;		// enable interrupts
  return(m);			// return value
 }
