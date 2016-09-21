@@ -1,5 +1,18 @@
 #if ARDUINO_ARCH_AVR
-extern volatile unsigned long timer0_millis;
+typedef union
+{
+ struct
+ {
+  uint16_t low;
+  uint16_t high;
+ };
+ struct
+ {
+  unsigned long val;
+ };
+} T_SHORT_LONG;
+
+extern volatile T_SHORT_LONG timer0_millis;
 #endif
 
 #if INT_MILLIS
