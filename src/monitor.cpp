@@ -458,9 +458,9 @@ void putx(char c);
 
 #ifdef ARDUINO_ARCH_AVR
 
-unsigned int intMillis()
+uint16_t intMillis()
 {
- unsigned int m;
+ uint16_t m;
  uint8_t oldSREG = SREG;	// save interrupt flag
  cli();				// disable interrupts
  m = timer0_millis;		// read low part of millis
