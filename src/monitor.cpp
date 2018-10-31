@@ -3,8 +3,9 @@
 #include <Wire.h>
 #include "serial.h"
 
-#define INT_MILLIS 0
+#define DBG 1
 
+#define INT_MILLIS 0
 
 #include "millis.h"
 
@@ -14,16 +15,23 @@
 
 #if ARDUINO_AVR_MEGA2560
 
-#define MONITOR_INDEX 3
+#define MONITOR_INDEX 2
 
 /* outside temperature */
 
 #if (MONITOR_INDEX == 1)
+
 #define TEMP_SENSOR 1
 #define RTC_CLOCK 1
 #define DHT_SENSOR 0
 #define CURRENT_SENSOR 0
 #define WATER_MONITOR 0
+
+#define EMONCMS_NODE "1"
+
+#define SSID "dd-wrt_vap"
+#define PASS "minidonk"
+
 #define MONITOR_ID "Monitor1"
 #endif	/* MONITOR_INDEX == 0 */
 
@@ -41,7 +49,7 @@
 #define CURRENT0_NODE 3
 #define CURRENT1_NODE 4
 
-#define SSID "nystrom"
+#define SSID "dd-wrt_vap"
 #define PASS "minidonk"
 #define MONITOR_ID "Monitor2"
 #endif	/* MONITOR_INDEX == 2 */
@@ -57,7 +65,7 @@
 #define DEHUMIDIFIER 1
 #define EMONCMS_NODE "5"
 
-#define SSID "nystrom"
+#define SSID "dd-wrt_vap"
 #define PASS "minidonk"
 #define MONITOR_ID "Monitor3"
 #endif	/* MONITOR_INDEX == 3 */
@@ -70,7 +78,7 @@
 #define WATER_MONITOR 1
 #define DEHUMIDIFIER 0
 
-#define SSID "nystrom"
+#define SSID "dd-wrt_vap"
 #define PASS "minidonk"
 #define MONITOR_ID "Monitor4"
 #endif	/* MONITOR_INDEX == 4 */
@@ -118,7 +126,7 @@ SoftwareSerial dbgPort = SoftwareSerial(rxPin, txPin);
 #define WATER_MONITOR 1
 #define DEHUMIDIFIER 0
 
-#define SSID "nystrom"
+#define SSID "dd-wrt_vap"
 #define PASS "minidonk"
 #define MONITOR_ID "Monitor2"
 #endif	/* MONITOR_INDEX == 2 */
@@ -151,7 +159,8 @@ SoftwareSerial dbgPort = SoftwareSerial(rxPin, txPin);
 #define TEMPDEVS 1
 DeviceAddress tempDev[TEMPDEVS] =
 {
- {0x28, 0xB8, 0x50, 0x9B, 0x06, 0x00, 0x00, 0x89
+ {0x28, 0x7d, 0xe3, 0x96, 0x06, 0x00, 0x00, 0x61}
+// {0x28, 0xB8, 0x50, 0x9B, 0x06, 0x00, 0x00, 0x89}
 };
 #endif	/* MONITOR_INDEX == 1 */
 
@@ -319,6 +328,9 @@ const char *argConv(const __FlashStringHelper *s, char *buf)
 
 #endif  /* ARDUINO_ARCH_AVR */
 
+char serverIP[IP_ADDRESS_LEN];	/* server ip address */
+char failCount;			/* send failure count */
+
 #if WATER_MONITOR
 
 #if ARDUINO_AVR_PRO
@@ -340,9 +352,6 @@ const char *argConv(const __FlashStringHelper *s, char *buf)
 #define LED 13
 
 #endif	/* ARDUINO_AVR_MEGA2560 */
-
-char serverIP[IP_ADDRESS_LEN];	/* server ip address */
-char failCount;			/* send failure count */
 
 typedef struct
 {
@@ -463,7 +472,7 @@ uint16_t intMillis()
  uint16_t m;
  uint8_t oldSREG = SREG;	// save interrupt flag
  cli();				// disable interrupts
- m = timer0_millis.low;		// read low part of millis
+ m = ((P_SHORT_LONG) &timer0_millis)->low; // read low part of millis
  SREG = oldSREG;		// enable interrupts
  return(m);			// return value
 }
@@ -551,7 +560,7 @@ void setup()
  uint32_t checksum = sumEE();
  uint32_t csum;
  readEE((char *) &csum, CSUM_LOC, CSUM_LEN);
- if (checksum != csum)
+// if (checksum != csum)
  {
   if (DBG)
    printf(F3("init eeprom with default\n"));
@@ -571,6 +580,7 @@ void setup()
   printf(F3("\nstarting 1\n"));
 
 #if TEMP_SENSOR
+ printf(F3("start temp sensor\n"));
  sensors.begin();
  for (unsigned char i = 0; i < TEMPDEVS; i++)
  {
@@ -629,6 +639,7 @@ void setup()
   }
  }
 
+ printf(F3("debug mod\n"));
 #if DBG
  unsigned int t = intMillis();
  while ((unsigned int) (intMillis() - t) < 1000U)
@@ -655,6 +666,7 @@ void setup()
   cmdLoop();
  }
 #endif /* DBG */
+ printf(F3("end debug mode\n"));
 
 #if RTC_CLOCK
  char status = ntpSetTime();	// look up ntp time
@@ -1319,7 +1331,10 @@ char sendHTTP(char *data)
 #endif	/* ARDUINO_AVR_MEGA2560 */
   }
  }
+
+#if WATER_MONITOR
  updateFail();
+#endif
  return(0);
 }
 
@@ -1435,7 +1450,10 @@ char emonData(char *data)
   delay(500);
 #endif	/* ARDUINO_AVR_MEGA2560 */
  }
+
+#if WATER_MONITOR
  updateFail();
+#endif
  return(0);
 }
 

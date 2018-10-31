@@ -10,9 +10,10 @@ typedef union
  {
   unsigned long val;
  };
-} T_SHORT_LONG;
+} T_SHORT_LONG, *P_SHORT_LONG;
 
-extern volatile T_SHORT_LONG timer0_millis;
+//extern volatile T_SHORT_LONG timer0_millis;
+extern volatile unsigned long timer0_millis;
 #endif
 
 #if INT_MILLIS
