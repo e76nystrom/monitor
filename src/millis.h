@@ -1,4 +1,4 @@
-#if ARDUINO_ARCH_AVR
+#ifdef ARDUINO_ARCH_AVR
 typedef union
 {
  struct
@@ -14,7 +14,6 @@ typedef union
 
 //extern volatile T_SHORT_LONG timer0_millis;
 extern volatile unsigned long timer0_millis;
-#endif
 
 #if INT_MILLIS
 
@@ -26,3 +25,36 @@ unsigned int intMillis();
 #else
 #define millisDef unsigned long
 #endif
+
+#endif
+
+#ifdef ARDUINO_ARCH_STM32
+#define millisDef unsigned int
+#endif
+
+#ifdef STM32MON
+#include "stm32f1xx_hal.h"
+
+extern __IO uint32_t uwTick;
+
+inline unsigned int millis(void)
+{
+ return((unsigned int) uwTick);
+}
+
+inline void delay(uint32_t ms)
+{
+  if (ms != 0)
+  {
+   uint32_t start = uwTick;
+   do
+   {
+//    yield();
+   } while (uwTick - start < ms);
+  }
+}
+
+#define millisDef unsigned int
+
+#endif
+

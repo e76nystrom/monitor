@@ -1,203 +1,73 @@
-#ifdef ARDUINO_ARCH_AVR
-#include <Arduino.h>
+/* installed libraries
+
+OneWire
+=======
+#ID: 1
+Control 1-Wire protocol (DS18S20, DS18B20, DS2408 and etc)
+
+Version: 2.3.5
+Homepage: https://www.pjrc.com/teensy/td_libs_OneWire.html
+Keywords: onewire, temperature, bus, 1-wire, ibutton, sensor
+Compatible frameworks: arduino
+
+Time
+====
+#ID: 44
+Time keeping library
+
+Version: 1.6
+Homepage: http://playground.arduino.cc/Code/Time
+Keywords: week, rtc, hour, year, month, second, time, date, day, minute
+Compatible frameworks: arduino
+
+DallasTemperature
+=================
+#ID: 54
+Arduino Library for Dallas Temperature ICs (DS18B20, DS18S20, DS1822, DS1820)
+
+Version: 3.8.1
+Keywords: bus, sensor, 1-wire, onewire, temperature
+Compatible frameworks: arduino
+Compatible platforms: atmelavr, atmelmegaavr, atmelsam, espressif32, espressif82
+66, gd32v, infineonxmc, intel_arc32, kendryte210, microchippic32, nordicnrf51, n
+ordicnrf52, ststm32, ststm8, teensy, timsp430
+
+DS3232RTC
+=========
+#ID: 78
+Arduino Library for Maxim Integrated DS3232 and DS3231 Real-Time Clocks
+
+Version: 261ca7d0e6
+Keywords: rtc, time
+Compatible frameworks: arduino
+
+*/
+
+#include <SoftwareSerial.h>
+#include <DallasTemperature.h>
+#include <TimeLib.h>
+#include <OneWire.h>
 #include <Wire.h>
-#include "serial.h"
+#define EMONCMS_ADDR0 "192.168.1.111"
+#define EMONCMS_KEY0 "b53ec1abe610c66009b207d6207f2c9e"
 
-#define DBG 1
+#define EMONCMS_ADDR1 "192.168.42.10"
+#define EMONCMS_KEY1 "cd5f31b05f8008756e76f87ecb762199"
 
-#define INT_MILLIS 0
-
-#include "millis.h"
-
-#define EMONCMS_KEY "b53ec1abe610c66009b207d6207f2c9e"
 #define TEST_NODE 0
-#define THING_SPEAK 0
 
-#if ARDUINO_AVR_MEGA2560
+unsigned char getNum();
+int val;
 
-#define MONITOR_INDEX 2
+#include "monitorAVR.h"
+#include "monitorSTM32.h"
+#include "monitorMega32.h"
 
-/* outside temperature */
-
-#if (MONITOR_INDEX == 1)
-
-#define TEMP_SENSOR 1
-#define RTC_CLOCK 1
-#define DHT_SENSOR 0
-#define CURRENT_SENSOR 0
-#define WATER_MONITOR 0
-
-#define EMONCMS_NODE "1"
-
-#define SSID "dd-wrt_vap"
-#define PASS "minidonk"
-
-#define MONITOR_ID "Monitor1"
-#endif	/* MONITOR_INDEX == 0 */
-
-/* basement dehumidifer and furnace monitor */
-
-#if (MONITOR_INDEX == 2)
-#define TEMP_SENSOR 1
-#define RTC_CLOCK 1
-#define DHT_SENSOR 1
-#define CURRENT_SENSOR 1
-#define WATER_MONITOR 1
-#define DEHUMIDIFIER 0
-
-#define EMONCMS_NODE "2"
-#define CURRENT0_NODE 3
-#define CURRENT1_NODE 4
-
-#define SSID "dd-wrt_vap"
-#define PASS "minidonk"
-#define MONITOR_ID "Monitor2"
-#endif	/* MONITOR_INDEX == 2 */
-
-/* basement water alarm and pump shutoff */
-
-#if (MONITOR_INDEX == 3)
-#define TEMP_SENSOR 1
-#define RTC_CLOCK 1
-#define DHT_SENSOR 1
-#define CURRENT_SENSOR 0
-#define WATER_MONITOR 1
-#define DEHUMIDIFIER 1
-#define EMONCMS_NODE "5"
-
-#define SSID "dd-wrt_vap"
-#define PASS "minidonk"
-#define MONITOR_ID "Monitor3"
-#endif	/* MONITOR_INDEX == 3 */
-
-#if (MONITOR_INDEX == 4)
-#define TEMP_SENSOR 0
-#define RTC_CLOCK 0
-#define DHT_SENSOR 0
-#define CURRENT_SENSOR 0
-#define WATER_MONITOR 1
-#define DEHUMIDIFIER 0
-
-#define SSID "dd-wrt_vap"
-#define PASS "minidonk"
-#define MONITOR_ID "Monitor4"
-#endif	/* MONITOR_INDEX == 4 */
-
-#if TEST_NODE
-
-#undef EMONCMS_NODE
-#define EMONCMS_NODE "12"
-
-#if CURRENT_SENSOR
-#undef CURRENT0_NODE
-#define CURRENT0_NODE 13
-#undef CURRENT1_NODE
-#define CURRENT1_NODE 14
-#endif	/* CURRENT_SENSOR */
-
-#endif	/* ARDUINO_AVR_MEGA2560 */
-
-#endif	/* TEST_MODE */
-
-#if ARDUINO_AVR_PRO
-
-SoftwareSerial dbgPort = SoftwareSerial(rxPin, txPin);
-
-#define MONITOR_INDEX 2
-
-#if (MONITOR_INDEX == 0)
-#define TEMP_SENSOR 0
-#define RTC_CLOCK 0
-#define CURRENT_SENSOR 0
-#define DHT_SENSOR 0
-#define WATER_MONITOR 1
-#define DEHUMIDIFIER 0
-
-#define SSID "TKGCL"
-#define PASS "K4PLVFMCXGMLXM9P"
-#define MONITOR_ID "Monitor0"
-#endif	/* MONITOR_INDEX == 0 */
-
-#if (MONITOR_INDEX == 2)
-#define TEMP_SENSOR 0
-#define RTC_CLOCK 0
-#define CURRENT_SENSOR 0
-#define DHT_SENSOR 0
-#define WATER_MONITOR 1
-#define DEHUMIDIFIER 0
-
-#define SSID "dd-wrt_vap"
-#define PASS "minidonk"
-#define MONITOR_ID "Monitor2"
-#endif	/* MONITOR_INDEX == 2 */
-
-#endif	/* ARDUINO_AVR_PRO */
-
-#endif	/* ARDUINO_ARCH_AVR */
-
-#ifdef MEGA32
-#include "WProgram.h"
-#include "printf.h"
-
-#define TEMP_SENSOR 1
-#define DHT_SENSOR 1
-#define RTC_CLOCK 0
-#define CURRENT_SENSOR 0
-#define WATER_MONITOR 0
-#define DEHUMIDIFIER 0
-
-#define TS_KEY "67TDONLKRDNVF7L4"
-#define EMONCMS_NODE "0"
-
-#endif	/* MEGA32 */
+void setTime();
 
 #if TEMP_SENSOR
-#include <OneWire.h>
-#include <DallasTemperature.h>
-
-#if (MONITOR_INDEX == 1)
-#define TEMPDEVS 1
-DeviceAddress tempDev[TEMPDEVS] =
-{
- {0x28, 0x7d, 0xe3, 0x96, 0x06, 0x00, 0x00, 0x61}
-// {0x28, 0xB8, 0x50, 0x9B, 0x06, 0x00, 0x00, 0x89}
-};
-#endif	/* MONITOR_INDEX == 1 */
-
-#if (MONITOR_INDEX == 2)
-#define TEMPDEVS 2
-DeviceAddress tempDev[TEMPDEVS] =
-{
- {0x28, 0xff, 0xd3, 0x09, 0x63, 0x14, 0x02, 0xe1},
- {0x28, 0xc8, 0xae, 0x9b, 0x06, 0x00, 0x00, 0x15}
-};
-#endif	/* MONITOR_INDEX == 2 */
-
-#if (MONITOR_INDEX == 3)
-#define TEMPDEVS 1
-DeviceAddress tempDev[TEMPDEVS] =
-{
- {0x28, 0x7d, 0xe3, 0x96, 0x06, 0x00, 0x00, 0x61}
-};
-#endif	/* MONITOR_INDEX == 3 */
-
-#ifdef MEGA32
-#define TEMPDEVS 1
-DeviceAddress tempDev[TEMPDEVS] =
-{
- {0x10, 0xDC, 0x5D, 0xD4, 0x01, 0x08, 0x00, 0xE9}
-};
-#endif	/* MEGA32 */
 
 float lastTemp[TEMPDEVS];
-
-#ifdef MEGA32
-#define ONE_WIRE_BUS 4		/* one wire bus pin */
-#endif	/* MEGA32 */
-
-#ifdef ARDUINO_ARCH_AVR
-#define ONE_WIRE_BUS 4		/* one wire bus pin */
-#endif	/* ARDUINO_ARCH_AVR */
 
 void findAddresses(void);
 OneWire oneWire(ONE_WIRE_BUS);	/* one wire instance */
@@ -209,18 +79,9 @@ float printTemperature(DeviceAddress deviceAddress);
 #if DHT_SENSOR
 #include <DHT.h>
 
-#if ARDUINO_AVR_MEGA2560
-#define DHTPIN 3
 #if DEHUMIDIFIER
 void switchRelay(char pin);
-#define DEHUM_ON_PIN 9
-#define DEHUM_OFF_PIN 8
 #endif	/* DEHUMIDIFIER */
-#endif	/* ARDUINO_AVR_MEGA2560 */
-
-#if MEGA32
-#define DHTPIN 4
-#endif	/* MEGA32 */
 
 #define DHTTYPE DHT22
 DHT dht(DHTPIN, DHTTYPE, 15);
@@ -249,19 +110,30 @@ int dehumDelay;			/* on or off delay counter */
 #define ADC_COUNTS (1<<ADC_BITS)
 #endif  /* CURRENT_SENSOR */
 
-#include "wdt.h"
 #include <Time.h>
-#include "string.h"
+#include <string.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <ctype.h>
+
+#define EXT
+#include "wdt.h"
 #include "dns.h"
 #include "ntp.h"
 #include "wifi.h"
 
-#ifdef ARDUINO_ARCH_AVR
+#if defined(ARDUINO_ARCH_AVR)
 #include <EEPROM.h>
-#include <stdio.h>
 
 #define INITEE 1		/* init eeprom values on boot */
 #define LOCAL 0			/* use local server */
+
+extern char __bss_end;
+
+#if ESP8266_TIME
+char esp8266TimeEnable();
+char esp8266Time();
+#endif	/* ESP8266_TIME */
 
 #if LOCAL
 #define SERVER "10.0.0.2"
@@ -273,6 +145,14 @@ int dehumDelay;			/* on or off delay counter */
 #define HOST "test.ericnystrom.com"
 #define SITE "/alert"
 #endif  /* LOCAL */
+
+#define TEST_GET "get /emoncms/input/post.json?node=4"\
+"&csv=0.0&apikey=cd5f31b05f8008756e76f87ecb762199 "\
+"HTTP/1.0\r\nHost: 192.168.42.10\r\nConnection: close\r\n\r\n"
+
+#define HTTP " HTTP/1.1\r\nHost: " HOST "\r\nConnection: Close\r\n\r\n"
+
+#define HTTP1 " HTTP/1.1\r\nHost: " EMONCMS_ADDR "\r\nConnection: Close\r\n\r\n"
 
 #if PRINTF
 void putx1(void *p, char c)
@@ -294,9 +174,6 @@ static int putx(char c, FILE *stream)
  return 0;
 }
 #endif	/* ! PRINTF */
-
-unsigned char getNum();
-int val;
 
 const char *argConv(const __FlashStringHelper *s)
 {
@@ -328,30 +205,11 @@ const char *argConv(const __FlashStringHelper *s, char *buf)
 
 #endif  /* ARDUINO_ARCH_AVR */
 
+char emonIP[IP_ADDRESS_LEN];	/* emoncms ip address */
 char serverIP[IP_ADDRESS_LEN];	/* server ip address */
 char failCount;			/* send failure count */
 
 #if WATER_MONITOR
-
-#if ARDUINO_AVR_PRO
-
-#define WATER0 3
-#define WATER1 4
-
-#define BEEPER 10
-#define LED 13
-
-#endif	/* ARDUINO_AVR_PRO */
-
-#if ARDUINO_AVR_MEGA2560
-
-#define WATER0 6
-#define WATER1 7
-
-#define BEEPER 12
-#define LED 13
-
-#endif	/* ARDUINO_AVR_MEGA2560 */
 
 typedef struct
 {
@@ -379,29 +237,31 @@ char beeperCount;
 
 #endif	/* WATER_MONITOR */ 
 
-void printTemp(float temp);
+#if TEMP_SENSOR | DHT_SENSOR
+void loopTemp();
 char *writeTemp(char *buf, float temp);
+void printTemp(float temp);
+#endif	/* TEMP_SENSOR | DHT_SENSOR */
 
 unsigned long time = 0;
 
-void loopTemp();
+#if CHECK_IN
+char checkIn();
+#endif	/* CHECK_IN */
 
 #if WATER_MONITOR
 void loopWater();
 void alarmPoll();
 void procAlarm(P_INPUT water, boolean inp);
 char notify(int alarm, boolean val);
-char checkIn();
-char sendHTTP(char *data);
 #endif  /* WATER_MONITOR */
+
+#if CHECK_IN | WATER_MONITOR
+char sendHTTP(char *data);
+#endif  /* CHECK_IN | WATER_MONITOR */
 
 char *cpyStr(char *dst, const char *str);
 char *strEnd(char *p);
-
-#if THING_SPEAK
-void tsData(char *data);
-#define TS_KEY "86Z0KTDYLEC28FU3"
-#endif
 
 char emonData(char *data);
 
@@ -417,6 +277,7 @@ int loopCount;
 #define T1SEC (1000U)		// one second interval
 #define TEMP_COUNT (0)		// temp reading interval number
 #define WATER_COUNT (1)		// water alarm interval number
+#define CHECKIN_COUNT (2)	// checkin interval number
 #define NTP_COUNT (3)		// time setting
 #define LOOP_MAX (6)		// max number of intervals
 
@@ -465,7 +326,7 @@ float tempSumI;			// current sum accumulator
 void putx0(void *p, char c);
 void putx(char c);
 
-#ifdef ARDUINO_ARCH_AVR
+#if defined(ARDUINO_ARCH_AVR)
 
 uint16_t intMillis()
 {
@@ -475,6 +336,15 @@ uint16_t intMillis()
  m = ((P_SHORT_LONG) &timer0_millis)->low; // read low part of millis
  SREG = oldSREG;		// enable interrupts
  return(m);			// return value
+}
+
+char updateEE(const char *prompt, char eeLoc, char eeLen);
+char updateEE(const __FlashStringHelper *prompt, char eeLoc, char eeLen);
+
+char updateEE(const __FlashStringHelper *prompt, char eeLoc, char eeLen)
+{
+ char str[12];
+ return(updateEE(argConv(prompt, str), eeLoc, eeLen));
 }
 
 char updateEE(const char *prompt, char eeLoc, char eeLen)
@@ -490,13 +360,11 @@ char updateEE(const char *prompt, char eeLoc, char eeLen)
   if (len < eeLen)
    len++;
   char *p = cmdBuffer;
-  char *dst = id;
   char addr = eeLoc;
   while (--len >= 0)
   {
    EEPROM.write(addr, *p);
    addr++;
-   *dst++ = *p++;
   }
   return(1);
  }
@@ -505,17 +373,53 @@ char updateEE(const char *prompt, char eeLoc, char eeLen)
 
 #endif	/* ARDUINO_ARCH_AVR */
 
+#if defined(ARDUINO_ARCH_STM32)
+
+extern uint32_t uwTick;
+
+uint16_t intMillis()
+{
+ return((uint16_t) uwTick);	// return value
+}
+
+#endif
+
 /* setup routine */
+
+int bufferCheck(char *buf, int size)
+{
+ int val;
+ for (int i = 0; i < size; i++)
+ {
+  if (*buf++ != 0)
+   val = i;
+ }
+ return(val);
+}
+
+void checkBuffers()
+{
+ printf(F0("string %d\n"), bufferCheck(stringBuffer, sizeof(stringBuffer)));
+ printf(F0("data %d\n"), bufferCheck(dataBuffer, sizeof(dataBuffer)));
+ printf(F0("cmd %d\n"), bufferCheck(cmdBuffer, sizeof(cmdBuffer)));
+ printf(F0("rsp %d\n"), bufferCheck(packetRsp, sizeof(packetRsp)));
+}
 
 void setup()
 {
  char ch;
-#ifdef ARDUINO_ARCH_AVR
+
+ memset(stringBuffer, 0, sizeof(stringBuffer));
+ memset(dataBuffer, 0, sizeof(dataBuffer));
+ memset(cmdBuffer, 0, sizeof(cmdBuffer));
+ memset(packetRsp, 0, sizeof(packetRsp));
+
+#if defined(ARDUINO_ARCH_AVR)
  wdt_enable(WDT_TO);
 #if ARDUINO_AVR_MEGA2560
  DBGPORT.begin(19200);
 #endif
-#if ARDUINO_AVR_PRO
+#if defined(ARDUINO_AVR_PRO)
  DBGPORT.begin(9600);
 #endif
 
@@ -528,6 +432,10 @@ void setup()
  stdout = &uartout;
 #endif
 #endif  /* ARDUINO_ARCH_AVR */
+
+#if ARDUINO_ARCH_STM32
+ DBGPORT.begin(19200);
+#endif
 
  if (DBG)
   printf(F3("\nstarting 0\n"));
@@ -554,10 +462,9 @@ void setup()
  memset(&ntpIP, 0, sizeof(ntpIP));
  failCount = 0;
 
- ntpStart = millis();
- ntpTimeout = 0;
-
- uint32_t checksum = sumEE();
+#if defined(ARDUINO_ARCH_AVR)
+// uint32_t checksum = sumEE();
+ sumEE();
  uint32_t csum;
  readEE((char *) &csum, CSUM_LOC, CSUM_LEN);
 // if (checksum != csum)
@@ -565,12 +472,22 @@ void setup()
   if (DBG)
    printf(F3("init eeprom with default\n"));
 #if INITEE
-  writeEE(SSID, SSID_LOC, SSID_LEN);
-  writeEE(PASS, PASS_LOC, PASS_LEN);
-  writeEE(MONITOR_ID, ID_LOC, ID_LEN);
+  writeEE(F0(SSID), SSID_LOC, SSID_LEN);
+  writeEE(F0(PASS), PASS_LOC, PASS_LEN);
+  writeEE(F0(MONITOR_ID), ID_LOC, ID_LEN);
+  writeEE(F0(EMONCMS_ADDR), IP_LOC, IP_LEN);
 #endif  /* INITEE */
   writeSumEE();
  }
+
+ readEE(id, ID_LOC, ID_LEN);
+ readEE(emonIP, IP_LOC, IP_LEN);
+
+ printf(F3("monitor index %s\n"), id);
+#else
+ strcpy(id, MONITOR_ID);
+ strcpy(emonIP, EMONCMS_ADDR);
+#endif /* ARDUINO_ARCH_AVR */
 
 #if MEGA32
  init_printf(NULL, putx0);
@@ -601,13 +518,7 @@ void setup()
 #endif	/* DEHUMIDIFIER */
 #endif	/* DHT_SENSOR */
 
-#if ARDUINO_ARCH_AVR
- readEE(id, ID_LOC, ID_LEN);
-#endif
-
- printf(F3("id %s\n"), id);
-
-#if ARDUINO_AVR_MEGA2560
+#if defined(ARDUINO_AVR_MEGA2560)
  pinMode(51, OUTPUT);		// pg0
  pinMode(52, OUTPUT);		// pg1
  PORTG &= ~(_BV(PG0) | _BV(PG1));
@@ -624,12 +535,18 @@ void setup()
 
  wifiReset();			// reset wifi
 
+ wifiWriteStr(F2("AT+CWQAP"), 1000);
+ delay(100);
+ 
  char retry = 3;
  while (1)
  {
   char result = wifiJoin();
   if (result)
+  {
+   wifiWriteStr(F2("AT+CIFSR"), 1000);
    break;
+  }
   --retry;
   if (retry <= 0)
   {
@@ -639,8 +556,15 @@ void setup()
   }
  }
 
- printf(F3("debug mod\n"));
+#if ESP8266_TIME == 0
+ ntpStart = millis();
+ ntpTimeout = 0;
+#else
+ esp8266TimeEnable();
+#endif /* ESP8266_TIME */
+
 #if DBG
+ printf(F3("debug mode\n"));
  unsigned int t = intMillis();
  while ((unsigned int) (intMillis() - t) < 1000U)
  {
@@ -665,19 +589,10 @@ void setup()
  {
   cmdLoop();
  }
-#endif /* DBG */
  printf(F3("end debug mode\n"));
+#endif /* DBG */
 
-#if RTC_CLOCK
- char status = ntpSetTime();	// look up ntp time
- if (status)			// if valid time found
- {
-  RTC.set(now());		// set the clock
- }
- setSyncProvider(RTC.get);	// set rtc to provide clock time
-#else
- ntpSetTime();			// look up ntp time
-#endif	/* RTC_CLOCK */
+ setTime();
 
 #if CURRENT_SENSOR
  initCurrent(1);		// initial current sensor
@@ -686,10 +601,32 @@ void setup()
  tLast = intMillis();		// initialize loop timer
 }
 
+void setTime()
+{
+ if ((millis() - ntpStart) > ntpTimeout)
+ {
+  char status;
+
+#if ESP8266_TIME == 0
+  status = ntpSetTime();	// look up ntp time
+#else
+  status = esp8266Time();
+#endif /* ESP8266_TIME */
+
+  if (status)			// if valid time found
+  {
+#if RTC_CLOCK
+   RTC.set(now());		// set the clock
+   setSyncProvider(RTC.get);	// set rtc to provide clock time
+#endif	/* RTC_CLOCK */
+  }
+  printTime();
+ }
+}
+
 void cmdLoop()
 {
  wdt_disable();
- printf(F3("command loop\n"));
  while (1)
  {
   if (DBGPORT.available())
@@ -703,19 +640,47 @@ void cmdLoop()
    {
     printf(F3("monitor.cpp\n"));
    }
-#if ARDUINO_ARCH_AVR
+   
+#if defined(ARDUINO_ARCH_AVR)
+   else if (ch == 'F')
+   {
+    printf(F3("command loop RAMEND %x sp %x bss_end %x free %d\n"),
+	   RAMEND, SP, &__bss_end, SP - (int) (&__bss_end));
+
+    checkBuffers();
+ 
+#define MAX_COL 16
+    unsigned char *p = (unsigned char *) &__bss_end;
+    unsigned int len = SP - (int) p;
+    char col = 0;
+    for (unsigned int i = 0; i < len; i++)
+    {
+     if (col == 0)		/* if column 0 */
+     {
+      printf(F0("%04x  "), (int) p);
+     }
+     int val = *p++ & 0xff;
+     printf(F0("%02x "), val);	/* output value */
+     col += 1;			/* count a column */
+     if (col == MAX_COL)	/* if at end of line */
+     {
+      col = 0;			/* reset column counter */
+      newLine();
+     }
+    }
+    if (col != 0)
+     newLine();
+   }
    else if (ch == 'w')		// write ssid and password to eeprom
    {
-    char flag = updateEE("ssid", SSID_LOC, SSID_LEN);
-    flag |= updateEE("pass", PASS_LOC, PASS_LEN);
+    char flag = updateEE(F1("ssid"), SSID_LOC, SSID_LEN);
+    flag |= updateEE(F1("pass"), PASS_LOC, PASS_LEN);
+    flag |= updateEE(F1("id"), ID_LOC, ID_LEN);
+    flag |= updateEE(F1("emonIp"), IP_LOC, IP_LEN);
     if (flag)
      writeSumEE();
-   }
-   else if (ch == 'i')		// write unit id to eeprom
-   {
-    char flag = updateEE("id", ID_LOC,ID_LEN);
-    if (flag)
-     writeSumEE();
+    readEE(id, ID_LOC, ID_LEN);
+    readEE(emonIP, IP_LOC, IP_LEN);
    }
    else if (ch == 'W')		// test watchdog timer
    {
@@ -725,6 +690,7 @@ void cmdLoop()
      ;
    }
 #endif  /* ARDUINO_ARCH_AVR */
+
 #if ARDUINO_AVR_MEGA2560
    else if (ch == 'p')
    {
@@ -736,6 +702,7 @@ void cmdLoop()
     }
    }
 #endif	/* ARDUINO_AVR_MEGA2560 */
+
 #if CURRENT_SENSOR
    else if (ch == 'e')		// read a to d converter
    {
@@ -792,6 +759,7 @@ void cmdLoop()
     }
    }
 #endif  /* CURRENT_SENSOR */
+
    else if (ch == 'u')
    {
     long tmp = 0x55aa55aa;
@@ -799,12 +767,19 @@ void cmdLoop()
     DBGPORT.println();
     printf(F3("%lx\n"), tmp);
    }
-#if WATER_MONITOR
+
+#if CHECK_IN | WATER_MONITOR
    else if (ch == 'L')		// loop water
    {
+#if CHECK_IN
+    checkIn();
+#endif  /* CHECK_IN */
+#if WATER_MONITOR
     loopWater();
-   }
 #endif  /* WATER_MONITOR */
+   }
+#endif  /* CHECK_IN | WATER_MONITOR */
+
    else if (ch == 'j')		// join wifi
    {
     wifiJoin();
@@ -856,27 +831,18 @@ void cmdLoop()
    }
    else if (ch == 'd')		// set time from ntp
    {
-    ntpStart = millis();
     ntpTimeout = 0;
-#if RTC_CLOCK
-    char status = ntpSetTime();
-    if (status)
-    {
-     RTC.set(now());
-    }
-    printTime(RTC.get());
-    setSyncProvider(RTC.get);
-#else
-    ntpSetTime();
-#endif  /* RTC_CLOCK */
-    printTime();
+    ntpStart = millis() - 1;
+    setTime();
    }
+
 #if RTC_CLOCK
    else if (ch == 'v')		// read rtc temp
    {
     rtcTemp();
    }
 #endif  /* RTC_CLOCK */
+
 #if DHT_SENSOR
    else if (ch == 'h')		// read humidity sensor
    {
@@ -899,6 +865,7 @@ void cmdLoop()
      printf(F3("humidity read failure\n"));
    }
 #endif  /* DNT_SENSOR */
+
 #if DEHUMIDIFIER
    else if (ch == 'r')		// set dehumidifier relay
    {
@@ -917,6 +884,7 @@ void cmdLoop()
     }
    }
 #endif	/* DEHUMIDIFIER */
+
 #if TEMP_SENSOR
    else if (ch == 'f')		// find temp sensor addresses
    {
@@ -938,35 +906,42 @@ void cmdLoop()
     loopTemp();
    }
 #endif  /* TEMP_SENSOR */
+
   }
  }
+#if defined(ARDUINO_ARCH_AVR)
  wdt_enable(WDT_TO);
-}
+#endif /* ARDUINO_ARCH_AVR */
+} /* *end cmdloop */
 
 void loop()
 {
- while (DBGPORT.available())
+ if (DBGPORT.available())
  {
+  DBGPORT.print('>');
   char ch = DBGPORT.read();
+  DBGPORT.print(ch);
   if (ch == 'C')
   {
    while (DBGPORT.available())
     ch = DBGPORT.read();
+   printf(F0("command loop\n"));
    cmdLoop();
   }
+  newLine();
  }
  
  unsigned int tPrev = intMillis(); // init time for short interval
  while (1)
  {
   wdt_reset();
-  PORTD |= _BV(PD4);
+//  PORTD |= _BV(PD4);
   unsigned int t0 = intMillis(); // read time
   if ((unsigned int) (t0 - tLast) > TINTERVAL) // if long interval up
   {
 //   printf("t0 %ld tLast %ld delta %ld\n", t0, tLast, t0 - tLast);
    tLast = t0;			// update previous time
-   PORTD &= ~_BV(PD4);
+//   PORTD &= ~_BV(PD4);
    break;			// exit loop
   }
 
@@ -1008,23 +983,22 @@ void loop()
  }
 #endif	/* WATER_MONITOR */
 
+#if CHECK_IN
+ if (loopCount == CHECKIN_COUNT) // if time to check water alarm
+ {
+  checkIn();
+ }
+#endif /* CHECK_IN */
+
  if (loopCount == NTP_COUNT)	// if time to set time
  {
-#if RTC_CLOCK
-  char status = ntpSetTime();
-  if (status)			// if good reading
-  {
-   RTC.set(now());		// set the clock
-  }
-#else  /* RTC_CLOCK */
-  ntpSetTime();
-#endif	/* RTC_CLOCK */
+  setTime();
  }
 
  loopCount++;			// update loop counter
  if (loopCount >= LOOP_MAX)	// if at maximum
   loopCount = 0;		// reset to beginning
-}
+} /* *end loop */
 
 #if DEHUMIDIFIER
 void switchRelay(char pin)
@@ -1068,8 +1042,6 @@ void loopTemp()
 
 #if RTC_CLOCK
  float rtcTempVal = rtcTemp();
-#else
- float rtcTempVal = 0;
 #endif /* RTC_CLOCK */
 
 #if DHT_SENSOR
@@ -1129,42 +1101,101 @@ void loopTemp()
   }
  }
 #endif	/* DEHUMIDIFIER */
-#else  /* DHT_SENSOR */
- float dhtHumidity = 0;
- float dhtTemp = 0;
 #endif  /* DHT_SENSOR */
 
  char buf[128];
  char *p;
-#if THING_SPEAK
- p = cpyStr(buf, "field1=");
- p = writeTemp(p, temp1);
- p = cpyStr(p, "&field2=");
- p = writeTemp(p, rtcTempVal);
- p = cpyStr(p, "&field3=");
- p = writeTemp(p, dhtHumidity);
- p = cpyStr(p, "&field4=");
- writeTemp(p, dhtTemp);
- tsData(buf);
-#endif  /* THING_SPEAK */
+#if RTC_CLOck | DHT_SENSOR
+ char comma = 0;
+#endif /* RTC_CLOCK | DHT_SENSOR */
 
- p = cpyStr(buf, "node=" EMONCMS_NODE "&csv=");
+ p = cpyStr(buf, F0("node=" EMONCMS_NODE "&csv="));
 #if TEMP_SENSOR
  for (unsigned char i = 0; i < TEMPDEVS; i++)
  {
   p = writeTemp(p, temp1[i]);	/* output data from each temp sensor */
-  *p++ = ',';
+#if RTC_CLOck | DHT_SENSOR
+  comma = 1;
+#endif /* RTC_CLOCK | DHT_SENSOR */
  }
 #endif	/* TEMP_SENSOR */
+
+#if RTC_CLOCK
+ if (comma)
+  *p++ = ',';
  p = writeTemp(p, rtcTempVal);	/* output real time clock temp data */
- *p++ = ',';
+ comma = 1;
+#endif /* RTC_CLOCK */
+
+#if DHT_SENSOR
+ if (comma)
+  *p++ = ',';
  p = writeTemp(p, dhtHumidity);	/* output dht sensor humidity */
  *p++ = ',';
  writeTemp(p, dhtTemp);		/* output dht sensor temp */
+#endif /* DHT_SENSOR */
+
  emonData(buf);
-}
+} /* *end loopTemp */
 
 #endif	/* TEMP_SENSOR | DHT_SENSOR */
+
+#if CHECK_IN
+
+char checkIn()
+{
+#if WATER_MONITOR
+ char state = 0;
+ if (water0.state == STATE_ALARM)
+  state |= 1;
+ if (water1.state == STATE_ALARM)
+  state |= 2;
+ sprintf((char *) dataBuffer, F0("GET " SITE "/check?id=%s&st=%d"), id, state);
+#else
+ sprintf((char *) dataBuffer, F0("GET " SITE "/check?id=%s"), id);
+#endif	 /* WATER_MONITOR */
+ return(sendHTTP(dataBuffer));
+}
+
+char sendHTTP(char *data)
+{
+#if LOCAL
+ strncpy(serverIP, HOST, sizeof(serverIP));
+#else
+ dnsLookup(serverIP, F0(HOST));
+#endif	/* LOCAL */
+
+ if (serverIP[0] != 0)
+ {
+  strcat(data, F3(HTTP));
+  for (char retry = 0; retry < 1; retry++)
+  {
+   char *p = sendData(serverIP, TCPPORT, data, 10000);
+   if (p != 0)
+   {
+    if (find(lc(p), (char *) F0("*ok*")) >= 0)
+    {
+     failCount = 0;
+     return(1);
+    }
+   }
+   printf(F3("**sendHTTP retry %d\n"), retry);
+#if ARDUINO_AVR_MEGA2560
+   PORTG |= _BV(PG0);
+   delay(2);
+   PORTG &= ~_BV(PG0);
+   delay(500);
+#endif	/* ARDUINO_AVR_MEGA2560 */
+  }
+ }
+
+#if WATER_MONITOR
+ updateFail();
+#endif
+ return(0);
+}
+
+#endif	/* CHECK_IN */
 
 #if WATER_MONITOR
 
@@ -1192,7 +1223,6 @@ void loopWater()
 {
  if (DBG)
   printTime();
- checkIn();
  procAlarm(&water0, (boolean) digitalRead(WATER0));
  procAlarm(&water1, (boolean) digitalRead(WATER1));
 
@@ -1227,7 +1257,7 @@ void loopWater()
    delay(BEEPSPACE);
   }
  }
-}
+} /* *end loopWater */
 
 void procAlarm(P_INPUT water, boolean inp)
 {
@@ -1269,22 +1299,6 @@ char notify(int alarm, boolean val)
  return(sendHTTP(dataBuffer));
 }
 
-char checkIn()
-{
- char state = 0;
- if (water0.state == STATE_ALARM)
-  state |= 1;
- if (water1.state == STATE_ALARM)
-  state |= 2;
- sprintf((char *) dataBuffer,
-	 F0("GET " SITE "/check?id=%s&st=%d"), id, state);
- return(sendHTTP(dataBuffer));
-}
-
-#define HTTP " HTTP/1.1\r\n\
-Host: " HOST "\r\n\
-Connection: Close\r\n\r\n"
-
 void updateFail()
 {
  if (failCount >= 3)
@@ -1298,44 +1312,6 @@ void updateFail()
   failCount += 1;
   printf(F3("**updateFail %d\n"), failCount);
  }
-}
-
-char sendHTTP(char *data)
-{
-#if LOCAL
- strncpy(serverIP, HOST, sizeof(serverIP));
-#else
- dnsLookup(serverIP, F0(HOST));
-#endif	/* LOCAL */
-
- if (serverIP[0] != 0)
- {
-  strcat(data, F3(HTTP));
-  for (char retry = 0; retry < 2; retry++)
-  {
-   char *p = sendData(serverIP, TCPPORT, data, 10000);
-   if (p != 0)
-   {
-    if (find(lc(p), (char *) F0("*ok*")) >= 0)
-    {
-     failCount = 0;
-     return(1);
-    }
-   }
-   printf(F3("**sendHTTP retry %d\n"), retry);
-#if ARDUINO_AVR_MEGA2560
-   PORTG |= _BV(PG0);
-   delay(2);
-   PORTG &= ~_BV(PG0);
-   delay(500);
-#endif	/* ARDUINO_AVR_MEGA2560 */
-  }
- }
-
-#if WATER_MONITOR
- updateFail();
-#endif
- return(0);
 }
 
 #endif  /* WATER_MONITOR */
@@ -1364,20 +1340,12 @@ char *cpyStr(char *dst, const char *src)
  return(dst);
 }
 
-void printTemp(float temp)
-{
- int tmp = (int) (temp * 10);
- int deg = tmp / 10;
- int frac = tmp % 10;
- printf(F3("%d.%d"), deg, frac);
-}
-
 char *writeTemp(char *buf, float temp)
 {
  int tmp = (int) (temp * 10);
  int deg = tmp / 10;
  int frac = tmp % 10;
- sprintf(buf, "%d.%d", deg, frac);
+ sprintf(buf, F3("%d.%d"), deg, frac);
  char *p = buf;
  int ofs = 0;
  while (1)
@@ -1389,6 +1357,16 @@ char *writeTemp(char *buf, float temp)
  }
  return(p);
 }
+
+#if DHT_SENSOR | TEMP_SENSOR
+void printTemp(float temp)
+{
+ int tmp = (int) (temp * 10);
+ int deg = tmp / 10;
+ int frac = tmp % 10;
+ printf(F3("%d.%d"), deg, frac);
+}
+#endif	/* DHT_SENSOR */
 
 #if TEMP_SENSOR
 
@@ -1419,24 +1397,19 @@ float printTemperature(DeviceAddress deviceAddress)
 
 #endif	/* TEMP_SENSOR */
 
-#if THING_SPEAK
-void tsData(char *data)
-{
- sprintf((char *) dataBuffer,
-	 "GET /update?key=" TS_KEY "&%s\n", data);
- sendData("184.106.153.149", (const char *) dataBuffer);
-}
-#endif	/* THING_SPEAK */
-
 char emonData(char *data)
 {
+#if 1
  sprintf((char *) dataBuffer,
-	 "get /emoncms/input/post.json?%s"
-	 "&apikey=" EMONCMS_KEY "\n",
-	 data);
- for (char retry = 0; retry < 2; retry++)
+	 F3("get /emoncms/input/post.json?%s&apikey=" EMONCMS_KEY), data);
+ strcat(dataBuffer, F3(HTTP1));
+#else
+ argConv(F(TEST_GET), dataBuffer);
+#endif
+ printf(F3("emonData len %d\n%s\n"), strlen(dataBuffer), dataBuffer);
+ for (char retry = 0; retry < 1; retry++)
  {
-  char *p = sendData("192.168.1.111", (const char *) dataBuffer);
+  char *p = sendData(emonIP, (const char *) dataBuffer);
   if (p != 0)
   {
    failCount = 0;
@@ -1608,7 +1581,7 @@ void currentCheck()
      printTime();
      p->lastTime = now();
      /* format time, node, and current value */
-     sprintf(buf, "time=%ld&node=%d&csv=%s",
+     sprintf(buf, F3("time=%ld&node=%d&csv=%s"),
 	     p->lastTime, p->node, dtostrf(p->iRms, 4, 2, tmp));
      printf(F3("%s\n"), buf);
      emonData(buf);		/* send current data */
@@ -1624,13 +1597,13 @@ void currentCheck()
   char tmp[10];
   if (cState == 0)		/* if time to send last value */
   {
-   sprintf(buf, "time=%ld&node=%d&csv=%s", /* format last reading sent */
+   sprintf(buf, F3("time=%ld&node=%d&csv=%s"), /* format last reading sent */
            p->iTime - 1, p->node, dtostrf(p->lastIRms1, 4, 2, tmp));
    cState = 1;			/* set to send current value */
   }
   else
   {
-   sprintf(buf, "time=%ld&node=%d&csv=%s", /* format current reading */
+   sprintf(buf, F3("time=%ld&node=%d&csv=%s"), /* format current reading */
            p->iTime, p->node, dtostrf(p->lastIRms0, 4, 2, tmp));
    p->iTime = 0;		/* reset time */
    cState = 0;			/* reset state */
@@ -1653,7 +1626,6 @@ void timer3()
   {
    ADCSRB = 0;			// set channel number
    ADMUX = _BV(REFS0) | iChan;	// VCC Ref and channel
-
    ADCSRA |= _BV(ADSC) | _BV(ADIE); // start conversion
   }
  }
@@ -1845,3 +1817,143 @@ unsigned char getNum()
  }
 }
 
+#if ESP8266_TIME
+char esp8266TimeEnable()
+{
+ return(wifiWriteStr(F2("AT+CIPSNTPCFG=1,0,\"us.pool.ntp.org\""), 3000));
+}
+
+const char jan[] PROGMEM = "Jan";
+const char feb[] PROGMEM = "Feb";
+const char mar[] PROGMEM = "Mar";
+const char apr[] PROGMEM = "Apr";
+const char may[] PROGMEM = "may";
+const char jun[] PROGMEM = "Jun";
+const char jul[] PROGMEM = "Jul";
+const char aug[] PROGMEM = "Aug";
+const char sep[] PROGMEM = "Sep";
+const char oct[] PROGMEM = "Oct";
+const char nov[] PROGMEM = "Nov";
+const char dec[] PROGMEM = "Dec";
+
+const char *const months[] PROGMEM =
+{
+ jan, feb, mar, apr, may, jun, jul, aug, sep, oct, nov, dec
+};
+
+char *findField(char *p)
+{
+ char ch;
+// printf(F3("findField %s"), p);
+ while (1)
+ {
+  ch = *p;
+  if (isalnum(ch))
+  {
+//   printf(F3("*%c "), ch);
+   p += 1;
+  }
+  else
+  {
+   *p = 0;
+   p += 1;
+   return(p);
+  }
+ }
+
+ if (ch == 0)
+  return(0);
+}
+
+char esp8266Time()
+{
+ int hour;
+ int min;
+ int sec;
+ int day;
+ int month;
+ int year;
+  
+ char found = 0;
+ for (int i = 0; i < 3; i++)
+ {
+  wifiWriteStr(F2("AT+CIPSNTPTIME?"), 3000);
+  if (strstr(packetRsp, "1970") == 0)
+   found = 1;
+   break;
+  delay(1000);
+ }
+ if (found == 0)
+  return(0);
+
+ /* +CIPSNTPTIME:Wed Jul 22 08:31:45 2020 */
+ /*           1         2         3          */ 
+ /* 0123456789012345678901234567890123456789 */
+ // void setTime(int hr,int min,int sec,int dy, int mnth, int yr)
+
+ char *p0;
+ char *p1;
+
+ p0 = strstr(packetRsp, ":");
+ p0 = strstr(p0, " ");
+ p0 += 1;
+// printf(F3("packetRsp %s\n"), p0);
+ p1 = findField(p0);	/* month */
+ if (p1 == 0)
+  return(0);
+// printf(F3("month %s\n"), p0);
+ char buf[4];
+ for (int i = 0; i < 12; i++)
+ {   
+  const __FlashStringHelper *val = pgm_read_word(&months[i]);
+//  printf(F3("%2d months[i] %x\n"), i, val);
+  argConv(val, buf);
+//  printf(F3("%2d month (%s)\n"), i, buf);
+  if (strcmp(buf, p0) == 0)
+  {
+   month = i + 1;
+   break;
+  }
+ }
+
+ p0 = p1;
+ p1 = findField(p0);	/* day */
+ if (p1 == 0)
+  return(0);
+ day = atoi((const char *) p0);
+// printf(F3("day %s %d\n"), p0, day);
+
+ p0 = p1;
+ p1 = findField(p0);	/* hour */
+ if (p1 == 0)
+  return(0);
+ hour = atoi((const char *) p0);
+// printf(F3("hour %s %d\n"), p0, hour);
+
+ p0 = p1;
+ p1 = findField(p0);	/* minute */
+ if (p1 == 0)
+  return(0);
+ min = atoi((const char *) p0);
+// printf(F3("min %s %d\n"), p0, min);
+
+ p0 = p1;
+ p1 = findField(p0);	/* second */
+ if (p1 == 0)
+  return(0);
+ sec = atoi((const char *) p0);
+// printf(F3("sec %s %d\n"), p0, sec);
+
+ p0 = p1;
+ p1 = findField(p0);	/* year */
+ if (p1 == 0)
+  return(0);
+ year = atoi((const char *) p0);
+// printf(F3("year %s %d\n"), p0, year);
+
+// printf(F3("h %2d m %2d s %2d d %2d m %2d y %4d\n"), hour, min, sec, day, month, year);
+ setTime(hour, min, sec, day, month, year);
+ return(1);
+}
+
+#endif	/* ESP8266_TIME */

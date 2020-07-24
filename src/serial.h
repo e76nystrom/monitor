@@ -1,4 +1,4 @@
-#if ARDUINO_AVR_PRO
+#ifdef ARDUINO_AVR_PRO
 #include <SoftwareSerial.h>
 
 extern SoftwareSerial dbgPort;
@@ -11,9 +11,11 @@ extern SoftwareSerial dbgPort;
 
 #endif	/* ARDUINO_AVR_PRO */
 
-#if ARDUINO_AVR_MEGA2560
+#ifdef ARDUINO_ARCH_AVR
+
+#ifdef ARDUINO_AVR_MEGA2560
 #define DBGPORT Serial
-#define WIFI Serial1
+#define WIFI Serial2
 #endif	/* ARDUINO_AVR_MEGA2560 */
 
 #define PRINTF 0		/* 0 clib printf, 1 printf.cpp */
@@ -24,8 +26,8 @@ extern SoftwareSerial dbgPort;
 const char *argConv(const __FlashStringHelper *s);
 const char *argConv(const __FlashStringHelper *s, char *buf);
 
-#if ARDUINO_AVR_PRO
-#define F0(x) argConv(F(x))
+#ifdef ARDUINO_AVR_PRO
+#define F0(x) argConv(F(x))	/* uses stringBuffer */
 #define F1(x) F(x)
 #define F2(x) F(x)
 #define F3(x) argConv(F(x))	/* printf strings */
@@ -34,7 +36,7 @@ const char *argConv(const __FlashStringHelper *s, char *buf);
 #if ARDUINO_AVR_MEGA2560
 #define FLASH_STRINGS 1
 #if FLASH_STRINGS
-#define F0(x) argConv(F(x))
+#define F0(x) argConv(F(x))	/* uses stringBuffer */
 #define F1(x) F(x)
 #define F2(x) F(x)
 #define F3(x) argConv(F(x))	/* printf strings */
@@ -46,6 +48,30 @@ const char *argConv(const __FlashStringHelper *s, char *buf);
 #endif
 #endif	/* ARDUINO_AVR_NEGA2560 */
 
+#endif  /* ARDUINO_ARCH_AVR */
+
+#ifdef ARDUINO_ARCH_STM32
+
+#define DBGPORT Serial
+#define WIFI Serial1
+
+#include <cstdio>
+#include <cstring>
+
+#define F0(x) x
+#define F1(x) x
+#define F2(x) x
+#define F3(x) x
+
+#endif  /* ARDUINO_ARCH_STM32 */
+
+#ifdef STM32MON
+#define F0(x) x
+#define F1(x) x
+#define F2(x) x
+#define F3(x) x
+#endif	/* STM32MON */
+
 #ifdef WIN32
 #define F0(x) x
 #define F1(x) x
@@ -53,7 +79,7 @@ const char *argConv(const __FlashStringHelper *s, char *buf);
 #define F3(x) x
 #endif	/* WIN32 */
 
-#define newLine() printf(F0("\n"))
+void newLine();
 
 #if !defined(DBG)
 #define DBG 1
