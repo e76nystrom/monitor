@@ -79,14 +79,16 @@ void printTime(time_t t)
 
 char ntpSetTime()
 {
+#if defined(ARDUINO_ARCH_AVR)
  char ntpBuf[32];
+#endif	/* ARDUINO_ARCH_AVR */
  
  ntpTimeout = 5UL * 60UL * 1000UL; /* try again in 5 minutes if failure */
 
  char status = 0;
  for (char retry = 0; retry < 3; retry++)
  {
-  char result = dnsLookup((char *) ntpIP, argConv(F("pool.ntp.org"), ntpBuf));
+  char result = dnsLookup((char *) ntpIP, argConv(F2("pool.ntp.org"), ntpBuf));
   if (result
   ||  (ntpIP[0] != 0))
    break;
@@ -136,7 +138,7 @@ char ntpSetTime()
      val <<= 8;
      val += *p++ & 0xff;
     }
-    printf(F0("time %lu %lx\n"), val, val);
+    printf(F0("time %lu %lx\n"), (unsigned long) val, (unsigned long) val);
  
     const time_t seventyYears = 2208988800UL; /* 1970 - 1900 */
     time_t epoch = val - seventyYears;

@@ -152,7 +152,9 @@ char dnsLookup(char *buf, const char *hostName)
 {
  char dnsBuffer[64];
 
+#if defined(ARDUINO_ARCH_AVR)
  printf(F0("dnsLookup stack free %d\n"), SP - (int) &__bss_end);
+#endif /* ARDUINO_ARCH_AVR */
 
  wifiMux();
  wifiWriteStr(F2("AT+CIPSTART=3,\"UDP\",\"" DNS_IP "\"," DNS_PORT), 3000);

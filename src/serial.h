@@ -41,6 +41,7 @@ const char *argConv(const __FlashStringHelper *s, char *buf);
 #define F2(x) F(x)
 #define F3(x) argConv(F(x))	/* printf strings */
 #else
+#define argConv(s, buf) s
 #define F0(x) x
 #define F1(x) x
 #define F2(x) x
@@ -58,6 +59,7 @@ const char *argConv(const __FlashStringHelper *s, char *buf);
 #include <cstdio>
 #include <cstring>
 
+#define argConv(s, buf) s
 #define F0(x) x
 #define F1(x) x
 #define F2(x) x
@@ -66,6 +68,7 @@ const char *argConv(const __FlashStringHelper *s, char *buf);
 #endif  /* ARDUINO_ARCH_STM32 */
 
 #ifdef STM32MON
+#define argConv(s, buf) s
 #define F0(x) x
 #define F1(x) x
 #define F2(x) x
@@ -73,6 +76,7 @@ const char *argConv(const __FlashStringHelper *s, char *buf);
 #endif	/* STM32MON */
 
 #ifdef WIN32
+#define argConv(s, buf) s
 #define F0(x) x
 #define F1(x) x
 #define F2(x) x

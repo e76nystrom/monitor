@@ -386,19 +386,6 @@ char updateEE(const char *prompt, char eeLoc, char eeLen)
  return(0);
 }
 
-#endif	/* ARDUINO_ARCH_AVR */
-
-#if defined(ARDUINO_ARCH_STM32)
-
-extern uint32_t uwTick;
-
-uint16_t intMillis()
-{
- return((uint16_t) uwTick);	/* return value */
-}
-
-#endif
-
 void dumpBuf(char *p, unsigned int len)
 {
 #define MAX_COL 16
@@ -464,8 +451,21 @@ void checkBuffers()
     }
 #else
     dumpBuf(p, len);
-#endif
+#endif	/* PRINT_STACK */
 }
+
+#endif	/* ARDUINO_ARCH_AVR */
+
+#if defined(ARDUINO_ARCH_STM32)
+
+extern uint32_t uwTick;
+
+uint16_t intMillis()
+{
+ return((uint16_t) uwTick);	/* return value */
+}
+
+#endif
 
 /* setup routine */
 
@@ -534,10 +534,13 @@ void setup()
  water1.index = 1;
 #endif  /* WATER_MONITOR */
 
+#if CHECK_IN
  memset(&serverIP, 0, sizeof(serverIP));
  serverIPTime = millis() - SERVER_IP_TIMEOUT;
- memset(&ntpIP, 0, sizeof(ntpIP));
  failCount = 0;
+#endif /* CHECK_IN */
+ 
+ memset(&ntpIP, 0, sizeof(ntpIP));
 
 #if defined(ARDUINO_ARCH_AVR)
 // uint32_t checksum = sumEE();
@@ -1046,11 +1049,13 @@ void loop()
  }
 
  loopCount++;			/* update loop counter */
+#if defined(ARDUINO_ARCH_AVR)
  if (loopCount >= LOOP_MAX)	/* if at maximum */
  {
   checkBuffers();
   loopCount = 0;		/* reset to beginning */
  }
+#endif	/* ARDUINO_ARCH_AVR */
 } /* *end loop */
 
 #if DEHUMIDIFIER
@@ -1461,6 +1466,7 @@ float printTemperature(DeviceAddress deviceAddress)
 
 #endif	/* TEMP_SENSOR */
 
+#if CHECK_IN
 char emonData(char *data)
 {
 #if 1
@@ -1494,6 +1500,7 @@ char emonData(char *data)
 #endif
  return(0);
 }
+#endif	/* CHECK_IN */
 
 #if RTC_CLOCK
 

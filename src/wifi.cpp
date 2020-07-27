@@ -563,11 +563,10 @@ int find(char *str1, const char *str2)
  int len1 = (int) strlen((const char *) str1);
  unsigned int len2 = strlen(str2);
  int offset = 0;
- if (FIND_DBG)
- {
+#if FIND_DBG
   char buf[sizeof(FIND_FMT)];
-  printf(argConv(F(FIND_FMT), buf), len1, (int) str1, len2, str2);
- }
+  printf(argConv(F2(FIND_FMT), buf), len1, (int) str1, len2, str2);
+#endif /* FIND_DBG */
  len1 -= len2;
  if (len1 > 0)
  {
