@@ -1,4 +1,3 @@
-//#if !INCLUDE
 #define __NTP__
 #ifdef ARDUINO_ARCH_AVR
 #include <Arduino.h>
@@ -18,11 +17,11 @@
 #include "serial.h"
 
 #define EXT extern
-#include "wifi.h"
+#include "monitor.h"
 #include "dns.h"
 #include "ntp.h"
 
-//#endif	/* !INCLUDE */
+#include "wifi.h"
 
 #if defined(__NTP_INC__)	// <-
 
@@ -55,7 +54,8 @@ EXT unsigned long ntpStart;	/* reference for time compare */
 EXT unsigned long ntpTimeout;	/* ntp timeout */
 EXT char ntpIP[IP_ADDRESS_LEN];	/* ntp ip address */
 
-#endif	// ->
+#endif	/* __NTP_INC__ */ // ->
+
 #if defined(__NTP__)
 
 void printTime()
@@ -81,7 +81,7 @@ char ntpSetTime()
 {
  char ntpBuf[32];
  
- ntpTimeout = 10UL * 60UL * 1000UL; /* try again in 10 minutes if failure */
+ ntpTimeout = 5UL * 60UL * 1000UL; /* try again in 5 minutes if failure */
 
  char status = 0;
  for (char retry = 0; retry < 3; retry++)
@@ -136,7 +136,7 @@ char ntpSetTime()
      val <<= 8;
      val += *p++ & 0xff;
     }
-    printf(F0("time %ld %lx\n"), val, val);
+    printf(F0("time %lu %lx\n"), val, val);
  
     const time_t seventyYears = 2208988800UL; /* 1970 - 1900 */
     time_t epoch = val - seventyYears;
@@ -159,4 +159,4 @@ char ntpSetTime()
  return(status);
 }
 
-#endif
+#endif	/* __NTP__ */

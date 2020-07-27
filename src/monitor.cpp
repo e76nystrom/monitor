@@ -43,11 +43,13 @@ Compatible frameworks: arduino
 
 */
 
+#define __MONITOR__
 #include <SoftwareSerial.h>
 #include <DallasTemperature.h>
 #include <TimeLib.h>
 #include <OneWire.h>
 #include <Wire.h>
+
 #define EMONCMS_ADDR0 "192.168.1.111"
 #define EMONCMS_KEY0 "b53ec1abe610c66009b207d6207f2c9e"
 
@@ -56,12 +58,15 @@ Compatible frameworks: arduino
 
 #define TEST_NODE 0
 
+#define RETRY_JOIN 3
+#define RETRY_SEND_HTTP 2
+#define RETRY_EMON_DATA 2
+
 unsigned char getNum();
 int val;
 
-#include "monitorAVR.h"
-#include "monitorSTM32.h"
-#include "monitorMega32.h"
+#define EXT
+#include "monitor.h"
 
 void setTime();
 
@@ -116,10 +121,11 @@ int dehumDelay;			/* on or off delay counter */
 #include <stdlib.h>
 #include <ctype.h>
 
-#define EXT
 #include "wdt.h"
 #include "dns.h"
+#if ESP8266_TIME == 0
 #include "ntp.h"
+#endif	/* ESP8266_TIME == 0 */
 #include "wifi.h"
 
 #if defined(ARDUINO_ARCH_AVR)
@@ -128,7 +134,7 @@ int dehumDelay;			/* on or off delay counter */
 #define INITEE 1		/* init eeprom values on boot */
 #define LOCAL 0			/* use local server */
 
-extern char __bss_end;
+extern unsigned char __bss_end;
 
 #if ESP8266_TIME
 char esp8266TimeEnable();
@@ -153,6 +159,10 @@ char esp8266Time();
 #define HTTP " HTTP/1.1\r\nHost: " HOST "\r\nConnection: Close\r\n\r\n"
 
 #define HTTP1 " HTTP/1.1\r\nHost: " EMONCMS_ADDR "\r\nConnection: Close\r\n\r\n"
+
+#if defined(ARDUINO_AVR_PRO)
+SoftwareSerial dbgPort = SoftwareSerial(rxPin, txPin);
+#endif
 
 #if PRINTF
 void putx1(void *p, char c)
@@ -206,8 +216,13 @@ const char *argConv(const __FlashStringHelper *s, char *buf)
 #endif  /* ARDUINO_ARCH_AVR */
 
 char emonIP[IP_ADDRESS_LEN];	/* emoncms ip address */
+
+#if CHECK_IN | WATER_MONITOR
+#define SERVER_IP_TIMEOUT (1UL * 60UL * 60UL * 1000UL) /* 1 hour timeout for dns lookup */
 char serverIP[IP_ADDRESS_LEN];	/* server ip address */
+unsigned long serverIPTime;	/* time when server ip set */
 char failCount;			/* send failure count */
+#endif	/* CHECK_IN | WATER_MONITOR */
 
 #if WATER_MONITOR
 
@@ -384,26 +399,75 @@ uint16_t intMillis()
 
 #endif
 
-/* setup routine */
-
-int bufferCheck(char *buf, int size)
+void dumpBuf(char *p, unsigned int len)
 {
- int val;
+#define MAX_COL 16
+ char col = 0;
+ for (unsigned int i = 0; i < len; i++)
+ {
+  if (col == 0)		/* if column 0 */
+  {
+   printf(F0("%04x  "), (int) p);
+  }
+  int val = *p++ & 0xff;
+  printf(F0("%02x "), val);	/* output value */
+  col += 1;			/* count a column */
+  if (col == MAX_COL)	/* if at end of line */
+  {
+   col = 0;			/* reset column counter */
+   newLine();
+  }
+ }
+ if (col != 0)
+  newLine();
+}
+
+void bufferCheck(const char *name, char *buf, int size)
+{
+ int val = size;
+ char *p = buf + size;
  for (int i = 0; i < size; i++)
  {
-  if (*buf++ != 0)
-   val = i;
+  if (*--p != 0)
+  {
+   val = size - i;
+   break;
+  }
  }
- return(val);
+ char tmpBuf[16];
+ printf(argConv(F("%-6s %3d %3d\n"), tmpBuf), name, val, size);
+ if (0)
+  dumpBuf(buf, size);
 }
 
 void checkBuffers()
 {
- printf(F0("string %d\n"), bufferCheck(stringBuffer, sizeof(stringBuffer)));
- printf(F0("data %d\n"), bufferCheck(dataBuffer, sizeof(dataBuffer)));
- printf(F0("cmd %d\n"), bufferCheck(cmdBuffer, sizeof(cmdBuffer)));
- printf(F0("rsp %d\n"), bufferCheck(packetRsp, sizeof(packetRsp)));
+ printf(F3("RAMEND %x sp %x bss_end %x free %d of %d\n"),
+	RAMEND, SP, &__bss_end, SP - (int) (&__bss_end), RAMEND - (int) (&__bss_end));
+
+ bufferCheck(F0("string"), stringBuffer, sizeof(stringBuffer));
+ bufferCheck(F0("data"),   dataBuffer, sizeof(dataBuffer));
+ bufferCheck(F0("cmd"),    cmdBuffer, sizeof(cmdBuffer));
+ bufferCheck(F0("rsp"),    packetRsp, sizeof(packetRsp));
+
+#if !defined(PRINT_STACK) | (PRINT_STACK == 0)
+    unsigned int len = SP - (int) &__bss_end;
+    unsigned char *p = (unsigned char *) &__bss_end;
+    for (unsigned int i = 0; i < len; i++)
+    {
+     if (*p != 0)
+     {
+      printf(F3("unused stack %d\n"), (int) (p - &__bss_end));
+      break;
+     }
+     p += 1;
+    }
+#else
+    dumpBuf(p, len);
+#endif
 }
+
+/* setup routine */
 
 void setup()
 {
@@ -440,6 +504,18 @@ void setup()
  if (DBG)
   printf(F3("\nstarting 0\n"));
 
+#if DBG0_Pin
+ pinMode(DBG0_Pin, OUTPUT);
+#endif /* DBG0_Pin */
+
+#if DBG1_Pin
+ pinMode(DBG1_Pin, OUTPUT);
+#endif /* DBG1_Pin */
+
+#if DBG2_Pin
+ pinMode(DBG2_Pin, OUTPUT);
+#endif /* DBG2_Pin */
+
 #if WATER_MONITOR
  pinMode(LED, OUTPUT);
  pinMode(WATER0, INPUT);
@@ -459,6 +535,7 @@ void setup()
 #endif  /* WATER_MONITOR */
 
  memset(&serverIP, 0, sizeof(serverIP));
+ serverIPTime = millis() - SERVER_IP_TIMEOUT;
  memset(&ntpIP, 0, sizeof(ntpIP));
  failCount = 0;
 
@@ -497,7 +574,7 @@ void setup()
   printf(F3("\nstarting 1\n"));
 
 #if TEMP_SENSOR
- printf(F3("start temp sensor\n"));
+ printf(F3("start temp sensor bus %d\n"), ONE_WIRE_BUS);
  sensors.begin();
  for (unsigned char i = 0; i < TEMPDEVS; i++)
  {
@@ -538,7 +615,7 @@ void setup()
  wifiWriteStr(F2("AT+CWQAP"), 1000);
  delay(100);
  
- char retry = 3;
+ char retry = RETRY_JOIN;
  while (1)
  {
   char result = wifiJoin();
@@ -550,7 +627,7 @@ void setup()
   --retry;
   if (retry <= 0)
   {
-   retry = 3;
+   retry = RETRY_JOIN;
    wifiReset();
    delay(500);
   }
@@ -627,6 +704,7 @@ void setTime()
 void cmdLoop()
 {
  wdt_disable();
+ printf(F3("command loop\n"));
  while (1)
  {
   if (DBGPORT.available())
@@ -644,32 +722,7 @@ void cmdLoop()
 #if defined(ARDUINO_ARCH_AVR)
    else if (ch == 'F')
    {
-    printf(F3("command loop RAMEND %x sp %x bss_end %x free %d\n"),
-	   RAMEND, SP, &__bss_end, SP - (int) (&__bss_end));
-
     checkBuffers();
- 
-#define MAX_COL 16
-    unsigned char *p = (unsigned char *) &__bss_end;
-    unsigned int len = SP - (int) p;
-    char col = 0;
-    for (unsigned int i = 0; i < len; i++)
-    {
-     if (col == 0)		/* if column 0 */
-     {
-      printf(F0("%04x  "), (int) p);
-     }
-     int val = *p++ & 0xff;
-     printf(F0("%02x "), val);	/* output value */
-     col += 1;			/* count a column */
-     if (col == MAX_COL)	/* if at end of line */
-     {
-      col = 0;			/* reset column counter */
-      newLine();
-     }
-    }
-    if (col != 0)
-     newLine();
    }
    else if (ch == 'w')		// write ssid and password to eeprom
    {
@@ -925,24 +978,21 @@ void loop()
   {
    while (DBGPORT.available())
     ch = DBGPORT.read();
-   printf(F0("command loop\n"));
+   newLine();
    cmdLoop();
   }
   newLine();
  }
  
  unsigned int tPrev = intMillis(); // init time for short interval
- while (1)
+ while (1)			// wait for end of interval
  {
   wdt_reset();
-//  PORTD |= _BV(PD4);
   unsigned int t0 = intMillis(); // read time
   if ((unsigned int) (t0 - tLast) > TINTERVAL) // if long interval up
   {
-//   printf("t0 %ld tLast %ld delta %ld\n", t0, tLast, t0 - tLast);
    tLast = t0;			// update previous time
-//   PORTD &= ~_BV(PD4);
-   break;			// exit loop
+   break;			// exit to interval processing
   }
 
   delay(100);			// wait a while
@@ -961,12 +1011,12 @@ void loop()
   }
  }
 
+ printf(F3("%d "), loopCount);
+ printTime();
+
 #if CURRENT_SENSOR
  printCurrent();
 #endif	/* CURRENT_SENSOR */
-
- printf(F3("%d "), loopCount);
- printTime();
 
 #if TEMP_SENSOR | DHT_SENSOR
  if (loopCount == TEMP_COUNT)	// if time for temperature reading
@@ -997,7 +1047,10 @@ void loop()
 
  loopCount++;			// update loop counter
  if (loopCount >= LOOP_MAX)	// if at maximum
+ {
+  checkBuffers();
   loopCount = 0;		// reset to beginning
+ }
 } /* *end loop */
 
 #if DEHUMIDIFIER
@@ -1162,14 +1215,25 @@ char sendHTTP(char *data)
 #if LOCAL
  strncpy(serverIP, HOST, sizeof(serverIP));
 #else
- dnsLookup(serverIP, F0(HOST));
+ char hostBuffer[sizeof(HOST)];
+ unsigned long int t = millis();
+ printf(F0("sendHTTP ip %s time %lu\n"), serverIP, (unsigned long) (t - serverIPTime));
+ if ((serverIP[0] == 0) || ((t - serverIPTime) > SERVER_IP_TIMEOUT))
+ {     
+  if (dnsLookup(serverIP, argConv(F2(HOST), hostBuffer)))
+  {
+   serverIPTime = t;
+  }
+ }
 #endif	/* LOCAL */
 
  if (serverIP[0] != 0)
  {
   strcat(data, F3(HTTP));
-  for (char retry = 0; retry < 1; retry++)
+  for (char retry = 0; retry < RETRY_SEND_HTTP; retry++)
   {
+   if (retry != 0)
+    printf(F3("**sendHTTP retry %d\n"), retry);
    char *p = sendData(serverIP, TCPPORT, data, 10000);
    if (p != 0)
    {
@@ -1178,14 +1242,14 @@ char sendHTTP(char *data)
      failCount = 0;
      return(1);
     }
+    printBuf();
    }
-   printf(F3("**sendHTTP retry %d\n"), retry);
-#if ARDUINO_AVR_MEGA2560
-   PORTG |= _BV(PG0);
+#if DBG0_PIN
+   dbg0Set();
    delay(2);
-   PORTG &= ~_BV(PG0);
+   dbg0Clr();
+#endif /* DBG0_PIN */
    delay(500);
-#endif	/* ARDUINO_AVR_MEGA2560 */
   }
  }
 
@@ -1407,21 +1471,22 @@ char emonData(char *data)
  argConv(F(TEST_GET), dataBuffer);
 #endif
  printf(F3("emonData len %d\n%s\n"), strlen(dataBuffer), dataBuffer);
- for (char retry = 0; retry < 1; retry++)
+ for (char retry = 0; retry < RETRY_EMON_DATA; retry++)
  {
+  if (retry != 0)
+   printf(F3("**emonData retry %d\n"), retry);
   char *p = sendData(emonIP, (const char *) dataBuffer);
   if (p != 0)
   {
    failCount = 0;
    return(1);
   }
-  printf(F3("**emonData retry %d\n"), retry);
-#if ARDUINO_AVR_MEGA2560
-  PORTG |= _BV(PG0);
+#if DBG0_PIN
+  dbg0Set();
   delay(2);
-  PORTG &= ~_BV(PG0);
+  dbg0Clr();
+#endif /* DBG0_PIN */
   delay(500);
-#endif	/* ARDUINO_AVR_MEGA2560 */
  }
 
 #if WATER_MONITOR

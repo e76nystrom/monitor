@@ -24,6 +24,7 @@
 #endif
 
 #define EXT extern
+#include "monitor.h"
 #include "dns.h"
 #include "serial.h"
 #include "wifi.h"
@@ -148,11 +149,13 @@ char dnsLookup(char *buf, const char *hostName)
 
 #else
 
+extern unsigned char __bss_end;
+
 char dnsLookup(char *buf, const char *hostName)
 {
  char dnsBuffer[64];
 
- printf(F0("dnsLookup stack free %d\n"), RAMEND - SP);
+ printf(F0("dnsLookup stack free %d\n"), SP - (int) &__bss_end);
 
  wifiMux();
  wifiWriteStr(F2("AT+CIPSTART=3,\"UDP\",\"" DNS_IP "\"," DNS_PORT), 3000);
@@ -372,4 +375,4 @@ char *dnsDecode(char *buffer, int len, char *ip)
  return(ip);
 }
 
-#endif
+#endif /* __DNS__ */

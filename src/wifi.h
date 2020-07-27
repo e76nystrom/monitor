@@ -32,7 +32,7 @@ typedef struct s_eeprom
 #define putChar(c) DBGPORT.write(c)
 #else
 #define putChar(c)
-#endif
+#endif	/* DBG */
 #define putChar1(c) DBGPORT.write(c)
 #define getChar(ch) \
  while (!DBGPORT.available()) \
@@ -44,7 +44,7 @@ void writeSumEE();
 void readEE(char *buf, char addr, char len);
 void writeEE(const char *buf, char addr, char eeLen);
 
-#endif	// ARDUINO_ARCH_AVR
+#endif	/* ARDUINO_ARCH_AVR */
 
 #if defined(ARDUINO_ARCH_STM32)
 
@@ -56,7 +56,7 @@ void writeEE(const char *buf, char addr, char eeLen);
 #define putChar(c) DBGPORT.write(c)
 #else
 #define putChar(c)
-#endif
+#endif	/* DBG */
 #define putChar1(c) DBGPORT.write(c)
 #define getChar(ch) \
  while (!DBGPORT.available()) \
@@ -75,7 +75,7 @@ void writeEE(const char *buf, char addr, char eeLen);
 #define putChar(c) putx1(c)
 #else
 #define putChar(c)
-#endif
+#endif	/* DBG */
 #define putChar1(c) putx1(c)
 #define getChar(ch) \
  while (dbgRxReady() == 0)				\
@@ -93,7 +93,7 @@ void writeEE(const char *buf, char addr, char eeLen);
 #define putChar(c) Serial.write(c)
 #define putChar1(c) Serial.write(c)
 
-#endif	// MEGA32
+#endif	/* MEGA32 */
 
 #if defined(WIN32)
 
@@ -109,7 +109,7 @@ void sioPutc(char c);
 #define putChar(c) putchar(c)
 #else
 #define putChar(c)
-#endif
+#endif	/* DBG */
 #define putChar1(c) putchar(c)
 #define getChar(ch) ch = _getch()
 
@@ -131,7 +131,7 @@ uint32_t millis();
 EXT char ssid[SSID_LEN];
 EXT char pass[PASS_LEN];
 
-#endif	// WIN32
+#endif	/* WIN32 */
 
 void dbgChar(char ch);
 char readStr(char *buf, int bufLen);
@@ -156,7 +156,7 @@ int find(char *str1, const __FlashStringHelper *str2);
 int find(char *str1, const __FlashStringHelper *str2, int offset, int len1);
 int cmp(char *str1, const __FlashStringHelper *str2, int size);
 int cmp(char *str1, const __FlashStringHelper *str2);
-#endif	// ARDUINO_ARCH_AVR
+#endif	/* ARDUINO_ARCH_AVR */
 
 void wifiInitSio();
 void wifiReset();
@@ -187,16 +187,16 @@ void wifiPut(const __FlashStringHelper *s, int size);
 void wifiPut(const __FlashStringHelper *s);
 char wifiWriteStr(const __FlashStringHelper *s, unsigned int timeout);
 char wifiWrite(const __FlashStringHelper *s, int size, unsigned int timeout);
-#endif	// ARDUINO_ARCH_AVR
+#endif	/* ARDUINO_ARCH_AVR */
 
 #define WIFI_RESET 2
 
-EXT char stringBuffer[80];	// buffer for strings made from program data
-EXT char dataBuffer[192];	// buffer for data sent
-EXT char cmdBuffer[64];		// buffer for command sent
-EXT char packetRsp[384];	// buffer for response
+EXT char stringBuffer[80];	/* buffer for strings made from program data */
+EXT char dataBuffer[192];	/* buffer for data sent */
+EXT char cmdBuffer[64];		/* buffer for command sent */
+EXT char packetRsp[384];	/* buffer for response */
 EXT char *rsp;
-EXT unsigned int len;
+EXT unsigned int rspLen;
 EXT char id[ID_LEN];
 
 #define IPD_STR "+IPD,"
@@ -231,4 +231,4 @@ EXT char id[ID_LEN];
 
 #define RSPLEN (sizeof(packetRsp) - 1)
 
-#endif	// ->
+#endif	/* __WIFI_INC__*/ // ->
