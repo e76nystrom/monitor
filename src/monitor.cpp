@@ -288,53 +288,53 @@ void cmdLoop();
 unsigned int tLast;
 int loopCount;
 
-#define TINTERVAL (10000U)	// timer interval
-#define T1SEC (1000U)		// one second interval
-#define TEMP_COUNT (0)		// temp reading interval number
-#define WATER_COUNT (1)		// water alarm interval number
-#define CHECKIN_COUNT (2)	// checkin interval number
-#define NTP_COUNT (3)		// time setting
-#define LOOP_MAX (6)		// max number of intervals
+#define TINTERVAL (10000U)	/* timer interval */
+#define T1SEC (1000U)		/* one second interval */
+#define TEMP_COUNT (0)		/* temp reading interval number */
+#define WATER_COUNT (1)		/* water alarm interval number */
+#define CHECKIN_COUNT (2)	/* checkin interval number */
+#define NTP_COUNT (3)		/* time setting */
+#define LOOP_MAX (6)		/* max number of intervals */
 
 #if CURRENT_SENSOR
 
-void initCurrent(char isr);	// init current readings
+void initCurrent(char isr);	/* init current readings */
 void printCurrent();
-void currentCheck();		// check for time to send data
-void timer3();			// timer isr for reading current
+void currentCheck();		/* check for time to send data */
+void timer3();			/* timer isr for reading current */
 //int adcRead(char chan);
 
-#define SAMPLES (100)		// samples per reading
-#define ADCCHANS (2)		// number of adc channels to read
+#define SAMPLES (100)		/* samples per reading */
+#define ADCCHANS (2)		/* number of adc channels to read */
 
-#define CSENDTIME (10 * 60)	// if no change for this time send current
+#define CSENDTIME (10 * 60)	/* if no change for this time send current */
 
 typedef struct
 {
- unsigned long iTime;		// time of data reading
- unsigned long lastTime;	// last time data sent
+ unsigned long iTime;		/* time of data reading */
+ unsigned long lastTime;	/* last time data sent */
  float lastIRms0;
  float lastIRms1;
  float iRms;
  float lastIRms;
  float offsetI;
  float iCal;
- float iRatio;			// conversion ratio
- float sumI;			// current sum of squares
+ float iRatio;			/* conversion ratio */
+ float sumI;			/* current sum of squares */
  char node;
  int count;
  int sent;
  int adc;
 } T_CURRENT, *P_CURRENT;
 
-unsigned char iChan;		// data channel for current reading
-P_CURRENT curPSave;		// saved current pointer
-int sampleCount;		// sample counter
-char adcState;			// adc state
-char cState;			// current processing state
-T_CURRENT iData[ADCCHANS];	// current channel data
-int vcc;			// current vcc
-float tempSumI;			// current sum accumulator
+unsigned char iChan;		/* data channel for current reading */
+P_CURRENT curPSave;		/* saved current pointer */
+int sampleCount;		/* sample counter */
+char adcState;			/* adc state */
+char cState;			/* current processing state */
+T_CURRENT iData[ADCCHANS];	/* current channel data */
+int vcc;			/* current vcc */
+float tempSumI;			/* current sum accumulator */
 
 #endif  /* CURRENT_SENSOR */
 
@@ -346,11 +346,11 @@ void putx(char c);
 uint16_t intMillis()
 {
  uint16_t m;
- uint8_t oldSREG = SREG;	// save interrupt flag
- cli();				// disable interrupts
- m = ((P_SHORT_LONG) &timer0_millis)->low; // read low part of millis
- SREG = oldSREG;		// enable interrupts
- return(m);			// return value
+ uint8_t oldSREG = SREG;	/* save interrupt flag */
+ cli();				/* disable interrupts */
+ m = ((P_SHORT_LONG) &timer0_millis)->low; /* read low part of millis */
+ SREG = oldSREG;		/* enable interrupts */
+ return(m);			/* return value */
 }
 
 char updateEE(const char *prompt, char eeLoc, char eeLen);
@@ -394,7 +394,7 @@ extern uint32_t uwTick;
 
 uint16_t intMillis()
 {
- return((uint16_t) uwTick);	// return value
+ return((uint16_t) uwTick);	/* return value */
 }
 
 #endif
@@ -596,8 +596,8 @@ void setup()
 #endif	/* DHT_SENSOR */
 
 #if defined(ARDUINO_AVR_MEGA2560)
- pinMode(51, OUTPUT);		// pg0
- pinMode(52, OUTPUT);		// pg1
+ pinMode(51, OUTPUT);		/* pg0 */
+ pinMode(52, OUTPUT);		/* pg1 */
  PORTG &= ~(_BV(PG0) | _BV(PG1));
 
  PORTG |= _BV(PG0);
@@ -605,12 +605,12 @@ void setup()
  PORTG &= ~_BV(PG0);
 #endif	/* ARDUINO_AVR_MEGA2560 */
 
- wifiInitSio();			// enable wifi serial port
- pinMode(WIFI_RESET, OUTPUT);	// set wifi reset pin to output
- digitalWrite(WIFI_RESET, HIGH); // set it high
- delay(10);			// short wait
+ wifiInitSio();			/* enable wifi serial port */
+ pinMode(WIFI_RESET, OUTPUT);	/* set wifi reset pin to output */
+ digitalWrite(WIFI_RESET, HIGH); /* set it high */
+ delay(10);			/* short wait */
 
- wifiReset();			// reset wifi
+ wifiReset();			/* reset wifi */
 
  wifiWriteStr(F2("AT+CWQAP"), 1000);
  delay(100);
@@ -672,10 +672,10 @@ void setup()
  setTime();
 
 #if CURRENT_SENSOR
- initCurrent(1);		// initial current sensor
+ initCurrent(1);		/* initial current sensor */
 #endif	/* CURRENT_SENSOR */
 
- tLast = intMillis();		// initialize loop timer
+ tLast = intMillis();		/* initialize loop timer */
 }
 
 void setTime()
@@ -685,16 +685,16 @@ void setTime()
   char status;
 
 #if ESP8266_TIME == 0
-  status = ntpSetTime();	// look up ntp time
+  status = ntpSetTime();	/* look up ntp time */
 #else
   status = esp8266Time();
 #endif /* ESP8266_TIME */
 
-  if (status)			// if valid time found
+  if (status)			/* if valid time found */
   {
 #if RTC_CLOCK
-   RTC.set(now());		// set the clock
-   setSyncProvider(RTC.get);	// set rtc to provide clock time
+   RTC.set(now());		/* set the clock */
+   setSyncProvider(RTC.get);	/* set rtc to provide clock time */
 #endif	/* RTC_CLOCK */
   }
   printTime();
@@ -712,7 +712,7 @@ void cmdLoop()
    char ch = DBGPORT.read();
    DBGPORT.write(ch);
    newLine();
-   if (ch == 'x')		// exit command loop
+   if (ch == 'x')		/* exit command loop */
     break;
    else if (ch == '?')
    {
@@ -724,7 +724,7 @@ void cmdLoop()
    {
     checkBuffers();
    }
-   else if (ch == 'w')		// write ssid and password to eeprom
+   else if (ch == 'w')		/* write ssid and password to eeprom */
    {
     char flag = updateEE(F1("ssid"), SSID_LOC, SSID_LEN);
     flag |= updateEE(F1("pass"), PASS_LOC, PASS_LEN);
@@ -735,7 +735,7 @@ void cmdLoop()
     readEE(id, ID_LOC, ID_LEN);
     readEE(emonIP, IP_LOC, IP_LEN);
    }
-   else if (ch == 'W')		// test watchdog timer
+   else if (ch == 'W')		/* test watchdog timer */
    {
     printf(F3("test watchdog timer\n"));
     wdt_enable(WDT_TO);
@@ -757,7 +757,7 @@ void cmdLoop()
 #endif	/* ARDUINO_AVR_MEGA2560 */
 
 #if CURRENT_SENSOR
-   else if (ch == 'e')		// read a to d converter
+   else if (ch == 'e')		/* read a to d converter */
    {
     printf(F3("chan: "));
     len = readStr(cmdBuffer, sizeof(cmdBuffer) - 1);
@@ -780,18 +780,18 @@ void cmdLoop()
      printTime(p->iTime);
     }
    }
-   else if (ch == 'C')		// run current check code
+   else if (ch == 'C')		/* run current check code */
    {
     printCurrent();
     currentCheck();
    }
-   else if (ch == 'T')		// setup current sensor isr
+   else if (ch == 'T')		/* setup current sensor isr */
    {
     printf(F3("isr: "));
     char len = readStr(stringBuffer, sizeof(stringBuffer) - 1);
     initCurrent(len);
    }
-   else if (ch == 'I')		// print current results
+   else if (ch == 'I')		/* print current results */
    {
     char tmp[12];
     printf(F3("vcc %d\n"), vcc);
@@ -822,7 +822,7 @@ void cmdLoop()
    }
 
 #if CHECK_IN | WATER_MONITOR
-   else if (ch == 'L')		// loop water
+   else if (ch == 'L')		/* loop water */
    {
 #if CHECK_IN
     checkIn();
@@ -833,15 +833,15 @@ void cmdLoop()
    }
 #endif  /* CHECK_IN | WATER_MONITOR */
 
-   else if (ch == 'j')		// join wifi
+   else if (ch == 'j')		/* join wifi */
    {
     wifiJoin();
    }
-   else if (ch == 'o')		// send at
+   else if (ch == 'o')		/* send at */
    {
     wifiWriteStr(F2("AT"), 1000);
    }
-   else if (ch == 'l')		// list access points
+   else if (ch == 'l')		/* list access points */
    {
     wifiWriteStr(F2("AT+CWLAP"), 3000);
    }
@@ -853,15 +853,15 @@ void cmdLoop()
    {
     wifiWriteStr(F2("AT+CIFSR"), 1000);
    }
-   else if (ch == 'u')		// start udp connection
+   else if (ch == 'u')		/* start udp connection */
    {
     wifiWriteStr(F2("AT+CIPSTART=\"UDP\",\"129.6.15.28\",123"), 3000);
    }
-   else if (ch == 'm')		// wifi mux
+   else if (ch == 'm')		/* wifi mux */
    {
     wifiMux();
    }
-   else if (ch == 't')		// start tcp connection
+   else if (ch == 't')		/* start tcp connection */
    {
     wifiWriteStr(F2("AT+CIPSTART=4,\"TCP\",\"184.106.153.149\",80"), 4000);
    }
@@ -869,7 +869,7 @@ void cmdLoop()
    {
     wifiClose(4, 15000);
    }
-   else if (ch == 'c')		// enter wifi command
+   else if (ch == 'c')		/* enter wifi command */
    {
     printf(F3("enter command\n"));
     char len = readStr(dataBuffer, sizeof(dataBuffer));
@@ -882,7 +882,7 @@ void cmdLoop()
      newLine();
     }
    }
-   else if (ch == 'd')		// set time from ntp
+   else if (ch == 'd')		/* set time from ntp */
    {
     ntpTimeout = 0;
     ntpStart = millis() - 1;
@@ -890,14 +890,14 @@ void cmdLoop()
    }
 
 #if RTC_CLOCK
-   else if (ch == 'v')		// read rtc temp
+   else if (ch == 'v')		/* read rtc temp */
    {
     rtcTemp();
    }
 #endif  /* RTC_CLOCK */
 
 #if DHT_SENSOR
-   else if (ch == 'h')		// read humidity sensor
+   else if (ch == 'h')		/* read humidity sensor */
    {
     float h = dht.readHumidity();
     if (!isnan(h))
@@ -920,7 +920,7 @@ void cmdLoop()
 #endif  /* DNT_SENSOR */
 
 #if DEHUMIDIFIER
-   else if (ch == 'r')		// set dehumidifier relay
+   else if (ch == 'r')		/* set dehumidifier relay */
    {
     if (getNum())
     {
@@ -939,11 +939,11 @@ void cmdLoop()
 #endif	/* DEHUMIDIFIER */
 
 #if TEMP_SENSOR
-   else if (ch == 'f')		// find temp sensor addresses
+   else if (ch == 'f')		/* find temp sensor addresses */
    {
     findAddresses();
    }
-   else if (ch == 'y')		// read temp sensors
+   else if (ch == 'y')		/* read temp sensors */
    {
     sensors.requestTemperatures();
     for (unsigned char i = 0; i < TEMPDEVS; i++)
@@ -984,29 +984,29 @@ void loop()
   newLine();
  }
  
- unsigned int tPrev = intMillis(); // init time for short interval
- while (1)			// wait for end of interval
+ unsigned int tPrev = intMillis(); /* init time for short interval */
+ while (1)			/* wait for end of interval */
  {
   wdt_reset();
-  unsigned int t0 = intMillis(); // read time
-  if ((unsigned int) (t0 - tLast) > TINTERVAL) // if long interval up
+  unsigned int t0 = intMillis(); /* read time */
+  if ((unsigned int) (t0 - tLast) > TINTERVAL) /* if long interval up */
   {
-   tLast = t0;			// update previous time
-   break;			// exit to interval processing
+   tLast = t0;			/* update previous time */
+   break;			/* exit to interval processing */
   }
 
-  delay(100);			// wait a while
-  t0 = intMillis();		// read time
-  if ((unsigned long) (t0 - tPrev) >= T1SEC) // if short interval up
+  delay(100);			/* wait a while */
+  t0 = intMillis();		/* read time */
+  if ((unsigned long) (t0 - tPrev) >= T1SEC) /* if short interval up */
   {
 //   printf("t0 %ld tPrev %ld delta %ld\n", t0, tPrev, t0 - tPrev);
-   tPrev = t0;			// update previous time
+   tPrev = t0;			/* update previous time */
 #if WATER_MONITOR
-   alarmPoll();			// poll water alarm
+   alarmPoll();			/* poll water alarm */
 #endif	/* WATER_MONITOR */
 
 #if CURRENT_SENSOR
-   currentCheck();		// check and send current
+   currentCheck();		/* check and send current */
 #endif	/* CURRENT_SENSOR */
   }
  }
@@ -1019,14 +1019,14 @@ void loop()
 #endif	/* CURRENT_SENSOR */
 
 #if TEMP_SENSOR | DHT_SENSOR
- if (loopCount == TEMP_COUNT)	// if time for temperature reading
+ if (loopCount == TEMP_COUNT)	/* if time for temperature reading */
  {
   loopTemp();
  }
 #endif	/* TEMP_SENSOR | DHT_SENSOR */
 
 #if WATER_MONITOR
- if (loopCount == WATER_COUNT)	// if time to check water alarm
+ if (loopCount == WATER_COUNT)	/* if time to check water alarm */
  {
   digitalWrite(LED, LOW); 	/* turn off led */
   loopWater();			/* loop processing */
@@ -1034,31 +1034,31 @@ void loop()
 #endif	/* WATER_MONITOR */
 
 #if CHECK_IN
- if (loopCount == CHECKIN_COUNT) // if time to check water alarm
+ if (loopCount == CHECKIN_COUNT) /* if time to check water alarm */
  {
   checkIn();
  }
 #endif /* CHECK_IN */
 
- if (loopCount == NTP_COUNT)	// if time to set time
+ if (loopCount == NTP_COUNT)	/* if time to set time */
  {
   setTime();
  }
 
- loopCount++;			// update loop counter
- if (loopCount >= LOOP_MAX)	// if at maximum
+ loopCount++;			/* update loop counter */
+ if (loopCount >= LOOP_MAX)	/* if at maximum */
  {
   checkBuffers();
-  loopCount = 0;		// reset to beginning
+  loopCount = 0;		/* reset to beginning */
  }
 } /* *end loop */
 
 #if DEHUMIDIFIER
 void switchRelay(char pin)
 {
- digitalWrite(pin, HIGH);	// turn relay on
+ digitalWrite(pin, HIGH);	/* turn relay on */
  delay(100);
- digitalWrite(pin, LOW);	// turn relay off
+ digitalWrite(pin, LOW);	/* turn relay off */
 }
 #endif	/* DEHUMIDIFIER */
 
@@ -1107,50 +1107,50 @@ void loopTemp()
  newLine();
 #if DEHUMIDIFIER
  printf(F3("dehumState %d dehumDelay %d\n"), dehumState, dehumDelay);
- if (dehumState)		// if dehumidifer on
+ if (dehumState)		/* if dehumidifer on */
  {
-  if (dhtHumidity <= dehumOff)	// if humidity below turn off point
+  if (dhtHumidity <= dehumOff)	/* if humidity below turn off point */
   {
-   if (dehumDelay != 0)		// if timer active
+   if (dehumDelay != 0)		/* if timer active */
    {
-    if (--dehumDelay == 0)	// if counts down to zero
+    if (--dehumDelay == 0)	/* if counts down to zero */
     {
-     dehumState = 0;		// set state to off
+     dehumState = 0;		/* set state to off */
      switchRelay(DEHUM_OFF_PIN);
      printf(F3("dehumidifier off\n"));
     }
    }
-   else				// if timer not active
+   else				/* if timer not active */
    {
-    dehumDelay = DEHUM_DELAY;	// start counter
+    dehumDelay = DEHUM_DELAY;	/* start counter */
    }
   }
-  else				// if not below turn off point
+  else				/* if not below turn off point */
   {
-   dehumDelay = 0;		// reset counter
+   dehumDelay = 0;		/* reset counter */
   }
  }
- else				// if dehumidifier off
+ else				/* if dehumidifier off */
  {
-  if (dhtHumidity >= dehumOn)	// if humidity above turn on point
+  if (dhtHumidity >= dehumOn)	/* if humidity above turn on point */
   {
-   if (dehumDelay != 0)		// if timer active
+   if (dehumDelay != 0)		/* if timer active */
    {
-    if (--dehumDelay == 0)	// if counts down to zero
+    if (--dehumDelay == 0)	/* if counts down to zero */
     {
-     dehumState = 1;		// set state to off
-     switchRelay(DEHUM_ON_PIN); // turn dehumidifier on
+     dehumState = 1;		/* set state to off */
+     switchRelay(DEHUM_ON_PIN); /* turn dehumidifier on */
      printf(F3("dehumidifier on\n"));
     }
    }
-   else				// if timer not active
+   else				/* if timer not active */
    {
-    dehumDelay = DEHUM_DELAY;	// start counter
+    dehumDelay = DEHUM_DELAY;	/* start counter */
    }
   }
-  else				// if not above turn on point
+  else				/* if not above turn on point */
   {
-   dehumDelay = 0;		// reset counter
+   dehumDelay = 0;		/* reset counter */
   }
  }
 #endif	/* DEHUMIDIFIER */
@@ -1327,27 +1327,27 @@ void procAlarm(P_INPUT water, boolean inp)
 {
  printf(F3("inp %d alarm%d cur %d counter %d state %d\n"),
 	inp, water->index, water->inp, water->counter, water->state);
- if (water->inp != inp)		// if input state changed
+ if (water->inp != inp)		/* if input state changed */
  {
-  water->inp = inp;		// save state
-  water->counter =  (inp == STATE_ALARM) ? COUNT : 1; // set counter
+  water->inp = inp;		/* save state */
+  water->counter =  (inp == STATE_ALARM) ? COUNT : 1; /* set counter */
  }
  else
  {
-  if (water->counter != 0)	// if state changing
+  if (water->counter != 0)	/* if state changing */
   {
-   --water->counter;		// count of change timer
-   if (water->counter == 0)	// if state stable
+   --water->counter;		/* count of change timer */
+   if (water->counter == 0)	/* if state stable */
    {
-    if (inp != STATE_ALARM)	// if alarm cleared
-     beeperCount = 0;		// stop beeper
+    if (inp != STATE_ALARM)	/* if alarm cleared */
+     beeperCount = 0;		/* stop beeper */
     
-    if (water->state != inp)	// if state changed
+    if (water->state != inp)	/* if state changed */
     {
-     water->state = inp;	// save current state
-     if (!notify(water->index, inp == STATE_ALARM)) // if notify failure
+     water->state = inp;	/* save current state */
+     if (!notify(water->index, inp == STATE_ALARM)) /* if notify failure */
      {
-      water->counter = 1;	// set counter to send again
+      water->counter = 1;	/* set counter to send again */
      }
     }
    }
@@ -1562,9 +1562,9 @@ void findAddresses(void)
 
 void initCurrent(char isr)
 {
- curPSave = 0;			// clear saved current pointer
- iChan = 0;			// initialize channel number
- ADCSRB = 0;			// set adc channel
+ curPSave = 0;			/* clear saved current pointer */
+ iChan = 0;			/* initialize channel number */
+ ADCSRB = 0;			/* set adc channel */
  for (unsigned char i = 0; i < ADCCHANS; i++)
  {
   P_CURRENT p = &iData[i];
@@ -1588,11 +1588,11 @@ void initCurrent(char isr)
  sampleCount = 100;
  if (isr)
  {
-  pinMode(10, OUTPUT);		// pb4
-  pinMode(11, OUTPUT);		// pb5
-  pinMode(8, OUTPUT);		// ph5
-  pinMode(9, OUTPUT);		// ph6
-  pinMode(17, OUTPUT);		// pd4
+  pinMode(10, OUTPUT);		/* pb4 */
+  pinMode(11, OUTPUT);		/* pb5 */
+  pinMode(8, OUTPUT);		/* ph5 */
+  pinMode(9, OUTPUT);		/* ph6 */
+  pinMode(17, OUTPUT);		/* pd4 */
   printf(F3("attach interrupt\n"));
   digitalWrite(7, HIGH);
   Timer3.attachInterrupt(timer3, 1000000L / 600);
@@ -1685,18 +1685,18 @@ void timer3()
  PORTB ^= _BV(PB4);
  PORTB |= _BV(PB5);
  
- if (adcState == 0)		// if sampling data
+ if (adcState == 0)		/* if sampling data */
  {
-  if (sampleCount)		// if sample count non zero
+  if (sampleCount)		/* if sample count non zero */
   {
-   ADCSRB = 0;			// set channel number
-   ADMUX = _BV(REFS0) | iChan;	// VCC Ref and channel
-   ADCSRA |= _BV(ADSC) | _BV(ADIE); // start conversion
+   ADCSRB = 0;			/* set channel number */
+   ADMUX = _BV(REFS0) | iChan;	/* VCC Ref and channel */
+   ADCSRA |= _BV(ADSC) | _BV(ADIE); /* start conversion */
   }
  }
- else				// if calibrating voltage
+ else				/* if calibrating voltage */
  {
-  ADCSRA |= _BV(ADSC) | _BV(ADIE); // start conversion
+  ADCSRA |= _BV(ADSC) | _BV(ADIE); /* start conversion */
  }
 
  PORTB &= ~_BV(PB5);
@@ -1707,9 +1707,9 @@ ISR(ADC_vect)
  PORTH |= _BV(PH5);
 
  P_CURRENT p = &iData[iChan];
- if (adcState == 0)		// if sampling data
+ if (adcState == 0)		/* if sampling data */
  {
-  if (sampleCount)		// if not done
+  if (sampleCount)		/* if not done */
   {
    int sampleI = ADCL;
    sampleI |= (ADCH << 8);
@@ -1718,43 +1718,43 @@ ISR(ADC_vect)
    float filteredI = sampleI - p->offsetI;
    float sqI = filteredI * filteredI;
    tempSumI += sqI;
-   --sampleCount;		// count off a sample
-   if (sampleCount == 0)	// if done
+   --sampleCount;		/* count off a sample */
+   if (sampleCount == 0)	/* if done */
    {
     p->count++;
     p->adc = ADMUX;
-    p->sumI = tempSumI;		// update sum
-    tempSumI = 0.0;		// reset temporary sum
+    p->sumI = tempSumI;		/* update sum */
+    tempSumI = 0.0;		/* reset temporary sum */
     ADMUX = _BV(REFS0) | _BV(MUX4) | _BV(MUX3) | _BV(MUX2) | _BV(MUX1);
     ADCSRB = 0;
-    adcState = 1;		// set state to calibrate voltage
+    adcState = 1;		/* set state to calibrate voltage */
     PORTH |= _BV(PH6);
    }
   }
  }
- else				// if calibrating voltage 
+ else				/* if calibrating voltage  */
  {
   long result = ADCL;
   result |= ADCH << 8;
   result = READVCC_CALIBRATION_CONST / result;
-  vcc = (int) result;		// save result
+  vcc = (int) result;		/* save result */
   p->iRatio = p->iCal * ((result / 1000.0) / (ADC_COUNTS));
   p->iRms = p->iRatio * sqrt(p->sumI / SAMPLES);
-  if (p->iTime == 0)		// if previous reading sent
+  if (p->iTime == 0)		/* if previous reading sent */
   {
-   if (abs(p->iRms - p->lastIRms0) > .1) // if change in current
+   if (abs(p->iRms - p->lastIRms0) > .1) /* if change in current */
    {
     p->sent++;
-    p->lastIRms1 = p->lastIRms0; // set current value
+    p->lastIRms1 = p->lastIRms0; /* set current value */
     p->lastIRms0 = p->iRms;
-    p->iTime = now();		// set time of change
+    p->iTime = now();		/* set time of change */
    }
   }
-  adcState = 0;			// set to start sampling
-  iChan++;			// advance to next channel
-  if (iChan >= ADCCHANS)	// if at end
-   iChan = 0;			// back to channel zero
-  sampleCount = SAMPLES;	// set number of samples
+  adcState = 0;			/* set to start sampling */
+  iChan++;			/* advance to next channel */
+  if (iChan >= ADCCHANS)	/* if at end */
+   iChan = 0;			/* back to channel zero */
+  sampleCount = SAMPLES;	/* set number of samples */
   PORTH &= ~_BV(PH6);
  }
  
@@ -1764,14 +1764,14 @@ ISR(ADC_vect)
 #if 0
 int adcRead(char pin)
 {
- ADCSRB = 0; 			// chan 0 = 7
- ADMUX = _BV(REFS0) | pin;	// VCC Ref and channel
+ ADCSRB = 0; 			/* chan 0 = 7 */
+ ADMUX = _BV(REFS0) | pin;	/* VCC Ref and channel */
 
  // without a delay, we seem to read from the wrong channel
  //delay(1);
 
  // start the conversion
- ADCSRA |= _BV(ADSC); // Convert
+ ADCSRA |= _BV(ADSC); /* Convert */
 
  // ADSC is cleared when the conversion finishes
  while (bit_is_set(ADCSRA, ADSC));
@@ -1962,18 +1962,18 @@ char esp8266Time()
  p0 = strstr(packetRsp, ":");
  p0 = strstr(p0, " ");
  p0 += 1;
-// printf(F3("packetRsp %s\n"), p0);
+ // printf(F3("packetRsp %s\n"), p0);
  p1 = findField(p0);	/* month */
  if (p1 == 0)
   return(0);
-// printf(F3("month %s\n"), p0);
+ // printf(F3("month %s\n"), p0);
  char buf[4];
  for (int i = 0; i < 12; i++)
  {   
   const __FlashStringHelper *val = pgm_read_word(&months[i]);
-//  printf(F3("%2d months[i] %x\n"), i, val);
+  //  printf(F3("%2d months[i] %x\n"), i, val);
   argConv(val, buf);
-//  printf(F3("%2d month (%s)\n"), i, buf);
+  //  printf(F3("%2d month (%s)\n"), i, buf);
   if (strcmp(buf, p0) == 0)
   {
    month = i + 1;
@@ -1986,37 +1986,37 @@ char esp8266Time()
  if (p1 == 0)
   return(0);
  day = atoi((const char *) p0);
-// printf(F3("day %s %d\n"), p0, day);
+ // printf(F3("day %s %d\n"), p0, day);
 
  p0 = p1;
  p1 = findField(p0);	/* hour */
  if (p1 == 0)
   return(0);
  hour = atoi((const char *) p0);
-// printf(F3("hour %s %d\n"), p0, hour);
+ // printf(F3("hour %s %d\n"), p0, hour);
 
  p0 = p1;
  p1 = findField(p0);	/* minute */
  if (p1 == 0)
   return(0);
  min = atoi((const char *) p0);
-// printf(F3("min %s %d\n"), p0, min);
+ // printf(F3("min %s %d\n"), p0, min);
 
  p0 = p1;
  p1 = findField(p0);	/* second */
  if (p1 == 0)
   return(0);
  sec = atoi((const char *) p0);
-// printf(F3("sec %s %d\n"), p0, sec);
+ // printf(F3("sec %s %d\n"), p0, sec);
 
  p0 = p1;
  p1 = findField(p0);	/* year */
  if (p1 == 0)
   return(0);
  year = atoi((const char *) p0);
-// printf(F3("year %s %d\n"), p0, year);
+ // printf(F3("year %s %d\n"), p0, year);
 
-// printf(F3("h %2d m %2d s %2d d %2d m %2d y %4d\n"), hour, min, sec, day, month, year);
+ // printf(F3("h %2d m %2d s %2d d %2d m %2d y %4d\n"), hour, min, sec, day, month, year);
  setTime(hour, min, sec, day, month, year);
  return(1);
 }

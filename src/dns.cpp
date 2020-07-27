@@ -1,4 +1,3 @@
-//#if !INCLUDE
 #define __DNS__
 #if defined(ARDUINO_ARCH_AVR)
 #include "Arduino.h"
@@ -30,8 +29,6 @@
 #include "wifi.h"
 
 #include "stdint.h"
-
-//#endif
 
 #if defined(__DNS_INC__)	// <-
 
@@ -108,7 +105,7 @@ char dnsLookup(char *buf, const char *hostName)
  if (DBG)
   printf("\nhost %s dnsLen %d\n", hostName, dnsLen);
 
- wifiMux();			// in case device restarted
+ wifiMux();			/* in case device restarted */
  wifiWriteStr(F2("AT+CIPSTART=3,\"UDP\",\"" DNS_IP "\"," DNS_PORT), 3000);
 
  sprintf((char *) cmdBuffer, F0("AT+CIPSEND=3,%d"), dnsLen);
@@ -311,37 +308,37 @@ char *dnsDecode(char *buffer, int len, char *ip)
 {
  int16_t answerCount;
  char *p = (char *) &((P_DNS) buffer)->ancount;
- ntohsCpy(p, &answerCount);	// read answer count
- p = (char *) &buffer[sizeof(T_DNS)]; // skip over header
+ ntohsCpy(p, &answerCount);	/* read answer count */
+ p = (char *) &buffer[sizeof(T_DNS)]; /* skip over header */
  char ch;
- while ((ch = *p++) != 0)	// skip over name
+ while ((ch = *p++) != 0)	/* skip over name */
   p += ch;
- p += 2 * sizeof(int16_t); 	// skip over type and class
+ p += 2 * sizeof(int16_t); 	/* skip over type and class */
  printf(F0("dns answerCount %d\n"), answerCount);
- while (--answerCount >= 0)	// while answers to process
+ while (--answerCount >= 0)	/* while answers to process */
  {
-  ch = *p++;			// read length
-  if ((ch & LABEL_COMPRESSION_MASK) == 0) // if no compression
+  ch = *p++;			/* read length */
+  if ((ch & LABEL_COMPRESSION_MASK) == 0) /* if no compression */
   {
-   if (ch > 0)			// if len positive
+   if (ch > 0)			/* if len positive */
     p += ch;
   }
-  else				// if points somewhere else
+  else				/* if points somewhere else */
   {
-   p++;				// skip over value
+   p++;				/* skip over value */
   }
   int16_t dnsType;
   int16_t dnsClass;
-  p = ntohsCpy(p, &dnsType);	// read type
-  p = ntohsCpy(p, &dnsClass);	// read class
-  p += sizeof(int32_t);		// skip time to live
+  p = ntohsCpy(p, &dnsType);	/* read type */
+  p = ntohsCpy(p, &dnsClass);	/* read class */
+  p += sizeof(int32_t);		/* skip time to live */
   int16_t ansLen;
-  p = ntohsCpy(p, &ansLen);	// read length
+  p = ntohsCpy(p, &ansLen);	/* read length */
   printf(F0("dnsType %d dnsClass %d ansLen %d\n"), dnsType, dnsClass, ansLen);
-  if ((dnsType == TYPE_A)	// if correct type
+  if ((dnsType == TYPE_A)	/* if correct type */
   &&  (dnsClass == CLASS_IN))
   {
-   if (ansLen == 4)		// if answer correct length
+   if (ansLen == 4)		/* if answer correct length */
    {
     char *p1 = ip;
     while (--ansLen >= 0)
@@ -360,16 +357,16 @@ char *dnsDecode(char *buffer, int len, char *ip)
      }
     }
    }
-   else				// if not correct answer
+   else				/* if not correct answer */
    {
     printf(F0("dns incorrect type %x class %x\n"), dnsType, dnsClass);
     ip = 0;
    }
    break;
   }
-  else				// if not correct record type
+  else				/* if not correct record type */
   {
-   p += ansLen;			// skip to next record
+   p += ansLen;			/* skip to next record */
   }
  }
  return(ip);

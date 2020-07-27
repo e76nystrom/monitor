@@ -102,10 +102,10 @@ char ntpSetTime()
    memset(dataBuffer, 0, NTP_PACKET_SIZE);
    // Initialize values needed to form NTP request
    // (see URL above for details on the packets)
-   dataBuffer[0] = 0b11100011; // LI, Version, Mode
-   dataBuffer[1] = 0; // Stratum, or type of clock
-   dataBuffer[2] = 6; // Polling Interval
-   dataBuffer[3] = 0xEC; // Peer Clock Precision
+   dataBuffer[0] = 0b11100011; /* LI, Version, Mode */
+   dataBuffer[1] = 0; /* Stratum, or type of clock */
+   dataBuffer[2] = 6; /* Polling Interval */
+   dataBuffer[3] = 0xEC; /* Peer Clock Precision */
    // 8 bytes of zero for Root Delay & Root Dispersion
    dataBuffer[12] = 49;
    dataBuffer[13] = 0x4E;
