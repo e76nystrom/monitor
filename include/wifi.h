@@ -52,11 +52,13 @@ void writeEE(const char *buf, char addr, char eeLen);
 #define wifiGetc() ((char) WIFI.read())
 #define wifiTxBusy() (0)
 #define wifiPutc(c) WIFI.write(c)
+
 #if DBG
 #define putChar(c) DBGPORT.write(c)
 #else
 #define putChar(c)
 #endif	/* DBG */
+
 #define putChar1(c) DBGPORT.write(c)
 #define getChar(ch) \
  while (!DBGPORT.available()) \
@@ -65,7 +67,7 @@ void writeEE(const char *buf, char addr, char eeLen);
 
 #endif /* ARDUINO_ARCH_STM32 */
 
-#if defined(STM32MON)
+#if 0 //defined(STM32MON)
 
 #define wifiAvail() (remRxReady())
 #define wifiGetc() ((char) remRxRead())
@@ -188,8 +190,6 @@ void wifiPut(const __FlashStringHelper *s);
 char wifiWriteStr(const __FlashStringHelper *s, unsigned int timeout);
 char wifiWrite(const __FlashStringHelper *s, int size, unsigned int timeout);
 #endif	/* ARDUINO_ARCH_AVR */
-
-#define WIFI_RESET 2
 
 EXT char stringBuffer[80];	/* buffer for strings made from program data */
 EXT char dataBuffer[192];	/* buffer for data sent */

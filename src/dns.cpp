@@ -16,7 +16,7 @@
 #include "string.h"
 #endif
 
-#if defined(STM32MON)
+#if 0 //defined(STM32MON)
 #include "stdio.h"
 #include "string.h"
 #include "millis.h"
@@ -24,9 +24,8 @@
 
 #define EXT extern
 #include "monitor.h"
-#include "dns.h"
-#include "serial.h"
 #include "wifi.h"
+#include "dns.h"
 
 #include "stdint.h"
 

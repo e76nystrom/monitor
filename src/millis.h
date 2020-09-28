@@ -32,7 +32,7 @@ unsigned int intMillis();
 #define millisDef unsigned int
 #endif
 
-#ifdef STM32MON
+#if 0 //STM32MON
 #include "stm32f1xx_hal.h"
 
 extern __IO uint32_t uwTick;

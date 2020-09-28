@@ -25,11 +25,15 @@
 #define MONITOR_ID "Monitor1"
 
 #define TEMPDEVS 1
+#if defined(__MONITOR__)
 EXT DeviceAddress tempDev[TEMPDEVS] =
 {
  {0x28, 0x7d, 0xe3, 0x96, 0x06, 0x00, 0x00, 0x61}
 // {0x28, 0xB8, 0x50, 0x9B, 0x06, 0x00, 0x00, 0x89}
 };
+#else
+extern DeviceAddress tempDev[TEMPDEVS];
+#endif /* defined(__MONITOR__) */
 #endif	/* MONITOR_INDEX == 1 */
 
 /* basement dehumidifer and furnace monitor */
@@ -46,7 +50,7 @@ EXT DeviceAddress tempDev[TEMPDEVS] =
 #define DHT_SENSOR 1
 #define CURRENT_SENSOR 1
 #define WATER_MONITOR 1
-#define CHECK_IN 0
+#define CHECK_IN 1
 #define DEHUMIDIFIER 0
 
 #define SSID "dd-wrt_vap"
@@ -54,11 +58,15 @@ EXT DeviceAddress tempDev[TEMPDEVS] =
 #define MONITOR_ID "Monitor2"
 
 #define TEMPDEVS 2
+#if defined(__MONITOR__)
 EXT DeviceAddress tempDev[TEMPDEVS] =
 {
  {0x28, 0xff, 0xd3, 0x09, 0x63, 0x14, 0x02, 0xe1},
  {0x28, 0xc8, 0xae, 0x9b, 0x06, 0x00, 0x00, 0x15}
 };
+#else
+extern DeviceAddress tempDev[TEMPDEVS];
+#endif /* defined(__MONITOR__) */
 #endif	/* MONITOR_INDEX == 2 */
 
 /* basement water alarm and pump shutoff */
@@ -81,10 +89,14 @@ EXT DeviceAddress tempDev[TEMPDEVS] =
 #define MONITOR_ID "Monitor3"
 
 #define TEMPDEVS 1
+#if defined(__MONITOR__)
 EXT DeviceAddress tempDev[TEMPDEVS] =
 {
  {0x28, 0x7d, 0xe3, 0x96, 0x06, 0x00, 0x00, 0x61}
 };
+#else
+extern DeviceAddress tempDev[TEMPDEVS];
+#endif /* defined(__MONITOR__) */
 #endif	/* MONITOR_INDEX == 3 */
 
 #if (MONITOR_INDEX == 4)
@@ -103,6 +115,8 @@ EXT DeviceAddress tempDev[TEMPDEVS] =
 #define PASS "minidonk"
 #define MONITOR_ID "Monitor4"
 #endif	/* MONITOR_INDEX == 4 */
+
+#define WIFI_RESET 2		/* wifi reset */
 
 #define ONE_WIRE_BUS 4		/* one wire bus pin */
 
@@ -141,5 +155,40 @@ EXT DeviceAddress tempDev[TEMPDEVS] =
 
 #endif /* DEHUMIDIFIER */
 #endif /* DHT_SENSOR */
+
+#if 0
+#define DBG0_Pin 7
+#define DBG0_Port PORTD
+#define DBG0_DDR DDRD
+#define DBG0_In PIND
+#define DBG0_Bit PD7
+#define DBG0_Mask _BV(DBG0_Bit)
+#define dbg0Read() ((DBG0_Port & DBG0_Mask) != 0)
+#define dbg0Set() DBG0_Port |= DBG0_Mask
+#define dbg0Clr() DBG0_Port &= ~DBG0_Mask
+
+#define DBG1_Pin 8
+#define DBG1_Port PORTB
+#define DBG1_DDR DDRB
+#define DBG1_In PINB
+#define DBG1_Bit PB0
+#define DBG1_Mask _BV(DBG1_Bit)
+#define dbg1Read() ((DBG1_Port & DBG1_Mask) != 0)
+#define dbg1Set() DBG1_Port |= DBG1_Mask
+#define dbg1Clr() DBG1_Port &= ~DBG1_Mask
+
+#define DBG2_Pin 9
+#define DBG2_Port PORTB
+#define DBG2_DDR DDRB
+#define DBG2_In PINB
+#define DBG2_Bit PB1
+#define DBG2_Mask _BV(DBG2_Bit)
+#define dbg2Read() ((DBG2_Port & DBG2_Mask) != 0)
+#define dbg2Set() DBG2_Port |= DBG2_Mask
+#define dbg2Clr() DBG2_Port &= ~DBG2_Mask
+#else
+#define dbg2Set()
+#define dbg2Clr()
+#endif
 
 #endif	/* ARDUINO_AVR_MEGA2560 */

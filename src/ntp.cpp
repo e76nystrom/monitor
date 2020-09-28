@@ -7,21 +7,19 @@
 #include <Arduino.h>
 #endif /* ARDUINO_ARCH_STM32 */
 
-#ifdef STM32MON
+#if	0 //def STM32MON
 #include "stdio.h"
 #include "string.h"
 #include "millis.h"
 #endif
 
 #include <Time.h>
-#include "serial.h"
 
 #define EXT extern
 #include "monitor.h"
+#include "wifi.h"
 #include "dns.h"
 #include "ntp.h"
-
-#include "wifi.h"
 
 #if defined(__NTP_INC__)	// <-
 
@@ -79,9 +77,7 @@ void printTime(time_t t)
 
 char ntpSetTime()
 {
-#if defined(ARDUINO_ARCH_AVR)
  char ntpBuf[32];
-#endif	/* ARDUINO_ARCH_AVR */
  
  ntpTimeout = 5UL * 60UL * 1000UL; /* try again in 5 minutes if failure */
 

@@ -29,4 +29,4 @@ EXT unsigned long ntpStart;	/* reference for time compare */
 EXT unsigned long ntpTimeout;	/* ntp timeout */
 EXT char ntpIP[IP_ADDRESS_LEN];	/* ntp ip address */
 
-#endif	// ->
+#endif	/* __NTP_INC__ */ // ->

@@ -62,6 +62,8 @@ extern DeviceAddress tempDev[TEMPDEVS];
 
 #endif
 
+#define WIFI_RESET 2		/* wifi reset */
+
 /*
  [0, "PD0"],
  [1, "PD1"],

@@ -1,3 +1,4 @@
+//******************************************************************************
 /* installed libraries
 
 OneWire
@@ -141,22 +142,9 @@ char esp8266TimeEnable();
 char esp8266Time();
 #endif	/* ESP8266_TIME */
 
-#if LOCAL
-#define SERVER "10.0.0.2"
-#define TCPPORT 8080
-#define HOST "10.0.0.2"
-#define SITE
-#else
-#define TCPPORT 80
-#define HOST "test.ericnystrom.com"
-#define SITE "/alert"
-#endif  /* LOCAL */
-
 #define TEST_GET "get /emoncms/input/post.json?node=4"\
 "&csv=0.0&apikey=cd5f31b05f8008756e76f87ecb762199 "\
 "HTTP/1.0\r\nHost: 192.168.42.10\r\nConnection: close\r\n\r\n"
-
-#define HTTP " HTTP/1.1\r\nHost: " HOST "\r\nConnection: Close\r\n\r\n"
 
 #define HTTP1 " HTTP/1.1\r\nHost: " EMONCMS_ADDR "\r\nConnection: Close\r\n\r\n"
 
@@ -215,13 +203,50 @@ const char *argConv(const __FlashStringHelper *s, char *buf)
 
 #endif  /* ARDUINO_ARCH_AVR */
 
+#if defined(ARDUINO_ARCH_STM32)
+#include "adc.h"
+#include "dma.h"
+#include "gpio.h"
+#include "tim.h"
+#undef EXT
+#define EXT extern
+#include "current.h"
+
+#define DATA_SIZE 1
+
+#if DATA_SIZE
+extern char _sbss;
+extern char _ebss;
+extern char _sdata;
+extern char _edata;
+extern char _estack;
+#endif
+
+extern "C" unsigned int getSP(void);
+
+#endif	/* ARDUINO_ARCH_STM32 */
+
 char emonIP[IP_ADDRESS_LEN];	/* emoncms ip address */
 
 #if CHECK_IN | WATER_MONITOR
-#define SERVER_IP_TIMEOUT (1UL * 60UL * 60UL * 1000UL) /* 1 hour timeout for dns lookup */
+#define SERVER_IP_TIMEOUT (1UL * 60UL * 60UL * 1000UL) /* 1 hour dns lookup */
 char serverIP[IP_ADDRESS_LEN];	/* server ip address */
 unsigned long serverIPTime;	/* time when server ip set */
 char failCount;			/* send failure count */
+
+#if LOCAL
+#define SERVER "10.0.0.2"
+#define TCPPORT 8080
+#define HOST "10.0.0.2"
+#define SITE
+#else
+#define TCPPORT 80
+#define HOST "test.ericnystrom.com"
+#define SITE "/alert"
+#endif  /* LOCAL */
+
+#define HTTP " HTTP/1.1\r\nHost: " HOST "\r\nConnection: Close\r\n\r\n"
+
 #endif	/* CHECK_IN | WATER_MONITOR */
 
 #if WATER_MONITOR
@@ -273,6 +298,7 @@ char notify(int alarm, boolean val);
 
 #if CHECK_IN | WATER_MONITOR
 char sendHTTP(char *data);
+void updateFail();
 #endif  /* CHECK_IN | WATER_MONITOR */
 
 char *cpyStr(char *dst, const char *str);
@@ -285,6 +311,7 @@ float rtcTemp();
 #endif
 
 void cmdLoop();
+extern void info();
 unsigned int tLast;
 int loopCount;
 
@@ -430,7 +457,8 @@ void bufferCheck(const char *name, char *buf, int size)
 void checkBuffers()
 {
  printf(F3("RAMEND %x sp %x bss_end %x free %d of %d\n"),
-	RAMEND, SP, &__bss_end, SP - (int) (&__bss_end), RAMEND - (int) (&__bss_end));
+	RAMEND, SP, &__bss_end, SP - (int) (&__bss_end),
+	RAMEND - (int) (&__bss_end));
 
  bufferCheck(F0("string"), stringBuffer, sizeof(stringBuffer));
  bufferCheck(F0("data"),   dataBuffer, sizeof(dataBuffer));
@@ -479,13 +507,16 @@ void setup()
  memset(packetRsp, 0, sizeof(packetRsp));
 
 #if defined(ARDUINO_ARCH_AVR)
+
  wdt_enable(WDT_TO);
-#if ARDUINO_AVR_MEGA2560
+
+#if defined(ARDUINO_AVR_MEGA2560)
  DBGPORT.begin(19200);
-#endif
+#endif	/* ARDUINO_AVR_MEGA2560 */
+
 #if defined(ARDUINO_AVR_PRO)
  DBGPORT.begin(9600);
-#endif
+#endif	/* ARDUINO_AVR_PRO */
 
 #if PRINTF
  init_printf(NULL, putx1);
@@ -495,11 +526,12 @@ void setup()
  fdev_setup_stream(&uartout, putx, NULL, _FDEV_SETUP_WRITE);
  stdout = &uartout;
 #endif
+
 #endif  /* ARDUINO_ARCH_AVR */
 
 #if ARDUINO_ARCH_STM32
  DBGPORT.begin(19200);
-#endif
+#endif	/* ARDUINO_ARCH_STM32 */
 
  if (DBG)
   printf(F3("\nstarting 0\n"));
@@ -609,11 +641,13 @@ void setup()
 #endif	/* ARDUINO_AVR_MEGA2560 */
 
  wifiInitSio();			/* enable wifi serial port */
+#if defined(WIFI_RESET)
  pinMode(WIFI_RESET, OUTPUT);	/* set wifi reset pin to output */
  digitalWrite(WIFI_RESET, HIGH); /* set it high */
  delay(10);			/* short wait */
 
  wifiReset();			/* reset wifi */
+#endif	/* WIFI_RESET */
 
  wifiWriteStr(F2("AT+CWQAP"), 1000);
  delay(100);
@@ -643,6 +677,40 @@ void setup()
  esp8266TimeEnable();
 #endif /* ESP8266_TIME */
 
+#if defined(ARDUINO_ARCH_STM32)
+
+#if DATA_SIZE
+ unsigned int bss = (unsigned int) (&_ebss - &_sbss);
+ unsigned int data = (unsigned int) (&_edata - &_sdata);
+ printf("data %u bss %u total %u\n", data, bss, data + bss);
+#if 0
+ printf("stack %08x sp %08x\n",
+	(unsigned int) &_estack, getSP());
+#endif
+#endif	/* DATA_SIZE */
+
+ unsigned int clockFreq = HAL_RCC_GetHCLKFreq();
+ unsigned int FCY = HAL_RCC_GetPCLK2Freq();
+ printf("clock frequency %u FCY %u\n", clockFreq, FCY);
+ printf("sysTick load %d\n", (int) SysTick->LOAD);
+
+ printf("initialize adc\n");
+ flush();
+ MX_GPIO_Init();
+ MX_ADC1_Init();
+ MX_ADC2_Init();
+ MX_DMA_Init();
+ MX_TIM1_Init();
+ HAL_TIM_Base_MspInit(&htim1);
+// HAL_TIM_MspPostInit(&htim1);
+ printf("adc initialization complete\n");
+ flush();
+#endif	/* ARDUINO_ARCH_STM32 */
+  
+#if CURRENT_SENSOR
+ initCurrent(1);		/* initial current sensor */
+#endif	/* CURRENT_SENSOR */
+
 #if DBG
  printf(F3("debug mode\n"));
  unsigned int t = intMillis();
@@ -653,7 +721,9 @@ void setup()
 
  t = intMillis();
  ch = 0;
- printf(F3("\nany char for cmd mode..."));
+ printf(F3("any char for cmd mode..."));
+ flush();
+ newLine();
  while ((unsigned int) (intMillis() - t) < 5000U)
  {
   wdt_reset();
@@ -673,10 +743,6 @@ void setup()
 #endif /* DBG */
 
  setTime();
-
-#if CURRENT_SENSOR
- initCurrent(1);		/* initial current sensor */
-#endif	/* CURRENT_SENSOR */
 
  tLast = intMillis();		/* initialize loop timer */
 }
@@ -708,26 +774,28 @@ void cmdLoop()
 {
  wdt_disable();
  printf(F3("command loop\n"));
+ flush();
  while (1)
  {
   if (DBGPORT.available())
   {
+   flush();
    char ch = DBGPORT.read();
    DBGPORT.write(ch);
    newLine();
    if (ch == 'x')		/* exit command loop */
     break;
-   else if (ch == '?')
+   else if (ch == '?')		/* file name */
    {
     printf(F3("monitor.cpp\n"));
    }
    
 #if defined(ARDUINO_ARCH_AVR)
-   else if (ch == 'F')
+   else if (ch == 'F')		/* arduino check buffers */
    {
     checkBuffers();
    }
-   else if (ch == 'w')		/* write ssid and password to eeprom */
+   else if (ch == 'w')		/* arduino write ssid and password to eeprom */
    {
     char flag = updateEE(F1("ssid"), SSID_LOC, SSID_LEN);
     flag |= updateEE(F1("pass"), PASS_LOC, PASS_LEN);
@@ -738,7 +806,7 @@ void cmdLoop()
     readEE(id, ID_LOC, ID_LEN);
     readEE(emonIP, IP_LOC, IP_LEN);
    }
-   else if (ch == 'W')		/* test watchdog timer */
+   else if (ch == 'W')		/* arduino test watchdog timer */
    {
     printf(F3("test watchdog timer\n"));
     wdt_enable(WDT_TO);
@@ -748,7 +816,7 @@ void cmdLoop()
 #endif  /* ARDUINO_ARCH_AVR */
 
 #if ARDUINO_AVR_MEGA2560
-   else if (ch == 'p')
+   else if (ch == 'p')		/* mega2560 write to port g */
    {
     if (getNum())
     {
@@ -759,11 +827,39 @@ void cmdLoop()
    }
 #endif	/* ARDUINO_AVR_MEGA2560 */
 
+#if defined(ARDUINO_ARCH_STM32)
+   else if (ch == 'e')		/* stm32 read adc */
+   {
+    newLine();
+    adcRead1();
+   }
+   else if (ch == 'R')		/* stm32 adc run */
+   {
+    newLine();
+    adcRun();
+   }
+   else if (ch == 'C')		/* stm32 adc status */
+   {
+    newLine();
+    adcStatus();
+   }
+   else if (ch == 'Q')		/* stm32 peripheral info */
+   {
+    info();
+   }
+   else if (ch == 'T')		/* stm32 adc rms test */
+   {
+    newLine();
+    rmsTestInit();
+    rmsTest();
+   }
+#endif	/* ARDUINO_ARCH_STM32 */
+
 #if CURRENT_SENSOR
-   else if (ch == 'e')		/* read a to d converter */
+   else if (ch == 'e')		/* arduino current read a to d converter */
    {
     printf(F3("chan: "));
-    len = readStr(cmdBuffer, sizeof(cmdBuffer) - 1);
+    char len = readStr(cmdBuffer, sizeof(cmdBuffer) - 1);
     unsigned char chan = 0;
     if (len != 0)
     {
@@ -773,7 +869,7 @@ void cmdLoop()
     }
     P_CURRENT p = &iData[chan];
     printf(F3("value: "));
-    char len = readStr(cmdBuffer, sizeof(cmdBuffer) - 1);
+    len = readStr(cmdBuffer, sizeof(cmdBuffer) - 1);
     printf(F3("iTime %ld len %d cState %d\n"), p->iTime, len, cState);
     if (len != 0)
     {
@@ -783,18 +879,18 @@ void cmdLoop()
      printTime(p->iTime);
     }
    }
-   else if (ch == 'C')		/* run current check code */
+   else if (ch == 'C')		/* arduino run current check code */
    {
     printCurrent();
     currentCheck();
    }
-   else if (ch == 'T')		/* setup current sensor isr */
+   else if (ch == 'T')		/* arduino setup current sensor isr */
    {
     printf(F3("isr: "));
     char len = readStr(stringBuffer, sizeof(stringBuffer) - 1);
     initCurrent(len);
    }
-   else if (ch == 'I')		/* print current results */
+   else if (ch == 'I')		/* arduino print current results */
    {
     char tmp[12];
     printf(F3("vcc %d\n"), vcc);
@@ -816,7 +912,7 @@ void cmdLoop()
    }
 #endif  /* CURRENT_SENSOR */
 
-   else if (ch == 'u')
+   else if (ch == 'u')		/* test long print */
    {
     long tmp = 0x55aa55aa;
     DBGPORT.print(tmp, 16);
@@ -848,11 +944,11 @@ void cmdLoop()
    {
     wifiWriteStr(F2("AT+CWLAP"), 3000);
    }
-   else if (ch == 'q')
+   else if (ch == 'q')		/* disconnect */
    {
     wifiWriteStr(F2("AT+CWQAP"), 1000);
    }
-   else if (ch == 's')
+   else if (ch == 's')		/* get local ip address */
    {
     wifiWriteStr(F2("AT+CIFSR"), 1000);
    }
@@ -868,7 +964,7 @@ void cmdLoop()
    {
     wifiWriteStr(F2("AT+CIPSTART=4,\"TCP\",\"184.106.153.149\",80"), 4000);
    }
-   else if (ch == 'z')
+   else if (ch == 'z')		/* close wiif */
    {
     wifiClose(4, 15000);
    }
@@ -957,7 +1053,7 @@ void cmdLoop()
      printf(F3("F\n"));
     }
    }
-   else if (ch == 'g')
+   else if (ch == 'g')		/* run loopTemp() */
    {
     loopTemp();
    }
@@ -1016,6 +1112,7 @@ void loop()
 
  printf(F3("%d "), loopCount);
  printTime();
+ flush();
 
 #if CURRENT_SENSOR
  printCurrent();
@@ -1049,13 +1146,13 @@ void loop()
  }
 
  loopCount++;			/* update loop counter */
-#if defined(ARDUINO_ARCH_AVR)
  if (loopCount >= LOOP_MAX)	/* if at maximum */
  {
+#if defined(ARDUINO_ARCH_AVR)
   checkBuffers();
+#endif	/* ARDUINO_ARCH_AVR */
   loopCount = 0;		/* reset to beginning */
  }
-#endif	/* ARDUINO_ARCH_AVR */
 } /* *end loop */
 
 #if DEHUMIDIFIER
@@ -1466,7 +1563,7 @@ float printTemperature(DeviceAddress deviceAddress)
 
 #endif	/* TEMP_SENSOR */
 
-#if CHECK_IN
+#if TEMP_SENSOR
 char emonData(char *data)
 {
 #if 1
@@ -2029,3 +2126,31 @@ char esp8266Time()
 }
 
 #endif	/* ESP8266_TIME */
+
+#if defined(ARDUINO_ARCH_STM32)
+
+extern "C" int _write(int fd, char *ptr, int len)
+{
+ while (--len >= 0)
+ {
+  char ch = *ptr++;
+  DBGPORT.write(ch);
+  if (ch == '\n')
+   DBGPORT.write('\r');
+ }
+ return(0);
+}
+
+extern "C" int _write_r(void *p, int fd, char *ptr, int len)
+{
+ while (--len >= 0)
+ {
+  char ch = *ptr++;
+  DBGPORT.write(ch);
+  if (ch == '\n')
+   DBGPORT.write('\r');
+ }
+ return(0);
+}
+
+#endif	/* ARDUINO_ARCH_STM32 */

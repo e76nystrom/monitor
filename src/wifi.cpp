@@ -16,7 +16,7 @@
 
 #endif /* ARDUINO_ARCH_STM32 */
 
-#if defined(STM32MON)
+#if 0 //defined(STM32MON)
 #include "stm32f1xx_hal.h"
 #include "stdio.h"
 #include "string.h"
@@ -38,7 +38,6 @@
 #include "monitor.h"
 
 #include "wdt.h"
-#include "serial.h"
 
 #if defined(DBG)
 #undef DBG
@@ -102,11 +101,13 @@ void writeEE(const char *buf, char addr, char eeLen);
 #define wifiGetc() ((char) WIFI.read())
 #define wifiTxBusy() (0)
 #define wifiPutc(c) WIFI.write(c)
+
 #if DBG
 #define putChar(c) DBGPORT.write(c)
 #else
 #define putChar(c)
 #endif	/* DBG */
+
 #define putChar1(c) DBGPORT.write(c)
 #define getChar(ch) \
  while (!DBGPORT.available()) \
@@ -115,7 +116,7 @@ void writeEE(const char *buf, char addr, char eeLen);
 
 #endif /* ARDUINO_ARCH_STM32 */
 
-#if defined(STM32MON)
+#if 0 //defined(STM32MON)
 
 #define wifiAvail() (remRxReady())
 #define wifiGetc() ((char) remRxRead())
@@ -238,8 +239,6 @@ void wifiPut(const __FlashStringHelper *s);
 char wifiWriteStr(const __FlashStringHelper *s, unsigned int timeout);
 char wifiWrite(const __FlashStringHelper *s, int size, unsigned int timeout);
 #endif	/* ARDUINO_ARCH_AVR */
-
-#define WIFI_RESET 2
 
 EXT char stringBuffer[80];	/* buffer for strings made from program data */
 EXT char dataBuffer[192];	/* buffer for data sent */
@@ -402,7 +401,7 @@ void putx4(char c)
  }
 #endif	/* ARDUINO_ARCH_AVR */
 
-#if defined(STM32MON)
+#if 0 //defined(STM32MON)
  putx1(c);
  if (c == '\n')
  {
@@ -528,11 +527,11 @@ void printBuf()
   if (col == 8)			/* if at end of line */
   {
    col = 0;			/* reset column counter */
-   printf(F0("\n"));
+   newLine();
   }
  }
  if (col != 0)
-  printf(F0("\n"));
+  newLine();
 }
 
 #else  /*  DBG */
@@ -817,11 +816,10 @@ void getData(char *dst, unsigned int dstSize, char *buf, unsigned int bufSize)
 void wifiReset()
 {
  printf(F0("wifiReset\n"));
-#if defined(ARDUINO)
+#if defined(WIFI_RESET)
  digitalWrite(WIFI_RESET, LOW);
  delay(200);
  digitalWrite(WIFI_RESET, HIGH);
-#endif	/* ARDUINO */
  if (DBG)
   printf(F0("flushing wifi input\n"));
  while (wifiAvail())
@@ -831,22 +829,26 @@ void wifiReset()
   if (isprint(ch))
    putChar(ch);
  }
- char retry = 5;
+ printf(F0("flush done\n"));
+#endif	/* WIFI_RESET */
+ signed char retry = 5;
  while (--retry >= 0)
  {
   delay(200);
+  printf(F0("write AT %d\n"), retry);
   if (wifiWriteStr(F2("AT"), 1000))
    break;
  }
+ printf(F0("AT done\n"));
  wifiCWMode();			/* set correct cw mode */
  wifiMux();			/* set to mux mode */
 }
 
 void wifiInitSio()
 {
-#if defined(ARDUINO_ARCH_AVR)
+#if defined(ARDUINO_ARCH_AVR) | defined(ARDUINO_ARCH_STM32)
  WIFI.begin(WIFIBAUDRATE);
-#endif	/* ARDUINO_ARCH_AVR */
+#endif	/* ARDUINO_ARCH_AVR | ARDUINO_ARCH_STM32 */
 
 #if defined(MEGA32)
  IEC0bits.INT4IE = 0;

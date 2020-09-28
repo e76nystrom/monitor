@@ -42,6 +42,7 @@
 #define ESP8266_DNS 0
 #endif
 
+#if 0
 #if !defined(DBG0_Pin)
 #define DBG0_Pin 0
 #define dbg0Set()
@@ -58,6 +59,7 @@
 #define DBG2_Pin 0
 inline void dbg2Set() {}
 inline void dbg2Clr() {}
+#endif
 #endif
 
 /*
