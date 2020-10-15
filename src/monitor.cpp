@@ -529,7 +529,8 @@ void setup()
 
 #endif  /* ARDUINO_ARCH_AVR */
 
-#if ARDUINO_ARCH_STM32
+#if defined(ARDUINO_ARCH_STM32)
+ __HAL_RCC_WWDG_CLK_DISABLE();
  DBGPORT.begin(19200);
 #endif	/* ARDUINO_ARCH_STM32 */
 
@@ -683,7 +684,7 @@ void setup()
  unsigned int bss = (unsigned int) (&_ebss - &_sbss);
  unsigned int data = (unsigned int) (&_edata - &_sdata);
  printf("data %u bss %u total %u\n", data, bss, data + bss);
-#if 0
+#if 1
  printf("stack %08x sp %08x\n",
 	(unsigned int) &_estack, getSP());
 #endif
@@ -698,7 +699,9 @@ void setup()
  flush();
  MX_GPIO_Init();
  MX_ADC1_Init();
+ ADC_MspInit(&hadc1);
  MX_ADC2_Init();
+ ADC_MspInit(&hadc2);
  MX_DMA_Init();
  MX_TIM1_Init();
  HAL_TIM_Base_MspInit(&htim1);
@@ -710,6 +713,9 @@ void setup()
 #if CURRENT_SENSOR
  initCurrent(1);		/* initial current sensor */
 #endif	/* CURRENT_SENSOR */
+#if defined(CURRENT_STM32)
+ adcRun();
+#endif	/* CURRENT_STM32 */
 
 #if DBG
  printf(F3("debug mode\n"));
@@ -770,8 +776,11 @@ void setTime()
  }
 }
 
+#define PWR_INTERVAL 500
 void cmdLoop()
 {
+ unsigned int pwrUpdTime = millis();
+ 
  wdt_disable();
  printf(F3("command loop\n"));
  flush();
@@ -827,7 +836,7 @@ void cmdLoop()
    }
 #endif	/* ARDUINO_AVR_MEGA2560 */
 
-#if defined(ARDUINO_ARCH_STM32)
+#if defined(CURRENT_STM32)
    else if (ch == 'e')		/* stm32 read adc */
    {
     newLine();
@@ -836,7 +845,7 @@ void cmdLoop()
    else if (ch == 'R')		/* stm32 adc run */
    {
     newLine();
-    adcRun();
+    adcRun();			/* start makeing readings */
    }
    else if (ch == 'C')		/* stm32 adc status */
    {
@@ -1060,6 +1069,17 @@ void cmdLoop()
 #endif  /* TEMP_SENSOR */
 
   }
+#if defined(CURRENT_STM32)
+  if (pwrActive)
+  {
+   unsigned int t = millis();
+   if ((t - pwrUpdTime) >= PWR_INTERVAL)
+   {
+    pwrUpdTime += PWR_INTERVAL;
+    currentUpdate();
+   }
+  }
+#endif	/* CURRENT_STM32 */
  }
 #if defined(ARDUINO_ARCH_AVR)
  wdt_enable(WDT_TO);
@@ -1107,6 +1127,9 @@ void loop()
 #if CURRENT_SENSOR
    currentCheck();		/* check and send current */
 #endif	/* CURRENT_SENSOR */
+#if defined(CURRENT_STM32)
+   currentUpdate();
+#endif	/* CURRENT_STM32 */
   }
  }
 

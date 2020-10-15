@@ -20,10 +20,12 @@
 
 #define WIFI_RESET 19
 
-#define ADC1_0 LL_ADC_CHANNEL_0
-#define ADC1_1 LL_ADC_CHANNEL_2
+#define ADC1_0 LL_ADC_CHANNEL_2
+#define ADC1_1 LL_ADC_CHANNEL_0
 #define ADC2_0 LL_ADC_CHANNEL_1
 #define ADC2_1 LL_ADC_CHANNEL_3
+
+#define CURRENT_STM32
 
 #include "millis.h"
 #include "main.h"

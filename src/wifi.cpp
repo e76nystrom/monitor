@@ -295,7 +295,7 @@ void dbgChar(char ch)
   putChar('\r');
   putChar(ch);
  }
- else if ((ch >= ' ') && (ch < 0x80))
+ else if ((ch >= ' ') && (ch < 0x7f))
   putChar(ch);
 }
 
