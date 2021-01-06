@@ -28,7 +28,13 @@
 #undef EXT
 #define EXT extern
 #include "current.h"
+#if defined(ARDUINO)
+#include "Arduino.h"
+#include "serial.h"
+#define flushBuf flush
+#else
 #include "serialio.h"
+#endif
 //#endif
 
 #if defined(__LCD_INC__)	// <-
