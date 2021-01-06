@@ -1,0 +1,52 @@
+#!/bin/bash
+
+arm-none-eabi-gcc \
+-x \
+assembler-with-cpp \
+-Wa,-adhlns=startup.lst \
+-Os \
+-mcpu=cortex-m3 \
+-mthumb \
+-ffunction-sections \
+-fdata-sections \
+-Wall \
+-nostdlib \
+--param \
+max-inline-insns-single=500 \
+-DPLATFORMIO=50001 \
+-DSTM32F1 \
+-DSTM32F103xB \
+-DARDUINO_BLUEPILL_F103C8 \
+-DHAVE_HWSERIAL3 \
+-DSTM32F1xx \
+-DARDUINO=10808 \
+-DARDUINO_ARCH_STM32 \
+-DARDUINO_BLUEPILL_F103C8 \
+-DBOARD_NAME=\"BLUEPILL_F103C8\" \
+-DHAL_UART_MODULE_ENABLED \
+-Iinclude \
+-IC:/users/eric/.platformio/packages/framework-arduinoststm32/cores/arduino/avr \
+-IC:/users/eric/.platformio/packages/framework-arduinoststm32/cores/arduino/stm32 \
+-IC:/users/eric/.platformio/packages/framework-arduinoststm32/cores/arduino/stm32/LL \
+-IC:/users/eric/.platformio/packages/framework-arduinoststm32/cores/arduino/stm32/usb \
+-IC:/users/eric/.platformio/packages/framework-arduinoststm32/cores/arduino/stm32/OpenAMP \
+-IC:/users/eric/.platformio/packages/framework-arduinoststm32/cores/arduino/stm32/usb/hid \
+-IC:/users/eric/.platformio/packages/framework-arduinoststm32/cores/arduino/stm32/usb/cdc \
+-IC:/users/eric/.platformio/packages/framework-arduinoststm32/system/Drivers/STM32F1xx_HAL_Driver/Inc \
+-IC:/users/eric/.platformio/packages/framework-arduinoststm32/system/Drivers/STM32F1xx_HAL_Driver/Src \
+-IC:/users/eric/.platformio/packages/framework-arduinoststm32/system/STM32F1xx \
+-IC:/users/eric/.platformio/packages/framework-arduinoststm32/system/Middlewares/ST/STM32_USB_Device_Library/Core/Inc \
+-IC:/users/eric/.platformio/packages/framework-arduinoststm32/system/Middlewares/ST/STM32_USB_Device_Library/Core/Src \
+-IC:/users/eric/.platformio/packages/framework-arduinoststm32/system/Middlewares/OpenAMP \
+-IC:/users/eric/.platformio/packages/framework-arduinoststm32/system/Middlewares/OpenAMP/open-amp/lib/include \
+-IC:/users/eric/.platformio/packages/framework-arduinoststm32/system/Middlewares/OpenAMP/libmetal/lib/include \
+-IC:/users/eric/.platformio/packages/framework-arduinoststm32/system/Middlewares/OpenAMP/virtual_driver \
+-IC:/users/eric/.platformio/packages/framework-cmsis/CMSIS/Core/Include \
+-IC:/users/eric/.platformio/packages/framework-arduinoststm32/system/Drivers/CMSIS/Device/ST/STM32F1xx/Include \
+-IC:/users/eric/.platformio/packages/framework-arduinoststm32/system/Drivers/CMSIS/Device/ST/STM32F1xx/Source/Templates/gcc \
+-IC:/users/eric/.platformio/packages/framework-cmsis/CMSIS/DSP/Include \
+-IC:/users/eric/.platformio/packages/framework-arduinoststm32/cores/arduino \
+-IC:/users/eric/.platformio/packages/framework-arduinoststm32/variants/PILL_F103XX \
+-IC:/users/eric/.platformio/packages/framework-arduinoststm32/variants/PILL_F103XX \
+-c -o .pio/build/bluepill_f103c8/FrameworkArduino/stm32/startup_stm32yyxx.S.o \
+C:/users/eric/.platformio/packages/framework-arduinoststm32/cores/arduino/stm32/startup_stm32yyxx.S

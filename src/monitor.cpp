@@ -11,6 +11,18 @@ Homepage: https://www.pjrc.com/teensy/td_libs_OneWire.html
 Keywords: onewire, temperature, bus, 1-wire, ibutton, sensor
 Compatible frameworks: arduino
 
+DHT sensor library
+==================
+#ID: 19
+Arduino library for DHT11, DHT22, etc Temp & Humidity Sensors
+
+Keywords: sensors
+Compatible frameworks: Arduino
+Compatible platforms: Infineon XMC, Kendryte K210, GigaDevice GD32V, ASR Microel
+ectronics ASR605x, Atmel AVR, Atmel SAM, Espressif 8266, Intel ARC32, Microchip
+PIC32, Nordic nRF51, ST STM32, Teensy, TI MSP430, TI TIVA, Espressif 32, Nordic
+nRF52, ST STM8, Atmel megaAVR, SIWI GSM Platform
+
 Time
 ====
 #ID: 44
@@ -29,9 +41,9 @@ Arduino Library for Dallas Temperature ICs (DS18B20, DS18S20, DS1822, DS1820)
 Version: 3.8.1
 Keywords: bus, sensor, 1-wire, onewire, temperature
 Compatible frameworks: arduino
-Compatible platforms: atmelavr, atmelmegaavr, atmelsam, espressif32, espressif82
-66, gd32v, infineonxmc, intel_arc32, kendryte210, microchippic32, nordicnrf51, n
-ordicnrf52, ststm32, ststm8, teensy, timsp430
+Compatible platforms: atmelavr, atmelmegaavr, atmelsam, espressif32,
+espressif8266, gd32v, infineonxmc, intel_arc32, kendryte210, microchippic32,
+nordicnrf51, nordicnrf52, ststm32, ststm8, teensy, timsp430
 
 DS3232RTC
 =========
@@ -141,12 +153,6 @@ extern unsigned char __bss_end;
 char esp8266TimeEnable();
 char esp8266Time();
 #endif	/* ESP8266_TIME */
-
-#define TEST_GET "get /emoncms/input/post.json?node=4"\
-"&csv=0.0&apikey=cd5f31b05f8008756e76f87ecb762199 "\
-"HTTP/1.0\r\nHost: 192.168.42.10\r\nConnection: close\r\n\r\n"
-
-#define HTTP1 " HTTP/1.1\r\nHost: " EMONCMS_ADDR "\r\nConnection: Close\r\n\r\n"
 
 #if defined(ARDUINO_AVR_PRO)
 SoftwareSerial dbgPort = SoftwareSerial(rxPin, txPin);
@@ -298,17 +304,28 @@ char notify(int alarm, boolean val);
 
 #if CHECK_IN | WATER_MONITOR
 char sendHTTP(char *data);
-void updateFail();
 #endif  /* CHECK_IN | WATER_MONITOR */
+
+#if WATER_MONITOR
+void updateFail();
+#endif  /* WATER_MONITOR */
 
 char *cpyStr(char *dst, const char *str);
 char *strEnd(char *p);
 
+#if (TEMP_SENSOR | DHT_SENSOR | CURRENT_SENSOR | CURRENT_STM32)
+#define TEST_GET "get /emoncms/input/post.json?node=4"	\
+"&csv=0.0&apikey=" EMONCMS_KEY\
+" HTTP/1.0\r\nHost: 192.168.42.10\r\nConnection: close\r\n\r\n"
+
+#define HTTP1 " HTTP/1.1\r\nHost: " EMONCMS_ADDR "\r\nConnection: Close\r\n\r\n"
+
 char emonData(char *data);
+#endif	/* TEMP_SENSOR | DHT_SENSOR | CURRENT_SENSOR | CURRENT_STM32 */
 
 #if RTC_CLOCK
 float rtcTemp();
-#endif
+#endif	/* RTC_CLOCK */
 
 void cmdLoop();
 extern void info();
@@ -364,6 +381,18 @@ int vcc;			/* current vcc */
 float tempSumI;			/* current sum accumulator */
 
 #endif  /* CURRENT_SENSOR */
+
+#if defined(LCD_ENA)
+#include <LiquidCrystal_I2C.h>
+#include "lcd.h"
+
+#define COLUMS           20
+#define ROWS             4
+
+LiquidCrystal_I2C lcd(PCF8574_ADDR_A21_A11_A01,
+		      4, 5, 6, 16, 11, 12, 13, 14, POSITIVE);
+
+#endif	/* LCD_ENA */
 
 void putx0(void *p, char c);
 void putx(char c);
@@ -493,6 +522,35 @@ uint16_t intMillis()
  return((uint16_t) uwTick);	/* return value */
 }
 
+void i2cInfo(I2C_TypeDef *i2c, const char *str)
+{
+ printf("i2c %x %s\n", (unsigned int) i2c, str);
+ printf("CR1   %8x ",  (unsigned int) i2c->CR1);
+ printf("CR2   %8x\n", (unsigned int) i2c->CR2);
+ printf("OAR1  %8x ",  (unsigned int) i2c->OAR1);
+ printf("OAR2  %8x\n", (unsigned int) i2c->OAR2);
+ printf("SR1   %8x ",  (unsigned int) i2c->SR1);
+ printf("SR2   %8x\n", (unsigned int) i2c->SR2);
+ printf("DR    %8x ",  (unsigned int) i2c->DR);
+ printf("CCR   %8x\n", (unsigned int) i2c->CCR);
+ printf("TRISE %8x\n", (unsigned int) i2c->TRISE);
+}
+
+void rccInfo()
+{
+ printf("rcc\n");
+ printf("CR       %8x ",  (unsigned int) RCC->CR);
+ printf("CFGR     %8x\n", (unsigned int) RCC->CFGR);
+ printf("APB2RSTR %8x ",  (unsigned int) RCC->APB2RSTR);
+ printf("APB1RSTR %8x\n", (unsigned int) RCC->APB1RSTR);
+ printf("APB2ENR  %8x ",  (unsigned int) RCC->APB2ENR);
+ printf("APB1ENR  %8x\n", (unsigned int) RCC->APB1ENR);
+ printf("CIR      %8x ",  (unsigned int) RCC->CIR);
+ printf("AHBENR   %8x\n", (unsigned int) RCC->AHBENR);
+ printf("BDCR     %8x ",  (unsigned int) RCC->BDCR);
+ printf("CSR      %8x\n", (unsigned int) RCC->CSR);
+}
+
 #endif
 
 /* setup routine */
@@ -536,6 +594,17 @@ void setup()
 
  if (DBG)
   printf(F3("\nstarting 0\n"));
+
+#if defined(LCD_ENA)
+ while (lcd.begin(COLUMS, ROWS, LCD_5x8DOTS) != 1)
+ {
+  printf("lcd not connected\n");
+  delay(5000);
+ }
+ i2cInfo(I2C1, "I2C1");
+ rccInfo();
+ lcd.print("PCF8574 is OK...");
+#endif	/* LCD_ENA */
 
 #if DBG0_Pin
  pinMode(DBG0_Pin, OUTPUT);
@@ -641,6 +710,8 @@ void setup()
  PORTG &= ~_BV(PG0);
 #endif	/* ARDUINO_AVR_MEGA2560 */
 
+#if defined(WIFI_ENA)
+
  wifiInitSio();			/* enable wifi serial port */
 #if defined(WIFI_RESET)
  pinMode(WIFI_RESET, OUTPUT);	/* set wifi reset pin to output */
@@ -678,6 +749,8 @@ void setup()
  esp8266TimeEnable();
 #endif /* ESP8266_TIME */
 
+#endif	/* WIFI_ENA */
+
 #if defined(ARDUINO_ARCH_STM32)
 
 #if DATA_SIZE
@@ -713,6 +786,7 @@ void setup()
 #if CURRENT_SENSOR
  initCurrent(1);		/* initial current sensor */
 #endif	/* CURRENT_SENSOR */
+
 #if defined(CURRENT_STM32)
  adcRun();
 #endif	/* CURRENT_STM32 */
@@ -779,7 +853,9 @@ void setTime()
 #define PWR_INTERVAL 500
 void cmdLoop()
 {
+#if defined(CURRENT_STM32)
  unsigned int pwrUpdTime = millis();
+#endif	 /* CURRENT_STM32 */
  
  wdt_disable();
  printf(F3("command loop\n"));
@@ -798,6 +874,25 @@ void cmdLoop()
    {
     printf(F3("monitor.cpp\n"));
    }
+
+#if defined(LCD_ENA)
+   else if (ch == 'L')
+   {
+    while (lcd.begin(COLUMS, ROWS, LCD_5x8DOTS) != 1)
+    {
+     printf("lcd not connected\n");
+     delay(5000);
+    }
+    i2cInfo(I2C1, "I2C1");
+    rccInfo();
+    lcd.print("PCF8574 is OK...");
+   }
+   else if (ch == 'M')
+   {
+    lcdInit();
+   }
+#endif	/* LCD_ENA */
+   
    
 #if defined(ARDUINO_ARCH_AVR)
    else if (ch == 'F')		/* arduino check buffers */
@@ -1025,7 +1120,7 @@ void cmdLoop()
     else
      printf(F3("humidity read failure\n"));
    }
-#endif  /* DNT_SENSOR */
+#endif  /* DHT_SENSOR */
 
 #if DEHUMIDIFIER
    else if (ch == 'r')		/* set dehumidifier relay */
@@ -1067,8 +1162,8 @@ void cmdLoop()
     loopTemp();
    }
 #endif  /* TEMP_SENSOR */
-
   }
+  
 #if defined(CURRENT_STM32)
   if (pwrActive)
   {
@@ -1084,7 +1179,7 @@ void cmdLoop()
 #if defined(ARDUINO_ARCH_AVR)
  wdt_enable(WDT_TO);
 #endif /* ARDUINO_ARCH_AVR */
-} /* *end cmdloop */
+} /* end cmdloop */
 
 void loop()
 {
@@ -1127,6 +1222,7 @@ void loop()
 #if CURRENT_SENSOR
    currentCheck();		/* check and send current */
 #endif	/* CURRENT_SENSOR */
+
 #if defined(CURRENT_STM32)
    currentUpdate();
 #endif	/* CURRENT_STM32 */
@@ -1342,7 +1438,8 @@ char sendHTTP(char *data)
 #else
  char hostBuffer[sizeof(HOST)];
  unsigned long int t = millis();
- printf(F0("sendHTTP ip %s time %lu\n"), serverIP, (unsigned long) (t - serverIPTime));
+ printf(F0("sendHTTP ip %s time %lu\n"),
+	serverIP, (unsigned long) (t - serverIPTime));
  if ((serverIP[0] == 0) || ((t - serverIPTime) > SERVER_IP_TIMEOUT))
  {     
   if (dnsLookup(serverIP, argConv(F2(HOST), hostBuffer)))
@@ -1369,6 +1466,7 @@ char sendHTTP(char *data)
     }
     printBuf();
    }
+   
 #if DBG0_PIN
    dbg0Set();
    delay(2);
@@ -1586,7 +1684,7 @@ float printTemperature(DeviceAddress deviceAddress)
 
 #endif	/* TEMP_SENSOR */
 
-#if TEMP_SENSOR
+#if TEMP_SENSOR | DHT_SENSOR | CURRENT_SENSOR | CURRENT_STM32
 char emonData(char *data)
 {
 #if 1
@@ -1617,10 +1715,10 @@ char emonData(char *data)
 
 #if WATER_MONITOR
  updateFail();
-#endif
+#endif	/* WATER_MONITOR */
  return(0);
 }
-#endif	/* CHECK_IN */
+#endif	/* TEMP_SENSOR | DHT_SENSOR | CURRENT_SENSOR | CURRENT_STM32 */
 
 #if RTC_CLOCK
 

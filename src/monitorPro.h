@@ -1,8 +1,10 @@
 #ifdef ARDUINO_AVR_PRO
 
-#define MONITOR_INDEX 3
+#define MONITOR_INDEX 4
 
-#if (MONITOR_INDEX == 0)
+/* -------------------- monitor index 1 -------------------- */
+
+#if (MONITOR_INDEX == 1)
 
 #define EMONCMS_ADDR EMONCMS_ADDR0
 #define EMONCMS_KEY EMONCMS_KEY0
@@ -14,6 +16,8 @@
 #define MONITOR_ID "Monitor0"
 #endif	/* MONITOR_INDEX == 0 */
 
+/* -------------------- monitor index 2 -------------------- */
+
 #if (MONITOR_INDEX == 2)
 
 #define WATER_MONITOR 1
@@ -22,6 +26,8 @@
 #define PASS "minidonk"
 #define MONITOR_ID "Monitor2"
 #endif	/* MONITOR_INDEX == 2 */
+
+/* -------------------- monitor index 3 -------------------- */
 
 #if (MONITOR_INDEX == 3)
 
@@ -51,6 +57,62 @@ extern DeviceAddress tempDev[TEMPDEVS];
 #endif /* __MONITOR__ */
  
 #endif	/* MONITOR_INDEX == 3 */
+
+
+/* -------------------- monitor index 4 -------------------- */
+
+#if (MONITOR_INDEX == 4)
+
+#define EMONCMS_ADDR EMONCMS_ADDR1
+#define EMONCMS_KEY EMONCMS_KEY1
+
+#define EMONCMS_NODE "5"
+
+#define ESP8266_TIME 0
+#define TEMP_SENSOR 0
+#define CHECK_IN 1
+#define DHT_SENSOR 1
+
+#define DHTPIN 3
+
+#define SSID "hug2g996565"
+#define PASS "candle14salt"
+#define MONITOR_ID "Monitor4"
+
+#endif	/* MONITOR_INDEX == 4 */
+
+/* -------------------- monitor index 5 -------------------- */
+
+#if (MONITOR_INDEX == 5)
+
+#define EMONCMS_ADDR EMONCMS_ADDR1
+#define EMONCMS_KEY EMONCMS_KEY1
+
+#define EMONCMS_NODE "6"
+
+#define ESP8266_TIME 0
+#define TEMP_SENSOR 0
+#define CHECK_IN 1
+
+#define SSID "hug2g996565"
+#define PASS "candle14salt"
+#define MONITOR_ID "Monitor4"
+
+#define ONE_WIRE_BUS 4		/* one wire bus pin */
+
+#define TEMPDEVS 1
+#if defined(__MONITOR__)
+DeviceAddress tempDev[TEMPDEVS] =
+{
+ {0x28, 0xff, 0x0f, 0x0b, 0x63, 0x14, 0x03, 0xc7}
+};
+#else
+extern DeviceAddress tempDev[TEMPDEVS];
+#endif /* __MONITOR__ */
+
+#endif	/* MONITOR_INDEX == 5 */
+
+/* -------------------- monitor end of definitions -------------------- */
 
 #if WATER_MONITOR
 

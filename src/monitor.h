@@ -42,6 +42,9 @@
 #define ESP8266_DNS 0
 #endif
 
+char emonData(char *data);
+char *cpyStr(char *dst, const char *str);
+
 #if 0
 #if !defined(DBG0_Pin)
 #define DBG0_Pin 0

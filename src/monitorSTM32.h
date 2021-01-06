@@ -12,6 +12,7 @@
 #define SSID "hug2g996565"
 #define PASS "candle14salt"
 #define MONITOR_ID "Monitor5"
+#define EMONCMS_NODE "2"
 
 #define CHECK_IN 1
 
@@ -25,7 +26,9 @@
 #define ADC2_0 LL_ADC_CHANNEL_1
 #define ADC2_1 LL_ADC_CHANNEL_3
 
-#define CURRENT_STM32
+#define CURRENT_STM32 0
+
+#define LCD_ENA 1
 
 #include "millis.h"
 #include "main.h"
