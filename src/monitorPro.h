@@ -1,6 +1,13 @@
 #ifdef ARDUINO_AVR_PRO
 
-#define MONITOR_INDEX 4
+/*
+
+ATMega328 Pin 6 - Arduino Pin 3 - Ext0 - RJ45 Pin 4 - S1 - 4 pin DHT & Ds18S20
+ATMega328 Pin 7 - Arduino Pin 4 - Ext1 - RJ45 Pin 6 - S2 - 3 Pin DS18S20
+
+*/
+
+#define MONITOR_INDEX 7
 
 /* -------------------- monitor index 1 -------------------- */
 
@@ -58,15 +65,15 @@ extern DeviceAddress tempDev[TEMPDEVS];
  
 #endif	/* MONITOR_INDEX == 3 */
 
-
 /* -------------------- monitor index 4 -------------------- */
 
 #if (MONITOR_INDEX == 4)
 
+#define WIFI_ENA 1
 #define EMONCMS_ADDR EMONCMS_ADDR1
 #define EMONCMS_KEY EMONCMS_KEY1
 
-#define EMONCMS_NODE "5"
+#define EMONCMS_NODE "FamRm"
 
 #define ESP8266_TIME 0
 #define TEMP_SENSOR 0
@@ -85,32 +92,116 @@ extern DeviceAddress tempDev[TEMPDEVS];
 
 #if (MONITOR_INDEX == 5)
 
+#define WIFI_ENA 1
 #define EMONCMS_ADDR EMONCMS_ADDR1
 #define EMONCMS_KEY EMONCMS_KEY1
 
-#define EMONCMS_NODE "6"
+#define EMONCMS_NODE "GeoH20"
 
 #define ESP8266_TIME 0
-#define TEMP_SENSOR 0
+#define TEMP_SENSOR 2
 #define CHECK_IN 1
 
 #define SSID "hug2g996565"
 #define PASS "candle14salt"
-#define MONITOR_ID "Monitor4"
+#define MONITOR_ID "Monitor5"
 
-#define ONE_WIRE_BUS 4		/* one wire bus pin */
+#define ONE_WIRE_BUS0 3		/* one wire bus pin */
+#define ONE_WIRE_BUS1 4		/* one wire bus pin */
 
 #define TEMPDEVS 1
+#define TEMPDEVS0 TEMPDEVS
+#define TEMPDEVS1 1
 #if defined(__MONITOR__)
-DeviceAddress tempDev[TEMPDEVS] =
+DeviceAddress tempDev0[TEMPDEVS0] =
 {
- {0x28, 0xff, 0x0f, 0x0b, 0x63, 0x14, 0x03, 0xc7}
+ 0x28, 0x35, 0x49, 0x07, 0x33, 0x20, 0x01, 0x21
+};
+DeviceAddress tempDev1[TEMPDEVS1] =
+{
+ 0x28, 0xd5, 0x2f, 0x2c, 0x33, 0x20, 0x01, 0x61
 };
 #else
 extern DeviceAddress tempDev[TEMPDEVS];
 #endif /* __MONITOR__ */
 
 #endif	/* MONITOR_INDEX == 5 */
+
+/* -------------------- monitor index 5 -------------------- */
+
+#if (MONITOR_INDEX == 6)
+
+#define WIFI_ENA 1
+#define EMONCMS_ADDR EMONCMS_ADDR1
+#define EMONCMS_KEY EMONCMS_KEY1
+
+#define EMONCMS_NODE "Garage"
+
+#define ESP8266_TIME 0
+#define TEMP_SENSOR 0
+#define CHECK_IN 1
+#define DHT_SENSOR 1
+
+#define DHTPIN 3
+
+#define SSID "hug2g996565"
+#define PASS "candle14salt"
+#define MONITOR_ID "Monitor6"
+
+#endif	/* MONITOR_INDEX == 6 */
+
+/* -------------------- monitor index 3 -------------------- */
+
+#if (MONITOR_INDEX == 7)
+
+#define EMONCMS_ADDR EMONCMS_ADDR1
+#define EMONCMS_KEY EMONCMS_KEY1
+
+#define WIFI_ENA 1
+#define EMONCMS_NODE "Test"
+
+#define ESP8266_TIME 0
+#define TEMP_SENSOR 2
+#define CHECK_IN 1
+
+#define SSID "hug2g996565"
+#define PASS "candle14salt"
+#define MONITOR_ID "Test"
+
+#define ONE_WIRE_BUS0 4		/* one wire bus pin */
+#define ONE_WIRE_BUS1 4		/* one wire bus pin */
+#define ONE_WIRE_BUS ONE_WIRE_BUS1 /* one wire bus pin */
+
+#define TEMPDEVS0 1
+#define TEMPDEVS TEMPDEVS0
+#define TEMPDEVS1 2
+#if defined(__MONITOR__)
+
+#if TEMP_SENSOR == 1
+
+DeviceAddress tempDev[TEMPDEVS] =
+{
+ {0x10, 0xdc, 0x5d, 0xd4, 0x01, 0x08, 0x00, 0xe9},
+};
+
+#elif TEMP_SENSOR == 2
+
+DeviceAddress tempDev0[TEMPDEVS0] =
+{
+ {0x10, 0xdc, 0x5d, 0xd4, 0x01, 0x08, 0x00, 0xe9},
+};
+DeviceAddress tempDev1[TEMPDEVS1] =
+{
+ {0x10, 0xdc, 0x5d, 0xd4, 0x01, 0x08, 0x00, 0xe9},
+ {0x10, 0xdc, 0x5d, 0xd4, 0x01, 0x08, 0x00, 0xe9},
+};
+
+#endif	/* TEMP_SENSOR == 2 */
+#else
+extern DeviceAddress tempDev[TEMPDEVS];
+#endif /* __MONITOR__ */
+ 
+#endif	/* MONITOR_INDEX == 7 */
 
 /* -------------------- monitor end of definitions -------------------- */
 

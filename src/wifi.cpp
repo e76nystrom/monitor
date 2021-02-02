@@ -471,7 +471,8 @@ char *sendData(const char *ip, int port, const char *data,
   printf(F0("sendData %d %s\n"), cmdLen, data);
 
  char *p = 0;
- sprintf((char *) cmdBuffer, F0("AT+CIPSTART=4,\"TCP\",\"%s\",%d"), ip, port);
+ sprintf((char *) cmdBuffer, F0("AT+CIPSTART=4,\"TCP\",\"%s\",%d"),
+	 ip, port);
  if (wifiWriteStr(cmdBuffer, 4000))
  {
   sprintf((char *) cmdBuffer, F0("AT+CIPSEND=4,%d"), cmdLen);

@@ -85,12 +85,42 @@ void setTime();
 
 #if TEMP_SENSOR
 
-float lastTemp[TEMPDEVS];
-
 void findAddresses(void);
+
+#if TEMP_SENSOR == 1
 OneWire oneWire(ONE_WIRE_BUS);	/* one wire instance */
 DallasTemperature sensors(&oneWire); /* dallas temp sensor instance */
-float printTemperature(DeviceAddress deviceAddress);
+float lastTemp[TEMPDEVS];
+#elif TEMP_SENSOR == 2
+OneWire oneWire0(ONE_WIRE_BUS0);	/* one wire instance */
+OneWire oneWire1(ONE_WIRE_BUS1);	/* one wire instance */
+DallasTemperature sensor0(&oneWire0); /* dallas temp sensor instance */
+DallasTemperature sensor1(&oneWire1); /* dallas temp sensor instance */
+float temp0[TEMPDEVS0];
+float temp1[TEMPDEVS1];
+float lastTemp0[TEMPDEVS0];
+float lastTemp1[TEMPDEVS1];
+typedef struct s_temp_sensor
+{
+ OneWire *oneWire;
+ DallasTemperature *sensor;
+ uint8_t deviceCount;
+ DeviceAddress *tempDev;
+ float *temp;
+ float *lastTemp;
+ char oneWireBus;
+} T_TEMP_SENSOR, *P_TEMP_SENSOR;
+T_TEMP_SENSOR tempSensor[] =
+{
+ {.oneWire = &oneWire0, .sensor = &sensor0, .deviceCount = TEMPDEVS0,
+  .tempDev = tempDev0, .temp = temp0, .lastTemp = lastTemp0,
+  .oneWireBus = ONE_WIRE_BUS0},
+ {.oneWire = &oneWire1, .sensor = &sensor1, .deviceCount = TEMPDEVS1,
+  .tempDev = tempDev1, .temp = temp1, .lastTemp = lastTemp1,
+  .oneWireBus = ONE_WIRE_BUS1},
+};
+#endif	/* TEMP_SENSOR == 2 */
+//float printTemperature(DeviceAddress deviceAddress);
 
 #endif  /* TEMP_SENSOR */
 
@@ -217,6 +247,7 @@ const char *argConv(const __FlashStringHelper *s, char *buf)
 #undef EXT
 #define EXT extern
 #include "current.h"
+#include "max31856.h"
 
 #define DATA_SIZE 1
 
@@ -593,7 +624,16 @@ void setup()
 #endif	/* ARDUINO_ARCH_STM32 */
 
  if (DBG)
-  printf(F3("\nstarting 0\n"));
+ {
+#if defined(ARDUINO_ARCH_AVR)
+  printf(F3("\nstarting mcusr %x\n"), MCUSR);
+  MCUSR = 0;
+  printf(F3("mcusr %x wdtcsr %02x\n"), MCUSR, WDTCSR);
+  checkBuffers();
+#else
+  printf("\nstarting 0\n");
+#endif	/* ARDUINO_ARCH_AVR */
+ }
 
 #if defined(LCD_ENA)
  while (lcd.begin(COLUMS, ROWS, LCD_5x8DOTS) != 1)
@@ -679,6 +719,7 @@ void setup()
   printf(F3("\nstarting 1\n"));
 
 #if TEMP_SENSOR
+#if TEMP_SENSOR == 1
  printf(F3("start temp sensor bus %d\n"), ONE_WIRE_BUS);
  sensors.begin();
  for (unsigned char i = 0; i < TEMPDEVS; i++)
@@ -686,6 +727,42 @@ void setup()
   sensors.setResolution(tempDev[i], 12);
   lastTemp[i] = 0.0;
  }
+#elif TEMP_SENSOR == 2
+#if 1
+ P_TEMP_SENSOR ts = tempSensor;
+ for (uint8_t j = 0; j < TEMP_SENSOR; j++)
+ {
+  char deviceCount = ts->deviceCount;
+  DeviceAddress *addr = ts->tempDev;
+  float *lastTemp = ts->lastTemp;
+  DallasTemperature *sensor = ts->sensor;
+  printf(F3("start temp sensor bus %d\n"), ts->oneWireBus);
+  sensor->begin();
+  for (unsigned char i = 0; i < deviceCount; i++)
+  {
+   sensor->setResolution((const uint8_t *) addr, 12);
+   *lastTemp++ = 0.0f;
+   addr += 1;
+  }
+  ts += 1;
+ }
+#else
+ printf(F3("start temp sensor bus %d\n"), ONE_WIRE_BUS0);
+ sensor0.begin();
+ for (unsigned char i = 0; i < TEMPDEVS; i++)
+ {
+  sensor0.setResolution(tempDev0[i], 12);
+  lastTemp0[i] = 0.0;
+ }
+ printf(F3("start temp sensor bus %d\n"), ONE_WIRE_BUS1);
+ sensor1.begin();
+ for (unsigned char i = 0; i < TEMPDEVS; i++)
+ {
+  sensor1.setResolution(tempDev1[i], 12);
+  lastTemp1[i] = 0.0;
+ }
+#endif	/* 1 */
+#endif	/* TEMP_SENSOR == 2 */
 #endif	/* TEMP_SENSOR */
  
 #if DHT_SENSOR
@@ -772,9 +849,9 @@ void setup()
  flush();
  MX_GPIO_Init();
  MX_ADC1_Init();
- ADC_MspInit(&hadc1);
+// ADC_MspInit(&hadc1);
  MX_ADC2_Init();
- ADC_MspInit(&hadc2);
+// ADC_MspInit(&hadc2);
  MX_DMA_Init();
  MX_TIM1_Init();
  HAL_TIM_Base_MspInit(&htim1);
@@ -801,6 +878,9 @@ void setup()
 
  t = intMillis();
  ch = 0;
+#if !defined(WIFI_ENA)
+ printf(F3("**wifi not enabled**\n"));
+#endif	/* WIFI_ENA */
  printf(F3("any char for cmd mode..."));
  flush();
  newLine();
@@ -818,8 +898,8 @@ void setup()
  if (ch != 0)
  {
   cmdLoop();
+  printf(F3("end debug mode\n"));
  }
- printf(F3("end debug mode\n"));
 #endif /* DBG */
 
  setTime();
@@ -872,7 +952,7 @@ void cmdLoop()
     break;
    else if (ch == '?')		/* file name */
    {
-    printf(F3("monitor.cpp\n"));
+    printf(F3("monitor.cpp emon " EMONCMS_NODE " id " MONITOR_ID "\n"));
    }
 
 #if defined(LCD_ENA)
@@ -893,6 +973,32 @@ void cmdLoop()
    }
 #endif	/* LCD_ENA */
    
+#if defined(ARDUINO_ARCH_STM32)
+ else if (ch == 't')		/* thermocouple commands */
+ {
+  while (1)
+  {
+   printf("thermocouple: ");
+   flush();
+   char ch = DBGPORT.read();
+   DBGPORT.write(ch);
+   newLine();
+   if (ch == 'i')
+   {
+    max56Init(MX56_TCTYPE_K, MX56_ONESHOT);
+   }
+   else if (ch == 't')
+   {
+    char buf[10];
+    printf("temp %s\n", max56FmtTemp(buf, sizeof(buf)));
+   }
+   else if (ch == 'x')
+   {
+    break;
+   }
+  }
+ }
+#endif	/* ARDUINO_ARCH_STM32 */
    
 #if defined(ARDUINO_ARCH_AVR)
    else if (ch == 'F')		/* arduino check buffers */
@@ -1148,6 +1254,7 @@ void cmdLoop()
    }
    else if (ch == 'y')		/* read temp sensors */
    {
+#if TEMP_SENSOR == 1
     sensors.requestTemperatures();
     for (unsigned char i = 0; i < TEMPDEVS; i++)
     {
@@ -1156,6 +1263,44 @@ void cmdLoop()
      DBGPORT.print(temp);
      printf(F3("F\n"));
     }
+#elif TEMP_SENSOR == 2
+#if 1
+    P_TEMP_SENSOR ts = tempSensor;
+    for (uint8_t j = 0; j < TEMP_SENSOR; j++)
+    {
+     char deviceCount = ts->deviceCount;
+     DeviceAddress *addr = ts->tempDev;
+     DallasTemperature *sensor = ts->sensor;
+     sensor->requestTemperatures();
+     for (unsigned char i = 0; i < deviceCount; i++)
+     {
+      float temp = sensor->getTempF((const uint8_t *) addr);
+      printf(F3("temp "));
+      DBGPORT.print(temp);
+      printf(F3("F\n"));
+      addr += 1;
+     }
+     ts += 1;
+    }
+#else
+    sensor0.requestTemperatures();
+    for (unsigned char i = 0; i < TEMPDEVS0; i++)
+    {
+     float temp = sensor0.getTempF(tempDev0[i]);
+     printf(F3("temp "));
+     DBGPORT.print(temp);
+     printf(F3("F\n"));
+    }
+    sensor1.requestTemperatures();
+    for (unsigned char i = 0; i < TEMPDEVS1; i++)
+    {
+     float temp = sensor1.getTempF(tempDev1[i]);
+     printf(F3("temp "));
+     DBGPORT.print(temp);
+     printf(F3("F\n"));
+    }
+#endif	/* 1 */
+#endif	/* TEMP_SENSOR == 2 */
    }
    else if (ch == 'g')		/* run loopTemp() */
    {
@@ -1288,11 +1433,18 @@ void switchRelay(char pin)
 void loopTemp()
 {
 #if TEMP_SENSOR
- char count = 5;
- float temp1[TEMPDEVS];
+ char count;
+#if TEMP_SENSOR == 1
+ float temp0[TEMPDEVS];
+#elif TEMP_SENSOR == 2
+// float temp1[TEMPDEVS];
+#endif	/* TEMP_SENSOR == 2 */
+ 
+#if TEMP_SENSOR == 1
  for (unsigned char i = 0; i < TEMPDEVS; i++)
  {
   float t;
+  count = 5;
   while (1)
   {
    sensors.requestTemperatures();
@@ -1302,6 +1454,7 @@ void loopTemp()
     lastTemp[i] = t;
     break;
    }
+
    --count;
    if (count == 0)
    {
@@ -1310,8 +1463,96 @@ void loopTemp()
     break;
    }
   }
+  temp0[i] = t;
+ }
+#elif TEMP_SENSOR == 2
+#if 1
+ P_TEMP_SENSOR ts = tempSensor;
+ for (uint8_t j = 0; j < TEMP_SENSOR; j++)
+ {
+  char deviceCount = ts->deviceCount;
+  DallasTemperature *sensor = ts->sensor;
+  DeviceAddress *addr = ts->tempDev;
+  float *lastTemp = ts->lastTemp;
+  float *temp = ts->temp;
+  for (unsigned char i = 0; i < deviceCount; i++)
+  {
+   float t;
+   count = 5;
+   while (1)
+   {
+    sensor->requestTemperatures();
+    t = sensor->getTempF((const uint8_t *) addr);
+    if (t != DEVICE_DISCONNECTED_F)
+    {
+     *lastTemp++ = t;
+     break;
+    }
+   
+    --count;
+    if (count == 0)
+    {
+     printf(F3("Error getting temperature sensor %d\n"), i);
+     t = *lastTemp++;
+     break;
+    }
+   }
+   printf(F3("%d %d temp "), j, i);
+   DBGPORT.print(t);
+   printf(F3("F\n"));
+   *temp++ = t;
+   addr += 1;
+  }
+  ts += 1;
+ }
+#else
+ for (unsigned char i = 0; i < TEMPDEVS0; i++)
+ {
+  float t;
+  while (1)
+  {
+   sensor0.requestTemperatures();
+   t = sensor0.getTempF(tempDev0[i]);
+   if (t != DEVICE_DISCONNECTED_F)
+   {
+    lastTemp0[i] = t;
+    break;
+   }
+   --count;
+   if (count == 0)
+   {
+    printf(F3("Error getting temperature sensor %d\n"), i);
+    t = lastTemp0[i];
+    break;
+   }
+  }
+  temp0[i] = t;
+ }
+
+ for (unsigned char i = 0; i < TEMPDEVS1; i++)
+ {
+  float t;
+  while (1)
+  {
+   sensor1.requestTemperatures();
+   t = sensor1.getTempF(tempDev1[i]);
+   if (t != DEVICE_DISCONNECTED_F)
+   {
+    lastTemp1[i] = t;
+    break;
+   }
+   --count;
+   if (count == 0)
+   {
+    printf(F3("Error getting temperature sensor %d\n"), i);
+    t = lastTemp1[i];
+    break;
+   }
+  }
   temp1[i] = t;
  }
+#endif	/* 1 */
+#endif	/* TEMP_SENSOR == 2*/
 #endif  /* TEMP_SENSOR */
 
 #if RTC_CLOCK
@@ -1379,36 +1620,56 @@ void loopTemp()
 
  char buf[128];
  char *p;
-#if RTC_CLOck | DHT_SENSOR
- char comma = 0;
-#endif /* RTC_CLOCK | DHT_SENSOR */
 
  p = cpyStr(buf, F0("node=" EMONCMS_NODE "&csv="));
 #if TEMP_SENSOR
+#if TEMP_SENSOR == 1
+ for (unsigned char i = 0; i < TEMPDEVS; i++)
+ {
+  p = writeTemp(p, temp0[i]);	/* output data from each temp sensor */
+  *p++ = ',';
+ }
+#elif TEMP_SENSOR == 2
+#if 1
+ ts = tempSensor;
+ for (uint8_t j = 0; j < TEMP_SENSOR; j++)
+ {
+  char deviceCount = ts->deviceCount;
+  float *temp = ts->temp;
+  for (unsigned char i = 0; i < deviceCount; i++)
+  {
+   p = writeTemp(p, *temp++);
+   *p++ = ',';
+  }
+  ts += 1;
+ }
+#else 
  for (unsigned char i = 0; i < TEMPDEVS; i++)
  {
   p = writeTemp(p, temp1[i]);	/* output data from each temp sensor */
-#if RTC_CLOck | DHT_SENSOR
-  comma = 1;
-#endif /* RTC_CLOCK | DHT_SENSOR */
+  *p++ = ',';
  }
+#endif	/* 1 */
+#endif	/* TEMP_SENSOR == 2 */
 #endif	/* TEMP_SENSOR */
 
 #if RTC_CLOCK
- if (comma)
-  *p++ = ',';
  p = writeTemp(p, rtcTempVal);	/* output real time clock temp data */
- comma = 1;
+ *p++ = ',';
 #endif /* RTC_CLOCK */
 
 #if DHT_SENSOR
- if (comma)
-  *p++ = ',';
+ p = writeTemp(p, dhtTemp);	/* output dht sensor temp */
+ *p++ = ',';
  p = writeTemp(p, dhtHumidity);	/* output dht sensor humidity */
  *p++ = ',';
- writeTemp(p, dhtTemp);		/* output dht sensor temp */
 #endif /* DHT_SENSOR */
 
+ if (*(p - 1) == ',')		/* if ends with comma */
+ {
+  p -= 1;			/* back up pointer */
+  *p = 0;			/* terminat line */
+ }
  emonData(buf);
 } /* *end loopTemp */
 
@@ -1657,6 +1918,7 @@ void printTemp(float temp)
 
 #if TEMP_SENSOR
 
+#if 0
 float printTemperature(DeviceAddress deviceAddress)
 {
  char count = 5;
@@ -1681,6 +1943,7 @@ float printTemperature(DeviceAddress deviceAddress)
  printf(F3(" F\n"));
  return(temp);
 }
+#endif
 
 #endif	/* TEMP_SENSOR */
 
@@ -1759,6 +2022,7 @@ void findAddresses(void)
  byte addr[8];
   
  printf(F3("Looking for 1-Wire devices\n"));
+#if TEMP_SENSOR == 1
  while(oneWire.search(addr))
  {
   printf(F3("Found one wire device with address: \n"));
@@ -1778,6 +2042,75 @@ void findAddresses(void)
  }
  printf(F3("done\n"));
  oneWire.reset_search();
+#elif TEMP_SENSOR == 2
+#if 1
+ P_TEMP_SENSOR ts = tempSensor;
+ for (uint8_t j = 0; j < TEMP_SENSOR; j++)
+ {
+  OneWire *oneWire = ts->oneWire;
+  while (oneWire->search(addr))
+  {
+   printf(F3("Found one wire device with address: \n"));
+   for( i = 0; i < 8; i++)
+   {
+    printf(F3("0x%02x"), addr[i]);
+    if (i < 7)
+     printf(F3(", "));
+    else
+     newLine();
+   }
+   if (OneWire::crc8(addr, 7) != addr[7])
+   {
+    printf(F3("CRC is not valid!\n"));
+    return;
+   }
+  }
+  printf(F3("done\n"));
+  oneWire->reset_search();
+  ts += 1;
+ }
+#else
+ while(oneWire0.search(addr))
+ {
+  printf(F3("Found one wire device with address: \n"));
+  for( i = 0; i < 8; i++)
+  {
+   printf(F3("0x%02x"), addr[i]);
+   if (i < 7)
+    printf(F3(", "));
+   else
+    newLine();
+  }
+  if (OneWire::crc8(addr, 7) != addr[7])
+  {
+   printf(F3("CRC is not valid!\n"));
+   return;
+  }
+ }
+ printf(F3("done\n"));
+ oneWire0.reset_search();
+
+ while(oneWire1.search(addr))
+ {
+  printf(F3("Found one wire device with address: \n"));
+  for( i = 0; i < 8; i++)
+  {
+   printf(F3("0x%02x"), addr[i]);
+   if (i < 7)
+    printf(F3(", "));
+   else
+    newLine();
+  }
+  if (OneWire::crc8(addr, 7) != addr[7])
+  {
+   printf(F3("CRC is not valid!\n"));
+   return;
+  }
+ }
+ printf(F3("done\n"));
+ oneWire1.reset_search();
+#endif	/* 1 */
+#endif	/* TEMP_SENSOR == 2 */
  return;
 }
 
