@@ -728,7 +728,6 @@ void setup()
   lastTemp[i] = 0.0;
  }
 #elif TEMP_SENSOR == 2
-#if 1
  P_TEMP_SENSOR ts = tempSensor;
  for (uint8_t j = 0; j < TEMP_SENSOR; j++)
  {
@@ -746,22 +745,6 @@ void setup()
   }
   ts += 1;
  }
-#else
- printf(F3("start temp sensor bus %d\n"), ONE_WIRE_BUS0);
- sensor0.begin();
- for (unsigned char i = 0; i < TEMPDEVS; i++)
- {
-  sensor0.setResolution(tempDev0[i], 12);
-  lastTemp0[i] = 0.0;
- }
- printf(F3("start temp sensor bus %d\n"), ONE_WIRE_BUS1);
- sensor1.begin();
- for (unsigned char i = 0; i < TEMPDEVS; i++)
- {
-  sensor1.setResolution(tempDev1[i], 12);
-  lastTemp1[i] = 0.0;
- }
-#endif	/* 1 */
 #endif	/* TEMP_SENSOR == 2 */
 #endif	/* TEMP_SENSOR */
  
@@ -1264,7 +1247,6 @@ void cmdLoop()
      printf(F3("F\n"));
     }
 #elif TEMP_SENSOR == 2
-#if 1
     P_TEMP_SENSOR ts = tempSensor;
     for (uint8_t j = 0; j < TEMP_SENSOR; j++)
     {
@@ -1282,24 +1264,6 @@ void cmdLoop()
      }
      ts += 1;
     }
-#else
-    sensor0.requestTemperatures();
-    for (unsigned char i = 0; i < TEMPDEVS0; i++)
-    {
-     float temp = sensor0.getTempF(tempDev0[i]);
-     printf(F3("temp "));
-     DBGPORT.print(temp);
-     printf(F3("F\n"));
-    }
-    sensor1.requestTemperatures();
-    for (unsigned char i = 0; i < TEMPDEVS1; i++)
-    {
-     float temp = sensor1.getTempF(tempDev1[i]);
-     printf(F3("temp "));
-     DBGPORT.print(temp);
-     printf(F3("F\n"));
-    }
-#endif	/* 1 */
 #endif	/* TEMP_SENSOR == 2 */
    }
    else if (ch == 'g')		/* run loopTemp() */
@@ -1466,7 +1430,6 @@ void loopTemp()
   temp0[i] = t;
  }
 #elif TEMP_SENSOR == 2
-#if 1
  P_TEMP_SENSOR ts = tempSensor;
  for (uint8_t j = 0; j < TEMP_SENSOR; j++)
  {
@@ -1505,54 +1468,7 @@ void loopTemp()
   }
   ts += 1;
  }
-#else
- for (unsigned char i = 0; i < TEMPDEVS0; i++)
- {
-  float t;
-  while (1)
-  {
-   sensor0.requestTemperatures();
-   t = sensor0.getTempF(tempDev0[i]);
-   if (t != DEVICE_DISCONNECTED_F)
-   {
-    lastTemp0[i] = t;
-    break;
-   }
-   --count;
-   if (count == 0)
-   {
-    printf(F3("Error getting temperature sensor %d\n"), i);
-    t = lastTemp0[i];
-    break;
-   }
-  }
-  temp0[i] = t;
- }
-
- for (unsigned char i = 0; i < TEMPDEVS1; i++)
- {
-  float t;
-  while (1)
-  {
-   sensor1.requestTemperatures();
-   t = sensor1.getTempF(tempDev1[i]);
-   if (t != DEVICE_DISCONNECTED_F)
-   {
-    lastTemp1[i] = t;
-    break;
-   }
-   --count;
-   if (count == 0)
-   {
-    printf(F3("Error getting temperature sensor %d\n"), i);
-    t = lastTemp1[i];
-    break;
-   }
-  }
-  temp1[i] = t;
- }
-#endif	/* 1 */
-#endif	/* TEMP_SENSOR == 2*/
+#endif	/* TEMP_SENSOR == 2 */
 #endif  /* TEMP_SENSOR */
 
 #if RTC_CLOCK
@@ -1630,7 +1546,6 @@ void loopTemp()
   *p++ = ',';
  }
 #elif TEMP_SENSOR == 2
-#if 1
  ts = tempSensor;
  for (uint8_t j = 0; j < TEMP_SENSOR; j++)
  {
@@ -1643,13 +1558,6 @@ void loopTemp()
   }
   ts += 1;
  }
-#else 
- for (unsigned char i = 0; i < TEMPDEVS; i++)
- {
-  p = writeTemp(p, temp1[i]);	/* output data from each temp sensor */
-  *p++ = ',';
- }
-#endif	/* 1 */
 #endif	/* TEMP_SENSOR == 2 */
 #endif	/* TEMP_SENSOR */
 
@@ -2043,7 +1951,6 @@ void findAddresses(void)
  printf(F3("done\n"));
  oneWire.reset_search();
 #elif TEMP_SENSOR == 2
-#if 1
  P_TEMP_SENSOR ts = tempSensor;
  for (uint8_t j = 0; j < TEMP_SENSOR; j++)
  {
@@ -2069,47 +1976,6 @@ void findAddresses(void)
   oneWire->reset_search();
   ts += 1;
  }
-#else
- while(oneWire0.search(addr))
- {
-  printf(F3("Found one wire device with address: \n"));
-  for( i = 0; i < 8; i++)
-  {
-   printf(F3("0x%02x"), addr[i]);
-   if (i < 7)
-    printf(F3(", "));
-   else
-    newLine();
-  }
-  if (OneWire::crc8(addr, 7) != addr[7])
-  {
-   printf(F3("CRC is not valid!\n"));
-   return;
-  }
- }
- printf(F3("done\n"));
- oneWire0.reset_search();
-
- while(oneWire1.search(addr))
- {
-  printf(F3("Found one wire device with address: \n"));
-  for( i = 0; i < 8; i++)
-  {
-   printf(F3("0x%02x"), addr[i]);
-   if (i < 7)
-    printf(F3(", "));
-   else
-    newLine();
-  }
-  if (OneWire::crc8(addr, 7) != addr[7])
-  {
-   printf(F3("CRC is not valid!\n"));
-   return;
-  }
- }
- printf(F3("done\n"));
- oneWire1.reset_search();
-#endif	/* 1 */
 #endif	/* TEMP_SENSOR == 2 */
  return;
 }

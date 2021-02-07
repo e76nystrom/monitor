@@ -27,7 +27,7 @@
 #include "lcd.h"
 #undef EXT
 #define EXT extern
-#include "current.h"
+#include "cyclectr.h"
 #if defined(ARDUINO)
 #include "Arduino.h"
 #include "serial.h"

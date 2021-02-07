@@ -25,6 +25,7 @@ unsigned int millis(void);
 #endif
 
 #include "current.h"
+#include "cyclectr.h"
 
 #define MAX_TIMEOUT 100000
 
@@ -213,7 +214,7 @@ void i2cPutString(uint8_t *p, int size)
 void i2cSend(void)
 {
  P_I2C_CTL i2c = &i2cCtl;
- printf("i2cSend %d\n", i2c->count);
+// printf("i2cSend %d\n", i2c->count);
  i2c->timeout = I2C_TIMEOUT;
  i2c->startTime = millis();
  i2c->state = I_WAIT_START;
