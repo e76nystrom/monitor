@@ -1,5 +1,5 @@
-//#include <cstdio>
-//#include <cstring>
+#if !defined(__SERIAL_H__)
+#define __SERIAL__H__
 
 #ifdef ARDUINO_ARCH_AVR
 
@@ -93,3 +93,4 @@ void newLine();
 #if !defined(DBG)
 #define DBG 1
 #endif
+#endif	/* __SERIAL_H__ */

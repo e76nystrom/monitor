@@ -1,1 +1,1 @@
-C:/Development/EclipseCPP/MonitorCPP/Inc/adc.h
+../../../EclipseCPP/MonitorCPP/Inc/adc.h

@@ -1,1 +1,1 @@
-C:/Development/EclipseCPP/MonitorCPP/src/current.cpp
+../../../EclipseCPP/MonitorCPP/src/current.cpp

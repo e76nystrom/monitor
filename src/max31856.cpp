@@ -3,6 +3,14 @@
 #include "stm32f1xx_hal.h"
 #endif
 
+#if defined(ARDUINO_ARCH_STM32)
+#define SPIn SPI2
+#endif	/* ARDUINO_ARCH_STM32 */
+
+#if defined(STM32MON)
+#define SPIn SPI2
+#endif	/* STM32MON */
+
 #include "max31856.h"
 #include "main.h"
 #include "spix.h"

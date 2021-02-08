@@ -29,6 +29,7 @@
 #define CURRENT_STM32 0
 
 #define LCD_ENA 1
+#define LCD_ADDRESS 0x3f
 
 #include "millis.h"
 #include "main.h"
