@@ -1,0 +1,1 @@
+../../../EclipseCPP/LatheCPP/include/stm32Info.h

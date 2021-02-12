@@ -244,6 +244,7 @@ const char *argConv(const __FlashStringHelper *s, char *buf)
 #include "dma.h"
 #include "gpio.h"
 #include "tim.h"
+#include "stm32Info.h"
 #undef EXT
 #define EXT extern
 #include "current.h"
@@ -553,6 +554,7 @@ uint16_t intMillis()
  return((uint16_t) uwTick);	/* return value */
 }
 
+#if 0
 void i2cInfo(I2C_TypeDef *i2c, const char *str)
 {
  printf("i2c %x %s\n", (unsigned int) i2c, str);
@@ -581,6 +583,7 @@ void rccInfo()
  printf("BDCR     %8x ",  (unsigned int) RCC->BDCR);
  printf("CSR      %8x\n", (unsigned int) RCC->CSR);
 }
+#endif
 
 #endif
 
