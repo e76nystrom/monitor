@@ -414,6 +414,10 @@ float tempSumI;			/* current sum accumulator */
 
 #endif  /* CURRENT_SENSOR */
 
+#if defined(CURRENT_STM32)
+extern "C" void ADC_MspInit(ADC_HandleTypeDef* adcHandle);
+#endif	/* CURRENT_STM32 */
+
 #if defined(LCD_ENA)
 #include <LiquidCrystal_I2C.h>
 #include "lcd.h"
@@ -835,9 +839,9 @@ void setup()
  flush();
  MX_GPIO_Init();
  MX_ADC1_Init();
-// ADC_MspInit(&hadc1);
+ ADC_MspInit(&hadc1);
  MX_ADC2_Init();
-// ADC_MspInit(&hadc2);
+ ADC_MspInit(&hadc2);
  MX_DMA_Init();
  MX_TIM1_Init();
  HAL_TIM_Base_MspInit(&htim1);
@@ -899,11 +903,13 @@ void setTime()
  {
   char status;
 
-#if ESP8266_TIME == 0
+#if defined(WIFI_ENA)
+#if (ESP8266_TIME == 0)
   status = ntpSetTime();	/* look up ntp time */
 #else
   status = esp8266Time();
 #endif /* ESP8266_TIME */
+#endif /* WIFI_ENA */
 
   if (status)			/* if valid time found */
   {
