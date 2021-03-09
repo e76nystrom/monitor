@@ -82,5 +82,7 @@ float max56ConvCJ(int t);
 char *max56FmtCJ(char *buf, size_t bufLen);
 char *max56FmtCJ(int32_t temp, char *buf, size_t bufLen);
 
+void max56Cmds(void);
+
 #endif
 #endif	// ->

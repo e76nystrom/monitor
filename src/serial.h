@@ -1,5 +1,5 @@
 #if !defined(__SERIAL_H__)
-#define __SERIAL__H__
+#define __SERIAL_H__
 
 #ifdef ARDUINO_ARCH_AVR
 
