@@ -249,6 +249,7 @@ const char *argConv(const __FlashStringHelper *s, char *buf)
 #define EXT extern
 #include "current.h"
 #include "max31856.h"
+#include "max31865.h"
 
 #define DATA_SIZE 1
 
@@ -558,38 +559,7 @@ uint16_t intMillis()
  return((uint16_t) uwTick);	/* return value */
 }
 
-#if 0
-void i2cInfo(I2C_TypeDef *i2c, const char *str)
-{
- printf("i2c %x %s\n", (unsigned int) i2c, str);
- printf("CR1   %8x ",  (unsigned int) i2c->CR1);
- printf("CR2   %8x\n", (unsigned int) i2c->CR2);
- printf("OAR1  %8x ",  (unsigned int) i2c->OAR1);
- printf("OAR2  %8x\n", (unsigned int) i2c->OAR2);
- printf("SR1   %8x ",  (unsigned int) i2c->SR1);
- printf("SR2   %8x\n", (unsigned int) i2c->SR2);
- printf("DR    %8x ",  (unsigned int) i2c->DR);
- printf("CCR   %8x\n", (unsigned int) i2c->CCR);
- printf("TRISE %8x\n", (unsigned int) i2c->TRISE);
-}
-
-void rccInfo()
-{
- printf("rcc\n");
- printf("CR       %8x ",  (unsigned int) RCC->CR);
- printf("CFGR     %8x\n", (unsigned int) RCC->CFGR);
- printf("APB2RSTR %8x ",  (unsigned int) RCC->APB2RSTR);
- printf("APB1RSTR %8x\n", (unsigned int) RCC->APB1RSTR);
- printf("APB2ENR  %8x ",  (unsigned int) RCC->APB2ENR);
- printf("APB1ENR  %8x\n", (unsigned int) RCC->APB1ENR);
- printf("CIR      %8x ",  (unsigned int) RCC->CIR);
- printf("AHBENR   %8x\n", (unsigned int) RCC->AHBENR);
- printf("BDCR     %8x ",  (unsigned int) RCC->BDCR);
- printf("CSR      %8x\n", (unsigned int) RCC->CSR);
-}
-#endif
-
-#endif
+#endif	/* ARDUINO_ARCH_STM32 */
 
 /* setup routine */
 
@@ -922,6 +892,25 @@ void setTime()
  }
 }
 
+#if defined(ARDUINO_ARCH_STM32)
+char prompt(const char *str)
+{
+ char ch;
+ 
+ if (str != 0)
+ {
+  printf(str);
+  flush();
+ }
+ while (DBGPORT.available() == 0)
+  ;
+ ch = DBGPORT.read();
+ DBGPORT.print(ch);
+ newLine();
+ return(ch);
+}
+#endif	/* ARDUINO_ARCH_STM32 */
+
 #define PWR_INTERVAL 500
 void cmdLoop()
 {
@@ -1055,6 +1044,13 @@ void cmdLoop()
     rmsTestInit();
     rmsTest();
    }
+#endif	/* CURRENT_STM32 */
+
+#if defined(ARDUINO_ARCH_STM32)
+   else if (ch == 'U')
+    max65Cmds();
+   else if (ch == 'V')
+    max56Cmds();
 #endif	/* ARDUINO_ARCH_STM32 */
 
 #if CURRENT_SENSOR

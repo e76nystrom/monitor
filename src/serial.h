@@ -89,6 +89,7 @@ inline void argConv(char *s, char *buf) {return(s);}
 #endif	/* WIN32 */
 
 void newLine();
+char prompt(const char *str);
 
 #if !defined(DBG)
 #define DBG 1

@@ -19,17 +19,22 @@
 #include "i2cx.h"
 #include "lcd.h"
 #include "cyclectr.h"
+
 #if defined(ARDUINO_ARCH_STM32)
+
 #include "Arduino.h"
 #define flushBuf flush
 #define newLine newline
 #include "serial.h"
+#define delayMSec delay
+
 #else
+
 #include "serialio.h"
 unsigned int millis(void);
-#endif
-
 void delayMSec(volatile uint32_t mSec);
+
+#endif	/* ARDUINO_ARCH_STM32 */
 
 #if 0 // <-
 #if !defined(__MAX31856_INC__)
@@ -117,7 +122,7 @@ char *max56FmtCJ(int32_t temp, char *buf, size_t bufLen);
 
 void max56Cmds(void);
 
-#endif
+#endif	/* __MAX31856_INC__ */
 #endif	// ->
 
 #if defined(__MAX31856__)
@@ -226,18 +231,11 @@ char *max56FmtCJ(int32_t temp, char *buf, size_t bufLen)
  return(buf);
 }
 
-#if !defined(ARDUINO_ARCH_STM32)
 void max56Cmds(void)
 {
  while (1)
  {
-  printf("\nthermocouple: ");
-  flushBuf();
-  while (dbgRxReady() == 0)	/* while no character */
-   ;
-  char ch = dbgRxRead();
-  putBufChar(ch);
-  newline();
+  char ch = prompt("\nthermocouple: ");
   if (ch == 'i')
   {
    max56Init(MX56_TCTYPE_K, MX56_ONESHOT);
@@ -265,6 +263,7 @@ void max56Cmds(void)
     printf("%02x ", (readb(i) & 0xff));
    printf("\n");
   }
+#if !defined(ARDUINO_ARCH_STM32)
   else if (ch == 'd')
   {
    lcdInit();
@@ -298,12 +297,12 @@ void max56Cmds(void)
      ;
    }
   }
+#endif	/* ARDUINO_ARCH_STM32 */
   else if (ch == 'x')
   {
    break;
   }
  }
 }
-#endif
 
 #endif	/* __MAX31856 */

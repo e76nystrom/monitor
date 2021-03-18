@@ -84,5 +84,5 @@ char *max56FmtCJ(int32_t temp, char *buf, size_t bufLen);
 
 void max56Cmds(void);
 
-#endif
+#endif	/* __MAX31856_INC__ */
 #endif	// ->
