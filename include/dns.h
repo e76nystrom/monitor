@@ -1,6 +1,6 @@
 #if 1	// <-
 
-#define htons(x) ((int16_t) (((x) << 8) | (((x) >> 8) & 0xFF)))
+#define htons(x) ((int16_t) ((((x) & 0xFF) << 8) | (((x) >> 8) & 0xFF)))
 #define ntohs(x) htons(x)
 
 #define htonl(x) ( ((x)<<24 & 0xFF000000UL) | \

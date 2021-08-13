@@ -552,7 +552,7 @@ void checkBuffers()
 
 #if defined(ARDUINO_ARCH_STM32)
 
-extern uint32_t uwTick;
+extern __IO uint32_t uwTick;
 
 uint16_t intMillis()
 {
