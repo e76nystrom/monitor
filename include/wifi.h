@@ -194,9 +194,13 @@ char wifiWrite(const __FlashStringHelper *s, int size, unsigned int timeout);
 EXT char stringBuffer[80];	/* buffer for strings made from program data */
 EXT char dataBuffer[192];	/* buffer for data sent */
 EXT char cmdBuffer[64];		/* buffer for command sent */
-EXT char packetRsp[384];	/* buffer for response */
+EXT char packetRsp[460];	/* buffer for response */
 EXT char *rsp;
 EXT unsigned int rspLen;
+#define MAX_RSP 2
+EXT unsigned char rspCount;
+EXT char *rspPtr[MAX_RSP];
+EXT int rspL[MAX_RSP];
 EXT char id[ID_LEN];
 
 #define IPD_STR "+IPD,"

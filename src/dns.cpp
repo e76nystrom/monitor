@@ -31,7 +31,7 @@
 
 #if defined(__DNS_INC__)	// <-
 
-#define htons(x) ((int16_t) (((x) << 8) | (((x) >> 8) & 0xFF)))
+#define htons(x) ((int16_t) ((((x) & 0xff) << 8) | (((x) >> 8) & 0xFF)))
 #define ntohs(x) htons(x)
 
 #define htonl(x) ( ((x)<<24 & 0xFF000000UL) | \
