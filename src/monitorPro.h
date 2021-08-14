@@ -38,6 +38,7 @@ ATMega328 Pin 7 - Arduino Pin 4 - Ext1 - RJ45 Pin 6 - S2 - 3 Pin DS18S20
 
 #if (MONITOR_INDEX == 3)
 
+#define WIFI_ENA 1
 #define EMONCMS_ADDR EMONCMS_ADDR1
 #define EMONCMS_KEY EMONCMS_KEY1
 

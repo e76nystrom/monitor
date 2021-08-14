@@ -243,9 +243,13 @@ char wifiWrite(const __FlashStringHelper *s, int size, unsigned int timeout);
 EXT char stringBuffer[80];	/* buffer for strings made from program data */
 EXT char dataBuffer[192];	/* buffer for data sent */
 EXT char cmdBuffer[64];		/* buffer for command sent */
-EXT char packetRsp[384];	/* buffer for response */
+EXT char packetRsp[460];	/* buffer for response */
 EXT char *rsp;
 EXT unsigned int rspLen;
+#define MAX_RSP 2
+EXT unsigned char rspCount;
+EXT char *rspPtr[MAX_RSP];
+EXT int rspL[MAX_RSP];
 EXT char id[ID_LEN];
 
 #define IPD_STR "+IPD,"
@@ -482,14 +486,25 @@ char *sendData(const char *ip, int port, const char *data,
   p = wifiWriteTCPx((char *) data, cmdLen, &dataLen, timeout);
   if (p != 0)			/* if success */
   {
-   if (find(p, CLOSED) < 0)
+   int closed = find(p, CLOSED);
+   if (closed < 0)
    {
     wifiClose(4, 1000);
    }
 
    *(p + dataLen) = 0;
-   if (0)
-    printf(F0("\nlength %d dataLen %d %s\n"), rspLen, dataLen, p);
+   if (1)
+   {
+    printf(F0("\nclosed %d rspCount %d p %08x rspLen %d dataLen %d\n"),
+	   closed, rspCount, p, rspLen, dataLen);
+    if (rspCount != 1)
+    {
+     for (int i = 0; i < rspCount; i++)
+     {
+      printf(F0("%d p %04x len %3d\n"), i, (int) rspPtr[i], rspL[i]);
+     }
+    }
+   }
   }
   else				/* if failed */
   {
@@ -508,31 +523,56 @@ char *sendData(const char *ip, int port, const char *data,
 
 #if DBG
 
+#define MAXCOL 16
 void printBuf()
 {
  printf(F0("\nrspLen %d\n"), rspLen);
  char *p = (char *) packetRsp;
  char col = 0;			/* number of columns */
+ char buf[10];
+ char *p1 = buf;
+ printf(F0("10s"), " ");
+ char x = (int) p;
+ for (char i = 0; i < 16; i++)
+ {
+  printf(F0("%02x "), x);
+  x += 1;
+ }
+ newLine();
  for (unsigned int i = 0; i < rspLen; i++)
  {
   if (col == 0)			/* if column 0 */
   {
-   printf(F0("%08x %04x  "), (int) p, i);
+   p1 = buf;
+   printf(F0("%04x %04x  "), (int) p, i);
   }
   int val = *p++ & 0xff;
   char ch = ' ';
   if ((val >= ' ') && (val < 127))
    ch = val;
-  printf(F0("%02x %c "), val, ch); /* output value */
+  *p1++ = ch;
+  printf(F0("%02x "), val);	/* output value */
   col++;			/* count a column */
-  if (col == 8)			/* if at end of line */
+  if (col == MAXCOL)		/* if at end of line */
   {
    col = 0;			/* reset column counter */
+   *p1 = 0;
+   p1 = buf;
+   for (char j = 0; j < MAXCOL; j++)
+    putChar(*p1++);
    newLine();
   }
  }
  if (col != 0)
+ {
+  *p1 = 0;
+  p1 = buf;
+  for (char j = col; j < MAXCOL; j++)
+   printf(F0("   "));
+  for (char j = 0; j < col; j++)
+   putChar(*p1++);
   newLine();
+ }
 }
 
 #else  /*  DBG */
@@ -889,6 +929,9 @@ void  wifiClrRx()
 {
  rsp = (char *) packetRsp;
  rspLen = 0;
+ rspCount = 0;
+ memset((void *) rspPtr, 0, sizeof(rspPtr));
+ memset((void *) rspL, 0, sizeof(rspL));
 
 #if defined(MEGA32)
  if (U4STAbits.OERR)
@@ -1236,8 +1279,7 @@ char *wifiWriteTCPx(char *s, int size,
  }
  char rspNum = 0;
  int dLen = 0;
- char *p;
- p = 0;
+ char *p = 0;
  char ok = 0;
  if (echo)
   size += IPDLEN;
@@ -1302,6 +1344,12 @@ char *wifiWriteTCPx(char *s, int size,
        rspNum = 3;
        *dataLen = dLen;
        p = rsp;
+       if (rspCount < MAX_RSP)
+       {
+	rspPtr[rspCount] = rsp;
+	rspL[rspCount] = dLen;
+	rspCount += 1;
+       }
       }
       else
       {

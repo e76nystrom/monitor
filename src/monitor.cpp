@@ -758,6 +758,21 @@ void setup()
  wifiReset();			/* reset wifi */
 #endif	/* WIFI_RESET */
 
+#if defined(DBG0_Pin)
+ pinMode(DBG0_Pin, OUTPUT);
+ dbg0Clr();
+#endif	/* DBG0_PIN */
+
+#if defined(DBG1_Pin)
+ pinMode(DBG1_Pin, OUTPUT);
+ dbg1Clr();
+#endif	/* DBG1_PIN */
+
+#if defined(DBG2_Pin)
+ pinMode(DBG2_Pin, OUTPUT);
+ dbg2Clr();
+#endif	/* DBG2_PIN */
+
  wifiWriteStr(F2("AT+CWQAP"), 1000);
  delay(100);
  
@@ -1630,14 +1645,25 @@ char sendHTTP(char *data)
   {
    if (retry != 0)
     printf(F3("**sendHTTP retry %d\n"), retry);
+   dbg0Set();
    char *p = sendData(serverIP, TCPPORT, data, 10000);
+   dbg0Clr();
    if (p != 0)
    {
-    if (find(lc(p), (char *) F0("*ok*")) >= 0)
+    for (int i = 0; i < rspCount; i++)
     {
-     failCount = 0;
-     return(1);
+     p = rspPtr[i];
+     int dLen = rspL[i];
+     *(p + dLen) = 0;
+     if (find(lc(p), (char *) F0("*ok*")) >= 0)
+     {
+      failCount = 0;
+      return(1);
+     }
     }
+    dbg1Set();
+    printf(F0("*ok* not found p %08x retry %d\n"), p, retry);
+    dbg1Clr();
     printBuf();
    }
    
