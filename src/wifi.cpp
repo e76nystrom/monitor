@@ -496,7 +496,7 @@ char *sendData(const char *ip, int port, const char *data,
    if (1)
    {
     printf(F0("\nclosed %d rspCount %d p %08x rspLen %d dataLen %d\n"),
-	   closed, rspCount, p, rspLen, dataLen);
+	   closed, rspCount, (unsigned int) p, rspLen, dataLen);
     if (rspCount != 1)
     {
      for (int i = 0; i < rspCount; i++)
@@ -531,7 +531,7 @@ void printBuf()
  char col = 0;			/* number of columns */
  char buf[10];
  char *p1 = buf;
- printf(F0("10s"), " ");
+ printf(F0("%10s"), " ");
  char x = (int) p;
  for (char i = 0; i < 16; i++)
  {

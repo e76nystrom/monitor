@@ -1662,7 +1662,7 @@ char sendHTTP(char *data)
      }
     }
     dbg1Set();
-    printf(F0("*ok* not found p %08x retry %d\n"), p, retry);
+    printf(F0("*ok* not found p %08x retry %d\n"), (unsigned int) p, retry);
     dbg1Clr();
     printBuf();
    }
