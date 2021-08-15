@@ -6,8 +6,11 @@ rm src\stm32f1spi.c
 rm src\stm32f1tim.c 
 rm src\current.cpp
 rm src\i2cx.cpp
+rm src\i2cx.h
 rm src\spix.cpp
+rm src\spix.h
 rm src\lcd.cpp
+rm src\lcd.h
 rm src\stm32Info.cpp
 
 rm include\adc.h
@@ -29,8 +32,11 @@ mklink src\stm32f1spi.c  ..\..\..\EclipseCPP\MonitorCPP\src\spi.c
 mklink src\stm32f1tim.c  ..\..\..\EclipseCPP\MonitorCPP\src\tim.c
 mklink src\current.cpp  ..\..\..\EclipseCPP\MonitorCPP\src\current.cpp
 mklink src\i2cx.cpp ..\..\..\EclipseCPP\LatheCPP\lathe_src\i2cx.cpp
+mklink src\i2cx.h ..\..\..\EclipseCPP\LatheCPP\include\i2cx.h
 mklink src\spix.cpp ..\..\..\EclipseCPP\LatheCPP\lathe_src\spix.cpp
+mklink src\spix.h ..\..\..\EclipseCPP\LatheCPP\include\spix.h
 mklink src\lcd.cpp  ..\..\..\EclipseCPP\LatheCPP\lathe_src\lcd.cpp
+mklink src\lcd.h ..\..\..\EclipseCPP\LatheCPP\include\lcd.h
 mklink src\stm32Info.cpp  ..\..\..\EclipseCPP\LatheCPP\lathe_src\stm32Info.cpp
 
 mklink include\adc.h ..\..\..\EclipseCPP\MonitorCPP\Inc\adc.h
