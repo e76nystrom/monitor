@@ -484,6 +484,7 @@ char *sendData(const char *ip, int port, const char *data,
 
   int dataLen = 0;
   p = wifiWriteTCPx((char *) data, cmdLen, &dataLen, timeout);
+//  printBuf();
   if (p != 0)			/* if success */
   {
    int closed = find(p, CLOSED);
@@ -531,10 +532,15 @@ void printBuf()
  char col = 0;			/* number of columns */
  char buf[10];
  char *p1 = buf;
- printf(F0("%10s"), " ");
+#if 0
+ printf(F0("%11s"), " ");
+#else
+ printf(F0("%15s"), " ");
+#endif
  char x = (int) p;
  for (char i = 0; i < 16; i++)
  {
+  x &= 0xf;
   printf(F0("%02x "), x);
   x += 1;
  }
@@ -544,7 +550,11 @@ void printBuf()
   if (col == 0)			/* if column 0 */
   {
    p1 = buf;
+#if 0
    printf(F0("%04x %04x  "), (int) p, i);
+#else
+   printf(F0("%08x %04x  "), (int) p, i);
+#endif
   }
   int val = *p++ & 0xff;
   char ch = ' ';
@@ -558,8 +568,12 @@ void printBuf()
    col = 0;			/* reset column counter */
    *p1 = 0;
    p1 = buf;
+#if 0
    for (char j = 0; j < MAXCOL; j++)
     putChar(*p1++);
+#else
+   printf("%s", buf);
+#endif
    newLine();
   }
  }
@@ -569,8 +583,12 @@ void printBuf()
   p1 = buf;
   for (char j = col; j < MAXCOL; j++)
    printf(F0("   "));
+#if 0
   for (char j = 0; j < col; j++)
    putChar(*p1++);
+#else
+   printf("%s", buf);
+#endif
   newLine();
  }
 }

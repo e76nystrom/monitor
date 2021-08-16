@@ -39,7 +39,7 @@
 /* -------------------- monitor index 2 -------------------- */
 
 #if (MONITOR_INDEX == 2)
-#define MONITOR_ID "stm32-2"
+#define MONITOR_ID "stm32Pwr0"
 #define EMONCMS_NODE "stm32-2"
 
 #define WIFI_ENA 1

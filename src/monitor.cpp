@@ -347,6 +347,7 @@ char *cpyStr(char *dst, const char *str);
 char *strEnd(char *p);
 
 #if (TEMP_SENSOR | DHT_SENSOR | CURRENT_SENSOR | CURRENT_STM32)
+
 #define TEST_GET "get /emoncms/input/post.json?node=4"	\
 "&csv=0.0&apikey=" EMONCMS_KEY\
 " HTTP/1.0\r\nHost: 192.168.42.10\r\nConnection: close\r\n\r\n"
@@ -354,6 +355,7 @@ char *strEnd(char *p);
 #define HTTP1 " HTTP/1.1\r\nHost: " EMONCMS_ADDR "\r\nConnection: Close\r\n\r\n"
 
 char emonData(char *data);
+
 #endif	/* TEMP_SENSOR | DHT_SENSOR | CURRENT_SENSOR | CURRENT_STM32 */
 
 #if RTC_CLOCK
@@ -926,13 +928,8 @@ char prompt(const char *str)
 }
 #endif	/* ARDUINO_ARCH_STM32 */
 
-#define PWR_INTERVAL 500
 void cmdLoop()
 {
-#if defined(CURRENT_STM32)
- unsigned int pwrUpdTime = millis();
-#endif	 /* CURRENT_STM32 */
- 
  wdt_disable();
  printf(F3("command loop\n"));
  flush();
@@ -970,30 +967,30 @@ void cmdLoop()
 #endif	/* LCD_ENA */
    
 #if defined(ARDUINO_ARCH_STM32)
- else if (ch == 't')		/* thermocouple commands */
- {
-  while (1)
-  {
-   printf("thermocouple: ");
-   flush();
-   char ch = DBGPORT.read();
-   DBGPORT.write(ch);
-   newLine();
-   if (ch == 'i')
+   else if (ch == 't')		/* thermocouple commands */
    {
-    max56Init(MX56_TCTYPE_K, MX56_ONESHOT);
+    while (1)
+    {
+     printf("thermocouple: ");
+     flush();
+     char ch = DBGPORT.read();
+     DBGPORT.write(ch);
+     newLine();
+     if (ch == 'i')
+     {
+      max56Init(MX56_TCTYPE_K, MX56_ONESHOT);
+     }
+     else if (ch == 't')
+     {
+      char buf[10];
+      printf("temp %s\n", max56FmtTemp(buf, sizeof(buf)));
+     }
+     else if (ch == 'x')
+     {
+      break;
+     }
+    }
    }
-   else if (ch == 't')
-   {
-    char buf[10];
-    printf("temp %s\n", max56FmtTemp(buf, sizeof(buf)));
-   }
-   else if (ch == 'x')
-   {
-    break;
-   }
-  }
- }
 #endif	/* ARDUINO_ARCH_STM32 */
    
 #if defined(ARDUINO_ARCH_AVR)
@@ -1034,30 +1031,9 @@ void cmdLoop()
 #endif	/* ARDUINO_AVR_MEGA2560 */
 
 #if defined(CURRENT_STM32)
-   else if (ch == 'e')		/* stm32 read adc */
-   {
-    newLine();
-    adcRead1();
-   }
-   else if (ch == 'R')		/* stm32 adc run */
-   {
-    newLine();
-    adcRun();			/* start makeing readings */
-   }
    else if (ch == 'C')		/* stm32 adc status */
    {
-    newLine();
-    adcStatus();
-   }
-   else if (ch == 'Q')		/* stm32 peripheral info */
-   {
-    info();
-   }
-   else if (ch == 'T')		/* stm32 adc rms test */
-   {
-    newLine();
-    rmsTestInit();
-    rmsTest();
+    currentCmds();
    }
 #endif	/* CURRENT_STM32 */
 
@@ -1296,12 +1272,7 @@ void cmdLoop()
 #if defined(CURRENT_STM32)
   if (pwrActive)
   {
-   unsigned int t = millis();
-   if ((t - pwrUpdTime) >= PWR_INTERVAL)
-   {
-    pwrUpdTime += PWR_INTERVAL;
-    currentUpdate();
-   }
+   powerUpdate();
   }
 #endif	/* CURRENT_STM32 */
  }
@@ -1322,6 +1293,7 @@ void loop()
    while (DBGPORT.available())
     ch = DBGPORT.read();
    newLine();
+   
    cmdLoop();
   }
   newLine();
@@ -1342,7 +1314,6 @@ void loop()
   t0 = intMillis();		/* read time */
   if ((unsigned long) (t0 - tPrev) >= T1SEC) /* if short interval up */
   {
-//   printf("t0 %ld tPrev %ld delta %ld\n", t0, tPrev, t0 - tPrev);
    tPrev = t0;			/* update previous time */
 #if WATER_MONITOR
    alarmPoll();			/* poll water alarm */
@@ -1351,11 +1322,11 @@ void loop()
 #if CURRENT_SENSOR
    currentCheck();		/* check and send current */
 #endif	/* CURRENT_SENSOR */
+  }
 
 #if defined(CURRENT_STM32)
-   currentUpdate();
+  powerUpdate();
 #endif	/* CURRENT_STM32 */
-  }
  }
 
  printf(F3("%d "), loopCount);
