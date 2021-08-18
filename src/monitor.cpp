@@ -817,6 +817,10 @@ void setup()
 #endif
 #endif	/* DATA_SIZE */
 
+ printf("AFIO MAPR %08x\n", (unsigned int) AFIO->MAPR);
+ AFIO->MAPR |= AFIO_MAPR_SWJ_CFG_1;
+ printf("AFIO MAPR %08x\n", (unsigned int) AFIO->MAPR);
+
  unsigned int clockFreq = HAL_RCC_GetHCLKFreq();
  unsigned int FCY = HAL_RCC_GetPCLK2Freq();
  printf("clock frequency %u FCY %u\n", clockFreq, FCY);
@@ -838,7 +842,7 @@ void setup()
 #endif	/* ARDUINO_ARCH_STM32 */
   
 #if CURRENT_SENSOR
- initCurrent(1);		/* initial current sensor */
+ initCurrent(1);	m	/* initial current sensor */
 #endif	/* CURRENT_SENSOR */
 
 #if defined(CURRENT_STM32)
