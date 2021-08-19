@@ -807,14 +807,20 @@ void setup()
 
 #if defined(ARDUINO_ARCH_STM32)
 
+ printf("STM32 MONITOR_INDEX %d MONITOR_ID %s EMONCMS_NODE %s\n",
+	MONITOR_INDEX, MONITOR_ID, EMONCMS_NODE);
+
+#if defined(CURRENT_STM32)
+ printf("MAX_CHAN %d MAX_CHAN_POWER %d MAX_CHAN_RMS %d\n",
+	MAX_CHAN, MAX_CHAN_POWER, MAX_CHAN_RMS);
+#endif	/* CURRENT_STM32 */
+
 #if DATA_SIZE
  unsigned int bss = (unsigned int) (&_ebss - &_sbss);
  unsigned int data = (unsigned int) (&_edata - &_sdata);
  printf("data %u bss %u total %u\n", data, bss, data + bss);
-#if 1
  printf("stack %08x sp %08x\n",
 	(unsigned int) &_estack, getSP());
-#endif
 #endif	/* DATA_SIZE */
 
  printf("AFIO MAPR %08x\n", (unsigned int) AFIO->MAPR);
@@ -839,6 +845,7 @@ void setup()
 // HAL_TIM_MspPostInit(&htim1);
  printf("adc initialization complete\n");
  flush();
+
 #endif	/* ARDUINO_ARCH_STM32 */
   
 #if CURRENT_SENSOR
@@ -1326,6 +1333,10 @@ void loop()
 #if CURRENT_SENSOR
    currentCheck();		/* check and send current */
 #endif	/* CURRENT_SENSOR */
+
+#if defined(Led_Pin)
+   ledToggle();
+#endif
   }
 
 #if defined(CURRENT_STM32)

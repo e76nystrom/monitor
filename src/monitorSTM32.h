@@ -7,7 +7,7 @@
 #include <Wire.h>
 #include "serial.h"
 
-#define MONITOR_INDEX 2
+#define MONITOR_INDEX 1
 
 #define DBG 1
 
@@ -20,15 +20,18 @@
 /* -------------------- monitor index 1 -------------------- */
 
 #if (MONITOR_INDEX == 1)
-#define MONITOR_ID "Monitor5"
+#define MONITOR_ID "stm32Pwr1"
 #define EMONCMS_NODE "2"
 
+#define WIFI_ENA 1
 #define CHECK_IN 1
 
 #define INT_MILLIS 0
 #define ESP8266_TIME 0
 
 #define CURRENT_STM32 1
+#define EMON_POWER 0
+#define EMON_RMS 1
 
 #define MAX_CHAN_POWER 0
 #define MAX_CHAN_RMS 1
@@ -49,6 +52,8 @@
 #define ESP8266_TIME 0
 
 #define CURRENT_STM32 1
+#define EMON_POWER 1
+#define EMON_RMS 0
 
 #define MAX_CHAN_POWER 1
 #define MAX_CHAN_RMS 2
@@ -71,13 +76,33 @@
 extern T_CHANCFG chanCfg[MAX_CHAN];
 #endif	/* (CURRENT_STM32 != 0) && !defined(__CURRENT__) */
 
-#endif
+#endif	/* CURRENT_STM32 */
 
 //#define LCD_ENA 0
 #define LCD_ADDRESS 0x3f
 
 #include "millis.h"
 #include "main.h"
+
+#ifdef Led_Pin
+inline void ledIni() {}
+inline void ledSet() {Led_GPIO_Port->BSRR = Led_Pin;}
+inline void ledClr() {Led_GPIO_Port->BSRR = (Led_Pin << 16);}
+inline bool led() {return((Led_GPIO_Port->ODR & Led_Pin) != 0);}
+inline void ledToggle()
+{
+ if (led())
+  ledClr();
+ else
+  ledSet();
+}
+#else
+inline void ledIni() {}
+inline void ledSet() {}
+inline void ledClr() {}
+inline bool led() {}
+inline void ledToggle(){}
+#endif	/* Led_Pin */
 
 #ifdef Dbg0_Pin
 inline void dbg0Ini() {}
@@ -87,7 +112,7 @@ inline void dbg0Clr() {Dbg0_GPIO_Port->BSRR = (Dbg0_Pin << 16);}
 inline void dbg0Ini() {}
 inline void dbg0Set() {}
 inline void dbg0Clr() {}
-#endif
+#endif	/* Dbg0_Pin */
 
 #ifdef Dbg1_Pin
 inline void dbg1Ini() {}
@@ -97,7 +122,7 @@ inline void dbg1Clr() {Dbg1_GPIO_Port->BSRR = (Dbg1_Pin << 16);}
 inline void dbg1Ini() {}
 inline void dbg1Set() {}
 inline void dbg1Clr() {}
-#endif
+#endif	/* Dbg1_Pin */
 
 #ifdef Dbg2_Pin
 inline void dbg2Ini() {}
@@ -107,7 +132,7 @@ inline void dbg2Clr() {Dbg2_GPIO_Port->BSRR = (Dbg2_Pin << 16);}
 inline void dbg2Ini() {}
 inline void dbg2Set() {}
 inline void dbg2Clr() {}
-#endif
+#endif	/* Dbg2_Pin */
 
 #ifdef Dbg3_Pin
 inline void dbg3Ini() {}
@@ -117,7 +142,7 @@ inline void dbg3Clr() {Dbg3_GPIO_Port->BSRR = (Dbg3_Pin << 16);}
 inline void dbg3Ini() {}
 inline void dbg3Set() {}
 inline void dbg3Clr() {}
-#endif
+#endif	/* Dbg3_Pin */
 
 #ifdef Dbg4_Pin
 inline void dbg4Ini() {}
@@ -137,7 +162,7 @@ inline void dbg4Set() {}
 inline void dbg4Clr() {}
 inline bool dbg4() {return(0);}
 inline void dbg4Toggle() {}
-#endif
+#endif	/* Dbg4_Pin */
 
 #ifdef Dbg5_Pin
 inline void dbg5Ini() {}
@@ -157,7 +182,29 @@ inline void dbg5Set() {}
 inline void dbg5Clr() {}
 inline bool dbg5() {return(0);}
 inline void dbg5Toggle() {}
-#endif
+#endif	/* Dbg5_Pin */
+
+#define Dbg6_Pin GPIO_PIN_3
+#define Dbg6_GPIO_Port GPIOB
+
+#ifdef Dbg6_Pin
+inline void dbg6Ini() {}
+inline void dbg6Set() {Dbg6_GPIO_Port->BSRR = Dbg6_Pin;}
+inline void dbg6Clr() {Dbg6_GPIO_Port->BSRR = (Dbg6_Pin << 16);}
+inline bool dbg6() {return((Dbg6_GPIO_Port->ODR & Dbg6_Pin) != 0);}
+inline void dbg6Toggle()
+{
+ if (dbg6())
+  dbg6Clr();
+ else
+  dbg6Set();
+}
+#else
+inline void dbg6Ini() {}
+inline void dbg6Set() {}
+inline void dbg6Clr() {}
+inline void dbg6Toggle() {}
+#endif	/* Dbg6_Pin */
 
 #endif /* ARDUINO_ARCH_STM32 */
 #endif /* __MONITOR_STM32__ */
