@@ -1,5 +1,6 @@
 #!/bin/bash
 
+
 rm src/stm32f1adc.c 
 rm src/stm32f1dma.c 
 rm src/stm32f1gpio.c
