@@ -1,0 +1,11 @@
+--- HardwareTimer.cpp~	2021-04-20 18:00:00.000000000 -0400
++++ HardwareTimer.cpp	2021-08-13 04:10:29.261955500 -0400
+@@ -1424,7 +1424,7 @@
+     HardwareTimer::updateCallback(htim);
+   }
+ 
+-#if defined(TIM1_BASE)
++#if defined(TIM1_BASE) & 0
+   /**
+     * @brief  TIM1 IRQHandler common with TIM10 and TIM16 on some STM32F1xx
+     * @param  None
