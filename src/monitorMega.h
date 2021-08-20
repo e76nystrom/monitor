@@ -156,7 +156,7 @@ extern DeviceAddress tempDev[TEMPDEVS];
 #endif /* DEHUMIDIFIER */
 #endif /* DHT_SENSOR */
 
-#if 0
+#if 1
 #define DBG0_Pin 7
 #define DBG0_Port PORTD
 #define DBG0_DDR DDRD

@@ -853,7 +853,7 @@ void setup()
 #endif	/* ARDUINO_ARCH_STM32 */
   
 #if CURRENT_SENSOR
- initCurrent(1);	m	/* initial current sensor */
+ initCurrent(1);		/* initial current sensor */
 #endif	/* CURRENT_SENSOR */
 
 #if defined(CURRENT_STM32)
