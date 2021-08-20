@@ -158,7 +158,7 @@ int dehumDelay;			/* on or off delay counter */
 #define ADC_COUNTS (1<<ADC_BITS)
 #endif  /* CURRENT_SENSOR */
 
-#include <Time.h>
+#include <TimeLib.h>
 #include <string.h>
 #include <stdio.h>
 #include <stdlib.h>
