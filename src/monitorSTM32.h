@@ -7,7 +7,7 @@
 #include <Wire.h>
 #include "serial.h"
 
-#define MONITOR_INDEX 1
+#define MONITOR_INDEX 2
 
 #define DBG 1
 

@@ -954,11 +954,13 @@ void cmdLoop()
    newLine();
    if (ch == 'x')		/* exit command loop */
     break;
+#if defined(EMONCMS_NODE)
    else if (ch == '?')		/* file name */
    {
     printf(F3("monitor.cpp emon " EMONCMS_NODE " id " MONITOR_ID "\n"));
    }
-
+#endif	/* EMONCMS_NODE */
+   
 #if defined(LCD_ENA)
    else if (ch == 'L')
    {

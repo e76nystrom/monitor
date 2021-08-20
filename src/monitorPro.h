@@ -7,7 +7,7 @@ ATMega328 Pin 7 - Arduino Pin 4 - Ext1 - RJ45 Pin 6 - S2 - 3 Pin DS18S20
 
 */
 
-#define MONITOR_INDEX 5
+#define MONITOR_INDEX 1
 
 /* -------------------- monitor index 1 -------------------- */
 
@@ -17,6 +17,7 @@ ATMega328 Pin 7 - Arduino Pin 4 - Ext1 - RJ45 Pin 6 - S2 - 3 Pin DS18S20
 #define EMONCMS_KEY EMONCMS_KEY0
 
 #define WATER_MONITOR 1
+#define CHECK_IN 1
 
 #define SSID "TKGCL"
 #define PASS "K4PLVFMCXGMLXM9P"
