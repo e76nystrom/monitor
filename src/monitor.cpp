@@ -363,7 +363,6 @@ float rtcTemp();
 #endif	/* RTC_CLOCK */
 
 void cmdLoop();
-extern void info();
 unsigned int tLast;
 int loopCount;
 
