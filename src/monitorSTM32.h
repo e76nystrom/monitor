@@ -100,7 +100,7 @@ inline void ledToggle()
 inline void ledIni() {}
 inline void ledSet() {}
 inline void ledClr() {}
-inline bool led() {}
+inline bool led() {return(0);}
 inline void ledToggle(){}
 #endif	/* Led_Pin */
 
