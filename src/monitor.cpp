@@ -676,15 +676,20 @@ void setup()
   writeEE(F0(SSID), SSID_LOC, SSID_LEN);
   writeEE(F0(PASS), PASS_LOC, PASS_LEN);
   writeEE(F0(MONITOR_ID), ID_LOC, ID_LEN);
+#if defined(EMONCMS_ADDR)
   writeEE(F0(EMONCMS_ADDR), IP_LOC, IP_LEN);
+#endif	/* EMONCMS_ADDR */
 #endif  /* INITEE */
   writeSumEE();
  }
 
  readEE(id, ID_LOC, ID_LEN);
+ printf(F0("MONITOR_ID %s id %s\n"), MONITOR_ID, id);
+#if defined(EMONCMS_ADDR)
  readEE(emonIP, IP_LOC, IP_LEN);
+#endif	/* EMONCMS_ADDR */
 
- printf(F3("monitor index %s\n"), id);
+ printf(F3("monitor id %s\n"), id);
 #else
  strcpy(id, MONITOR_ID);
  strcpy(emonIP, EMONCMS_ADDR);

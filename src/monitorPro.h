@@ -7,32 +7,34 @@ ATMega328 Pin 7 - Arduino Pin 4 - Ext1 - RJ45 Pin 6 - S2 - 3 Pin DS18S20
 
 */
 
-#define MONITOR_INDEX 1
+#define MONITOR_INDEX 2
 
 /* -------------------- monitor index 1 -------------------- */
 
 #if (MONITOR_INDEX == 1)
 
-#define EMONCMS_ADDR EMONCMS_ADDR0
-#define EMONCMS_KEY EMONCMS_KEY0
-
+#define WIFI_ENA 1
 #define WATER_MONITOR 1
 #define CHECK_IN 1
 
 #define SSID "TKGCL"
 #define PASS "K4PLVFMCXGMLXM9P"
 #define MONITOR_ID "Monitor0"
+
 #endif	/* MONITOR_INDEX == 0 */
 
 /* -------------------- monitor index 2 -------------------- */
 
 #if (MONITOR_INDEX == 2)
 
+#define WIFI_ENA 1
 #define WATER_MONITOR 1
+#define CHECK_IN 1
 
-#define SSID "dd-wrt_vap"
-#define PASS "minidonk"
-#define MONITOR_ID "Monitor2"
+#define SSID "hug2g996565"
+#define PASS "candle14salt"
+#define MONITOR_ID "TestWater"
+
 #endif	/* MONITOR_INDEX == 2 */
 
 /* -------------------- monitor index 3 -------------------- */

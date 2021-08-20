@@ -1,24 +1,26 @@
 #!/bin/bash
 
+$CONF="C:\DevSoftware\avrdude-6.3.1.1-windows\avrdude.conf"
+
 if [ 1 -eq 1 ]
 then
- /cygdrive/c/Users/Eric/.platformio/packages/tool-avrdude/avrdude \
+ /cygdrive/c/DevSoftware/avrdude-v6.3.1.1-windows/avrdude \
+  -u \
   -v \
-  -p atmega328p \
-  -c usbasp \
-  -P usb \
-  -C "C:\Users\Eric\.platformio\packages\tool-avrdude\avrdude.conf" \
-  -U flash:w:.pio/build/pro16MHzatmega328/firmware.hex:i
+  -C "C:\DevSoftware\avrdude-v6.3.1.1-windows\avrdude.conf" \
+  -p m328p \
+  -c usbasp-clone \
+  -U flash:w:"c:\Development\Arduino\monitor\.pio\build\pro16MHzatmega328\firmware.hex":a
 fi
 
 if [ 1 -eq 0 ]
 then
  COMM=COM6
 
- /cygdrive/c/Users/Eric/.platformio/packages/tool-avrdude/avrdude \
-  -D -v \
+ /cygdrive/c/DevSoftware/avrdude-v6.3.1.1-windows/avrdude \
+  -v \
+  -C "C:\DevSoftware\avrdude-v6.3.1.1-windows\avrdude.conf" \
   -p atmega2560 \
-  -C "c:\Users\Eric\.platformio\packages\tool-avrdude\avrdude.conf" \
   -c wiring \
   -b 115200 \
   -P $COMM \
