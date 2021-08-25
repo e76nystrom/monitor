@@ -399,7 +399,7 @@ typedef struct
  float iCal;
  float iRatio;			/* conversion ratio */
  float sumI;			/* current sum of squares */
- char node;
+ const char *node;
  int count;
  int sent;
  int adc;
@@ -2093,7 +2093,7 @@ void currentCheck()
      printTime();
      p->lastTime = now();
      /* format time, node, and current value */
-     sprintf(buf, F3("time=%ld&node=%d&csv=%s"),
+     sprintf(buf, F3("time=%ld&node=%s&csv=%s"),
 	     p->lastTime, p->node, dtostrf(p->iRms, 4, 2, tmp));
      printf(F3("%s\n"), buf);
      emonData(buf);		/* send current data */
@@ -2109,13 +2109,13 @@ void currentCheck()
   char tmp[10];
   if (cState == 0)		/* if time to send last value */
   {
-   sprintf(buf, F3("time=%ld&node=%d&csv=%s"), /* format last reading sent */
+   sprintf(buf, F3("time=%ld&node=%s&csv=%s"), /* format last reading sent */
            p->iTime - 1, p->node, dtostrf(p->lastIRms1, 4, 2, tmp));
    cState = 1;			/* set to send current value */
   }
   else
   {
-   sprintf(buf, F3("time=%ld&node=%d&csv=%s"), /* format current reading */
+   sprintf(buf, F3("time=%ld&node=%s&csv=%s"), /* format current reading */
            p->iTime, p->node, dtostrf(p->lastIRms0, 4, 2, tmp));
    p->iTime = 0;		/* reset time */
    cState = 0;			/* reset state */

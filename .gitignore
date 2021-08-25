@@ -26,6 +26,8 @@ wload.sh
 new/
 old/
 data/
+data1/
+convert
 
 include/adc.h
 include/current.h

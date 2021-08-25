@@ -2,27 +2,30 @@
 
 #define ESP8266_TIME 0
 
-#define MONITOR_INDEX 2
+#define MONITOR_INDEX 1
 
 /* outside temperature */
 
 #if (MONITOR_INDEX == 1)
-#define EMONCMS_ADDR EMONCMS_ADDR0
-#define EMONCMS_KEY EMONCMS_KEY0
-#define EMONCMS_NODE "1"
+
+#define EMONCMS_ADDR EMONCMS_ADDR1
+#define EMONCMS_KEY EMONCMS_KEY1
+#define EMONCMS_NODE "FrontPorch"
+
+#define WIFI_ENA
 
 #define TEMP_SENSOR 1
 #define RTC_CLOCK 1
 #define DHT_SENSOR 0
 #define CURRENT_SENSOR 0
 #define WATER_MONITOR 0
-#define CHECK_IN 0
+#define CHECK_IN 1
 #define DEHUMIDIFIER 0
 
-#define SSID "dd-wrt_vap"
-#define PASS "minidonk"
+#define SSID "hug2g996565"
+#define PASS "candle14salt"
 
-#define MONITOR_ID "Monitor1"
+#define MONITOR_ID "FrontPorch"
 
 #define TEMPDEVS 1
 #if defined(__MONITOR__)
@@ -34,28 +37,33 @@ EXT DeviceAddress tempDev[TEMPDEVS] =
 #else
 extern DeviceAddress tempDev[TEMPDEVS];
 #endif /* defined(__MONITOR__) */
+
 #endif	/* MONITOR_INDEX == 1 */
 
 /* basement dehumidifer and furnace monitor */
 
 #if (MONITOR_INDEX == 2)
-#define EMONCMS_ADDR EMONCMS_ADDR0
-#define EMONCMS_KEY EMONCMS_KEY0
-#define EMONCMS_NODE "2"
-#define CURRENT0_NODE 3
-#define CURRENT1_NODE 4
+
+#define EMONCMS_ADDR EMONCMS_ADDR1
+#define EMONCMS_KEY EMONCMS_KEY1
+
+#define EMONCMS_NODE "BasementTemp"
+#define CURRENT0_NODE "cur0"
+#define CURRENT1_NODE "cur1"
+
+#define WIFI_ENA
 
 #define TEMP_SENSOR 1
 #define RTC_CLOCK 1
 #define DHT_SENSOR 1
 #define CURRENT_SENSOR 1
-#define WATER_MONITOR 1
+#define WATER_MONITOR 0
 #define CHECK_IN 1
 #define DEHUMIDIFIER 0
 
-#define SSID "dd-wrt_vap"
-#define PASS "minidonk"
-#define MONITOR_ID "Monitor2"
+#define SSID "hug2g996565"
+#define PASS "candle14salt"
+#define MONITOR_ID "Basement"
 
 #define TEMPDEVS 2
 #if defined(__MONITOR__)
@@ -67,11 +75,13 @@ EXT DeviceAddress tempDev[TEMPDEVS] =
 #else
 extern DeviceAddress tempDev[TEMPDEVS];
 #endif /* defined(__MONITOR__) */
+
 #endif	/* MONITOR_INDEX == 2 */
 
 /* basement water alarm and pump shutoff */
 
 #if (MONITOR_INDEX == 3)
+
 #define EMONCMS_ADDR EMONCMS_ADDR0
 #define EMONCMS_KEY EMONCMS_KEY0
 #define EMONCMS_NODE "5"
@@ -97,9 +107,11 @@ EXT DeviceAddress tempDev[TEMPDEVS] =
 #else
 extern DeviceAddress tempDev[TEMPDEVS];
 #endif /* defined(__MONITOR__) */
+
 #endif	/* MONITOR_INDEX == 3 */
 
 #if (MONITOR_INDEX == 4)
+
 #define EMONCMS_ADDR EMONCMS_ADDR0
 #define EMONCMS_KEY EMONCMS_KEY0
 
@@ -114,6 +126,7 @@ extern DeviceAddress tempDev[TEMPDEVS];
 #define SSID "dd-wrt_vap"
 #define PASS "minidonk"
 #define MONITOR_ID "Monitor4"
+
 #endif	/* MONITOR_INDEX == 4 */
 
 #define WIFI_RESET 2		/* wifi reset */
