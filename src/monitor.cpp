@@ -1057,6 +1057,7 @@ void cmdLoop()
    {
     printf(F3("test watchdog timer\n"));
     wdt_enable(WDT_TO);
+    printf(F3("mcuusr %02x wdtcsr %02x\n"), MCUSR, WDTCSR);
     while (1)
      ;
    }
@@ -1404,7 +1405,7 @@ void loop()
  if (loopCount == CHECKIN_COUNT) /* if time to check water alarm */
  {
 #if defined(ARDUINO_ARCH_AVR)
-  printf("MCUUSR %02x WDTCSR %02x\n", MCUSR, WDTCSR);
+  printf(F3("mcuusr %02x wdtcsr %02x\n"), MCUSR, WDTCSR);
 #endif	/* ARDUINO_ARCH_AVR */
   checkIn();
  }
