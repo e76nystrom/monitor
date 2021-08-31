@@ -32,7 +32,7 @@ extern SoftwareSerial dbgPort;
 #if ARDUINO_AVR_MEGA2560
 
 #define DBGPORT Serial
-#define WIFI Serial2
+#define WIFI Serial1
 
 #define FLASH_STRINGS 1
 

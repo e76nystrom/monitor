@@ -471,7 +471,7 @@ char *sendData(const char *ip, int port, const char *data,
 {
  wifiMux();			/* in case device restarted */
  int cmdLen = strlen((const char *) data);
- if (DBG)
+ if (DBG & 0)
   printf(F0("sendData %d %s\n"), cmdLen, data);
 
  char *p = 0;
@@ -509,14 +509,15 @@ char *sendData(const char *ip, int port, const char *data,
   }
   else				/* if failed */
   {
-   printf(F0("send failure close\n"));
-   wifiClose(4, 1000);
 #if DBG1_Pin
    dbg1Set();
    delay(2);
    dbg1Clr();
 #endif /* DBG1_Pin */
    printBuf();
+   printf(F0("send failure close\n"));
+   wifiClose(4, 1000);
+   return(0);
   }
  }
  return(p);
@@ -528,23 +529,33 @@ char *sendData(const char *ip, int port, const char *data,
 void printBuf()
 {
  printf(F0("\nrspLen %d\n"), rspLen);
+ char buf[MAXCOL + 2];
  char *p = (char *) packetRsp;
  char col = 0;			/* number of columns */
- char buf[10];
  char *p1 = buf;
-#if 0
- printf(F0("%11s"), " ");
-#else
- printf(F0("%15s"), " ");
-#endif
+
  char x = (int) p;
  for (char i = 0; i < 16; i++)
  {
+  if (col == 0)
+  {
+#if 0
+   printf(F0("%11s"), " ");
+#else
+   printf(F0("%15s"), " ");
+#endif
+  }
   x &= 0xf;
   printf(F0("%02x "), x);
   x += 1;
+  col += 1;
+  if (col == MAXCOL)
+  {
+   col = 0;
+   newLine();
+  }
  }
- newLine();
+
  for (unsigned int i = 0; i < rspLen; i++)
  {
   if (col == 0)			/* if column 0 */
@@ -568,27 +579,20 @@ void printBuf()
    col = 0;			/* reset column counter */
    *p1 = 0;
    p1 = buf;
-#if 0
    for (char j = 0; j < MAXCOL; j++)
-    putChar(*p1++);
-#else
-   printf("%s", buf);
-#endif
+    printf("%c", *p1++);
    newLine();
   }
  }
+ 
  if (col != 0)
  {
   *p1 = 0;
   p1 = buf;
   for (char j = col; j < MAXCOL; j++)
    printf(F0("   "));
-#if 0
   for (char j = 0; j < col; j++)
-   putChar(*p1++);
-#else
-   printf("%s", buf);
-#endif
+   printf("%c", *p1++);
   newLine();
  }
 }

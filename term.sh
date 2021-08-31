@@ -1,3 +1,3 @@
 #!/bin/bash
 
-/cygdrive/c/DevSoftware/Putty/putty.exe -load COM14-19200
+"putty" -load COM8-19200

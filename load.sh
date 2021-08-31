@@ -15,7 +15,7 @@ fi
 
 if [ $usbasp -eq 0 ]
 then
- COMM=COM8
+ COMM=COM9
 
  /cygdrive/c/DevSoftware/avrdude-v6.3.1.1-windows/avrdude \
   -v \

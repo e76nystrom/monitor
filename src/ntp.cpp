@@ -139,6 +139,7 @@ char ntpSetTime()
     const time_t seventyYears = 2208988800UL; /* 1970 - 1900 */
     time_t epoch = val - seventyYears;
 
+    printf("ntp set time\n");
     setTime(epoch);
     ntpTimeout = 24UL * 60UL * 60UL * 1000UL;
     status = 1;

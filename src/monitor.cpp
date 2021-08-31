@@ -280,7 +280,8 @@ char failCount;			/* send failure count */
 #define SITE
 #else
 #define TCPPORT 80
-#define HOST "test.ericnystrom.com"
+//#define HOST "test.ericnystrom.com"
+#define HOST "www.ericnystrom.com"
 #define SITE "/alert"
 #endif  /* LOCAL */
 
@@ -594,6 +595,9 @@ void setup()
  stdout = &uartout;
 #endif
 
+ int len = (int) SP - 16 - (int) &__bss_end;
+ memset((void *) (&__bss_end), 0, len);
+
 #endif  /* ARDUINO_ARCH_AVR */
 
 #if defined(ARDUINO_ARCH_STM32)
@@ -901,13 +905,27 @@ void setup()
 
 void setTime()
 {
+#if RTC_CLOCK
+ printf("rtc time ");
+ printTime(RTC.get());
+#endif	/* RTC_CLOCK */
+
  if ((millis() - ntpStart) > ntpTimeout)
  {
   char status;
 
 #if defined(WIFI_ENA)
 #if (ESP8266_TIME == 0)
-  status = ntpSetTime();	/* look up ntp time */
+  for (char retry = 0; retry < 3; retry++)
+  {
+   status = ntpSetTime();	/* look up ntp time */
+   if (status != 0)
+    break;
+   unsigned int t = intMillis();
+   while ((unsigned int) (intMillis() - t) < 2000U)
+    ;
+   printf(F3("retry ntpSetTime\n"));
+  }
 #else
   status = esp8266Time();
 #endif /* ESP8266_TIME */
@@ -920,6 +938,15 @@ void setTime()
    setSyncProvider(RTC.get);	/* set rtc to provide clock time */
 #endif	/* RTC_CLOCK */
   }
+#if RTC_CLOCK
+  else
+  {
+   printf("rtc setting time\n");
+   setTime(RTC.get());
+   setSyncProvider(RTC.get);	/* set rtc to provide clock time */
+  }
+#endif	/* RTC_CLOCK */
+  printf("time set ");
   printTime();
  }
 }
@@ -1376,6 +1403,9 @@ void loop()
 #if CHECK_IN
  if (loopCount == CHECKIN_COUNT) /* if time to check water alarm */
  {
+#if defined(ARDUINO_ARCH_AVR)
+  printf("MCUUSR %02x WDTCSR %02x\n", MCUSR, WDTCSR);
+#endif	/* ARDUINO_ARCH_AVR */
   checkIn();
  }
 #endif /* CHECK_IN */
@@ -1383,6 +1413,10 @@ void loop()
  if (loopCount == NTP_COUNT)	/* if time to set time */
  {
   setTime();
+#if RTC_CLOCK
+  printf("rtc time ");
+  printTime(RTC.get());
+#endif	/* RTC_CLOCK */
  }
 
  loopCount++;			/* update loop counter */
@@ -1440,6 +1474,9 @@ void loopTemp()
    }
   }
   temp0[i] = t;
+  printf(F3("%d temp "), i);
+  DBGPORT.print(t);
+  printf(F3("F\n"));
  }
 #elif TEMP_SENSOR == 2
  P_TEMP_SENSOR ts = tempSensor;
@@ -1590,6 +1627,8 @@ void loopTemp()
   p -= 1;			/* back up pointer */
   *p = 0;			/* terminat line */
  }
+ 
+ printf("emonData %s\n", buf);
  emonData(buf);
 } /* *end loopTemp */
 
@@ -1635,8 +1674,6 @@ char sendHTTP(char *data)
   strcat(data, F3(HTTP));
   for (char retry = 0; retry < RETRY_SEND_HTTP; retry++)
   {
-   if (retry != 0)
-    printf(F3("**sendHTTP retry %d\n"), retry);
    dbg0Set();
    char *p = sendData(serverIP, TCPPORT, data, 10000);
    dbg0Clr();
@@ -1657,6 +1694,7 @@ char sendHTTP(char *data)
     printf(F0("*ok* not found p %08x retry %d\n"), (unsigned int) p, retry);
     dbg1Clr();
     printBuf();
+    printf(F3("**sendHTTP retry %d\n"), retry);
    }
    
 #if DBG0_PIN
@@ -1888,7 +1926,10 @@ char emonData(char *data)
 #else
  argConv(F(TEST_GET), dataBuffer);
 #endif
- printf(F3("emonData len %d\n%s\n"), strlen(dataBuffer), dataBuffer);
+
+ if (DBG & 0)
+  printf(F3("emonData len %d\n%s\n"), strlen(dataBuffer), dataBuffer);
+
  for (char retry = 0; retry < RETRY_EMON_DATA; retry++)
  {
   if (retry != 0)
@@ -1899,6 +1940,7 @@ char emonData(char *data)
    failCount = 0;
    return(1);
   }
+
 #if DBG0_PIN
   dbg0Set();
   delay(2);
