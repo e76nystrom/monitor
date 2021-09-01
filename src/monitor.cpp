@@ -856,10 +856,6 @@ void setup()
 
 #endif	/* ARDUINO_ARCH_STM32 */
   
-#if CURRENT_SENSOR
- initCurrent(1);		/* initial current sensor */
-#endif	/* CURRENT_SENSOR */
-
 #if defined(CURRENT_STM32)
  adcRun();
 #endif	/* CURRENT_STM32 */
@@ -900,13 +896,17 @@ void setup()
 
  setTime();
 
+#if CURRENT_SENSOR
+ initCurrent(1);		/* initial current sensor */
+#endif	/* CURRENT_SENSOR */
+
  tLast = intMillis();		/* initialize loop timer */
 }
 
 void setTime()
 {
 #if RTC_CLOCK
- printf("rtc time ");
+ printf("setTime rtc time ");
  printTime(RTC.get());
 #endif	/* RTC_CLOCK */
 
@@ -1414,10 +1414,6 @@ void loop()
  if (loopCount == NTP_COUNT)	/* if time to set time */
  {
   setTime();
-#if RTC_CLOCK
-  printf("rtc time ");
-  printTime(RTC.get());
-#endif	/* RTC_CLOCK */
  }
 
  loopCount++;			/* update loop counter */
@@ -2100,15 +2096,18 @@ void printCurrent()
   P_CURRENT p = &iData[i];
 //  printf("iRatio %s\n", dtostrf(p->iRatio, 8, 6, tmp));
 //  printf("iCal %s\n", dtostrf(p->iCal, 8, 6, tmp));
-  printf(F3("iRms %s\n"), dtostrf(p->iRms, 4, 2, tmp));
+  printf(F3("%d iRms %s "), i, dtostrf(p->iRms, 4, 2, tmp));
   if (p->iTime != 0)
    printTime(p->iTime);
-   
+  else
+   printf(F3("\n"));
 
-  if (abs(p->iRms - p->lastIRms) > .05)
+  float delta = abs(p->iRms - p->lastIRms);
+  if (delta > .05)
   {
    p->lastIRms = p->iRms;
-   printf(F3("iRms %s\n"), dtostrf(p->iRms, 4, 2, tmp));
+   printf(F3("%d iRms %s delta %3d\n"), i, dtostrf(p->iRms, 4, 2, tmp),
+	  (int) (delta * 100));
   }
  }
 }
@@ -2138,7 +2137,7 @@ void currentCheck()
      /* format time, node, and current value */
      sprintf(buf, F3("time=%ld&node=%s&csv=%s"),
 	     p->lastTime, p->node, dtostrf(p->iRms, 4, 2, tmp));
-     printf(F3("%s\n"), buf);
+     printf(F3("emonData %s\n"), buf);
      emonData(buf);		/* send current data */
     }
     p = 0;
@@ -2165,7 +2164,7 @@ void currentCheck()
    curPSave = 0;		/* clear save pointer */
   }
   printTime();
-  printf(F3("%s\n"), buf);
+  printf(F3("%d emonData %s\n"), cState, buf);
   emonData(buf);		/* send data */
  }
 }
@@ -2209,7 +2208,7 @@ ISR(ADC_vect)
    float sqI = filteredI * filteredI;
    tempSumI += sqI;
    --sampleCount;		/* count off a sample */
-   if (sampleCount == 0)	/* if done */
+   if (sampleCount <= 0)	/* if done */
    {
     p->count++;
     p->adc = ADMUX;

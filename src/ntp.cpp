@@ -46,6 +46,7 @@ typedef struct
 
 void printTime();
 void printTime(time_t t);
+void printTime(time_t t, bool flag);
 char ntpSetTime();
 
 EXT unsigned long ntpStart;	/* reference for time compare */
@@ -59,19 +60,27 @@ EXT char ntpIP[IP_ADDRESS_LEN];	/* ntp ip address */
 void printTime()
 {
  if (DBG)
-  printTime(now());
+  printTime(now(), true);
 }
 
 void printTime(time_t t)
+{
+ if (DBG)
+  printTime(t, true);
+}
+
+void printTime(time_t t, bool flag)
 {
  if (DBG)
  {
   tmElements_t tm;
   breakTime(t, tm);
 
-  printf(F0("%02d/%02d/%d %2d:%02d:%02d\n"),
+  printf(F0("%02d/%02d/%d %2d:%02d:%02d"),
 	 tm.Month, tm.Day, tmYearToCalendar(tm.Year),
 	 tm.Hour, tm.Minute, tm.Second);
+  if (flag)
+   printf(F0("\n"));
  }
 }
 
