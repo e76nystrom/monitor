@@ -277,4 +277,14 @@ extern DeviceAddress tempDev[TEMPDEVS];
 #define dbg2Set() DBG2_Port |= DBG2_Mask
 #define dbg2Clr() DBG2_Port &= ~DBG2_Mask
 
+#define DBG3_Pin 14
+#define DBG3_Port PORTC
+#define DBG3_DDR DDRC
+#define DBG3_In PINC
+#define DBG3_Bit PC0
+#define DBG3_Mask _BV(DBG3_Bit)
+#define dbg3Read() ((DBG3_Port & DBG3_Mask) != 0)
+#define dbg3Set() DBG3_Port |= DBG3_Mask
+#define dbg3Clr() DBG3_Port &= ~DBG3_Mask
+
 #endif	/* ARDUINO_AVR_PRO */

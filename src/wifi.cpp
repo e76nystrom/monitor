@@ -985,13 +985,19 @@ void wifiPut(char *s, int size)
    if (wifiAvail())
    {
     ch = wifiGetc();
-    *rsp++ = ch;
-    rspLen++;
+    if (rspLen < RSPLEN)
+    {
+     *rsp++ = ch;
+     rspLen++;
+    }
+    else
+     dbg3Set();
     dbgChar(ch);
    }
   }
   ch = *s++;
   wifiPutc(ch);
+  dbg3Clr();
  }
 }
 
@@ -1014,12 +1020,18 @@ void wifiPut(const __FlashStringHelper *s, int size)
    if (wifiAvail())
    {
     ch = wifiGetc();
-    *rsp++ = ch;
-    rspLen++;
+    if (rspLen < RSPLEN)
+    {
+     *rsp++ = ch;
+     rspLen++;
+    }
+    else
+     dbg3Set();
     dbgChar(ch);
    }
   }
   wifiPutc(pgm_read_byte(p++));
+  dbg3Clr();
  }
 }
 
@@ -1038,12 +1050,18 @@ void wifiTerm()
    if (wifiAvail())
    {
     char ch = wifiGetc();
-    *rsp++ = ch;
-    rspLen++;
+    if (rspLen < RSPLEN)
+    {
+     *rsp++ = ch;
+     rspLen++;
+    }
+    else
+     dbg3Set();
     dbgChar(ch);
    }
   }
   wifiPutc(c);
+  dbg3Clr();
  }
 }
 
@@ -1075,6 +1093,8 @@ char wifiWrite(char *s, int size, unsigned int timeout)
     *rsp++ = ch;
     rspLen++;
    }
+   else
+    dbg3Set();
    dbgChar(ch);
    if ((last == 'O') && (ch == 'K'))
    {
@@ -1086,6 +1106,7 @@ char wifiWrite(char *s, int size, unsigned int timeout)
   }
  }
  *rsp++ = 0;
+ dbg3Clr();
  return(result);
 }
 
@@ -1119,6 +1140,8 @@ char wifiWrite(const __FlashStringHelper *s, int size, unsigned int timeout)
     *rsp++ = ch;
     rspLen++;
    }
+   else
+    dbg3Set();
    dbgChar(ch);
    if (result)
    {
@@ -1137,6 +1160,7 @@ char wifiWrite(const __FlashStringHelper *s, int size, unsigned int timeout)
   }
  }
  *rsp++ = 0;
+ dbg3Clr();
  return(result);
 }
 
@@ -1273,8 +1297,11 @@ void wifiWriteData(char *s, int size, unsigned int timeout)
      }
     }
    }
+   else
+    dbg3Set();
   }
  }
+ dbg3Clr();
 }
 
 #define dbg0 0			/* print received characters */
@@ -1443,9 +1470,12 @@ char *wifiWriteTCPx(char *s, int size,
      }
     } /* if (rspLen >= size) message echo */
    } /* if (len <= rspLen) buffer not full*/
+   else
+    dbg3Set();
   } /* if (wifiAvail()) */
  } /*  while ((millis() - start) < timeout) not timed out */
  dbg2Clr();
+ dbg3Clr();
  return(p);
 }
 
@@ -1478,8 +1508,11 @@ void wifiClose(int chan, unsigned int timeout)
      }
     }
    }
+   else
+    dbg3Set();
   }
  }
+ dbg3Clr();
 }
 
 #endif	/* __WIFI__ */

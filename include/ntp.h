@@ -23,6 +23,7 @@ typedef struct
 
 void printTime();
 void printTime(time_t t);
+void printTime(time_t t, bool flag);
 char ntpSetTime();
 
 EXT unsigned long ntpStart;	/* reference for time compare */

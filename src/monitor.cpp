@@ -630,14 +630,22 @@ void setup()
 
 #if DBG0_Pin
  pinMode(DBG0_Pin, OUTPUT);
+ dbg0Clr();
 #endif /* DBG0_Pin */
 
 #if DBG1_Pin
  pinMode(DBG1_Pin, OUTPUT);
+ dbg1Clr();
 #endif /* DBG1_Pin */
 
 #if DBG2_Pin
  pinMode(DBG2_Pin, OUTPUT);
+ dbg2Clr();
+#endif /* DBG2_Pin */
+
+#if DBG3_Pin
+ pinMode(DBG3_Pin, OUTPUT);
+ dbg3Clr();
 #endif /* DBG2_Pin */
 
 #if WATER_MONITOR
@@ -2221,12 +2229,13 @@ ISR(ADC_vect)
    }
   }
  }
- else				/* if calibrating voltage  */
+ else				/* calibrate voltage and process data */
  {
   long result = ADCL;
   result |= ADCH << 8;
   result = READVCC_CALIBRATION_CONST / result;
   vcc = (int) result;		/* save result */
+
   p->iRatio = p->iCal * ((result / 1000.0) / (ADC_COUNTS));
   p->iRms = p->iRatio * sqrt(p->sumI / SAMPLES);
   if (p->iTime == 0)		/* if previous reading sent */
