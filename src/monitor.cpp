@@ -563,22 +563,42 @@ uint16_t intMillis()
 
 #endif	/* ARDUINO_ARCH_STM32 */
 
+extern "C" long int getPC();
+typedef struct
+{
+ union
+ {
+  struct
+  {
+   unsigned int val;
+  };
+  struct
+  {
+   unsigned char b[4];
+  };
+ };
+} T_BYTE_LONG;
+
+void infiniteLoop();
+
 /* setup routine */
 
 void setup()
 {
  char ch;
 
- memset(stringBuffer, 0, sizeof(stringBuffer));
- memset(dataBuffer, 0, sizeof(dataBuffer));
- memset(cmdBuffer, 0, sizeof(cmdBuffer));
- memset(packetRsp, 0, sizeof(packetRsp));
-
 #if defined(ARDUINO_ARCH_AVR)
 
+//#if defined(ARDUINO_AVF_PRO)
  wdt_enable(WDT_TO);
+//#endif	/* ARDUINO_AVR_PRO */
 
 #if defined(ARDUINO_AVR_MEGA2560)
+ noInterrupts();
+ WDTCSR = _BV(WDCE) | _BV(WDE);
+ WDTCSR = _BV(WDE) | _BV(WDIE) | _BV(WDP3) | _BV(WDP2) | _BV(WDP1) | _BV(WDP0);
+ interrupts();
+
  DBGPORT.begin(19200);
 #endif	/* ARDUINO_AVR_MEGA2560 */
 
@@ -595,9 +615,6 @@ void setup()
  stdout = &uartout;
 #endif
 
- int len = (int) SP - 16 - (int) &__bss_end;
- memset((void *) (&__bss_end), 0, len);
-
 #endif  /* ARDUINO_ARCH_AVR */
 
 #if defined(ARDUINO_ARCH_STM32)
@@ -605,17 +622,57 @@ void setup()
  DBGPORT.begin(19200);
 #endif	/* ARDUINO_ARCH_STM32 */
 
+#define addr(x) (2 * (unsigned int) &x)
+ 
  if (DBG)
  {
 #if defined(ARDUINO_ARCH_AVR)
-  printf(F3("\nstarting mcusr %x\n"), MCUSR);
-  MCUSR = 0;
-  printf(F3("mcusr %x wdtcsr %02x\n"), MCUSR, WDTCSR);
+  printf(F3("\nmcusr %x wdtcsr %02x\n"), MCUSR, WDTCSR);
   checkBuffers();
+  printf("setup %04x loop %04x cmdLoop %04x\n",
+	 addr(setup), addr(loop), addr(cmdLoop));
 #else
   printf("\nstarting 0\n");
 #endif	/* ARDUINO_ARCH_AVR */
  }
+
+#if defined(ARDUINO_AVR_MEGA2560)
+ if (MCUSR & _BV(WDRF))
+ {
+  MCUSR = 0;
+  printf("\n");
+  unsigned char *p = &__bss_end;
+  printf("wdt pc %lx\n", 2 * (*(unsigned long int *) (p + 2)));
+  char col = 0;
+  for (int i = 0; i < (64 + 8); i++)
+  {
+   if (col == 0)
+    printf("%04x ", (unsigned int) p);
+   printf("%02x ", *p++);
+   col += 1;
+   if (col == 16)
+   {
+    col = 0;
+    printf("\n");
+   }
+  }
+  if (col != 0)
+   printf("\n");
+  printf("\n");
+ }
+#endif	/* ARDUINO_AVR_MEGA2560 */
+
+#if defined(ARDUINO_ARCH_AVR)
+ MCUSR = 0;
+#endif	/* ARDUINO_ARCH_AVR */
+
+ memset(stringBuffer, 0, sizeof(stringBuffer));
+ memset(dataBuffer, 0, sizeof(dataBuffer));
+ memset(cmdBuffer, 0, sizeof(cmdBuffer));
+ memset(packetRsp, 0, sizeof(packetRsp));
+
+ int len = (int) SP - 16 - (int) &__bss_end;
+ memset((void *) (&__bss_end), 0, len);
 
 #if defined(LCD_ENA)
  while (lcd.begin(COLUMS, ROWS, LCD_5x8DOTS) != 1)
@@ -1064,8 +1121,16 @@ void cmdLoop()
    else if (ch == 'W')		/* arduino test watchdog timer */
    {
     printf(F3("test watchdog timer\n"));
+
     wdt_enable(WDT_TO);
-    printf(F3("mcuusr %02x wdtcsr %02x\n"), MCUSR, WDTCSR);
+    noInterrupts();
+    WDTCSR = _BV(WDCE) | _BV(WDE);
+    WDTCSR = _BV(WDE) | _BV(WDIE) | _BV(WDP2) | _BV(WDP1) | _BV(WDP0);
+    interrupts();
+
+    printf(F3("mcuusr %02x wdtcsr %02x PC %06lx\n"), MCUSR, WDTCSR, 2 * getPC());
+    DBGPORT.flush();
+    dbg2Set();
     while (1)
      ;
    }
@@ -2053,6 +2118,28 @@ void findAddresses(void)
 #endif  /* TEMP_SENSOR */
 
 #if CURRENT_SENSOR
+
+#include <avr/io.h>
+
+ISR(WDT_vect)
+{
+ dbg2Clr();
+ char *src = (char *) SP;
+  char *dst = (char *) &__bss_end;
+ *dst++ = 0x55;
+ *dst++ = 0xAA;
+ *dst++ = *(src + 14);
+ *dst++ = *(src + 13);
+ *dst++ = *(src + 12);
+ *dst++ = 0;
+ for (int i = 0; i < 64; i++)
+  *dst++ = *src++;
+ *dst++ = 0xAA;
+ *dst++ = 0x55;
+ WDTCSR = _BV(WDCE) | _BV(WDE);
+ WDTCSR = _BV(WDE);
+ dbg3Set();
+}
 
 void initCurrent(char isr)
 {
