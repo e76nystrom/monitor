@@ -1426,6 +1426,7 @@ void loop()
   DBGPORT.print('>');
   char ch = DBGPORT.read();
   DBGPORT.print(ch);
+  DBGPORT.flush();
   if (ch == 'C')
   {
    while (DBGPORT.available())
@@ -2141,17 +2142,53 @@ void findAddresses(void)
 
 #include <avr/io.h>
 
+void putx0(char c)
+{
+ while ((UCSR0A & _BV(UDRE0)) == 0)
+  wdt_reset();
+ UDR0 = c;
+}
+
+void sndhex(unsigned char *p, int size)
+{
+ char tmp;
+ char ch;
+
+ p += size;
+ while (size != 0)
+ {
+  --size;
+  p--;
+  tmp = *p;
+  ch = tmp;
+  ch >>= 4;
+  ch &= 0xf;
+  if (ch < 10)
+   ch += '0';
+  else
+   ch += 'a' - 10;
+  putx0(ch);
+
+  tmp &= 0xf;
+  if (tmp < 10)
+   tmp += '0';
+  else
+   tmp += 'a' - 10;
+  putx0(tmp);
+ }
+}
+
 ISR(WDT_vect)
 {
  dbg2Clr();
- char *src = (char *) SP;
- char *dst = (char *) &__bss_end;
+ unsigned char *src = (unsigned char *) SP;
+ unsigned char *dst = (unsigned char *) &__bss_end;
  *dst++ = 0x55;
  *dst++ = 0xAA;
 #if defined(ARDUINO_AVR_MEGA2560)
- *dst++ = *(src + 14);
- *dst++ = *(src + 13);
- *dst++ = *(src + 12);
+ *dst++ = *(src + 26);
+ *dst++ = *(src + 25);
+ *dst++ = *(src + 24);
  *dst++ = 0;
 #endif	/* ARDUINO_AVR_MEGA2560 */
 #if defined(ARDUINO_AVR_PRO)
@@ -2162,9 +2199,40 @@ ISR(WDT_vect)
   *dst++ = *src++;
  *dst++ = 0xAA;
  *dst++ = 0x55;
- WDTCSR = _BV(WDCE) | _BV(WDE);
- WDTCSR = _BV(WDE);
+
+ UCSR0B &= ~(_BV(RXCIE0) | _BV(RXCIE0) | _BV(UDRIE0) | _BV(RXEN0));
+ UCSR0B |= _BV(TXEN0);
+
+ dst = (unsigned char *) &__bss_end;
+ char col = 0;
+ for (int i = 0; i < (64 + 8); i++)
+ {
+  if (col == 0)
+  {
+   sndhex((unsigned char *) &dst, 2);
+  }
+  putx0(' ');
+  sndhex(dst, 1);
+  dst += 1;
+  col += 1;
+  if (col == 16)
+  {
+   col = 0;
+   putx0('\n');
+   putx0('\r');
+  }
+ }
+ if (col != 0)
+ {
+  putx0('\n');
+  putx0('\r');
+ }
+
+ //WDTCSR = _BV(WDCE) | _BV(WDE);
+ //WDTCSR = _BV(WDE);
  dbg3Set();
+ //while (1)
+//  ;
 }
 
 void initCurrent(char isr)
