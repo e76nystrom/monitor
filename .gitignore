@@ -5,6 +5,7 @@
 *.json
 *.log
 *.lst
+*.txt
 *.meta
 *.MYD
 *.php

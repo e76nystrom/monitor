@@ -563,23 +563,36 @@ uint16_t intMillis()
 
 #endif	/* ARDUINO_ARCH_STM32 */
 
-extern "C" long int getPC();
-typedef struct
+#if defined(ARDUINO_AVR_MEGA2560)
+extern "C" unsigned long int getPC(void);
+#if 0
 {
- union
- {
-  struct
-  {
-   unsigned int val;
-  };
-  struct
-  {
-   unsigned char b[4];
-  };
- };
-} T_BYTE_LONG;
+ asm (
+  "clr 25\n\t"
+  "pop r24\n\t"
+  "pop r23\n\t"
+  "pop r22\n\t"
+  "push r22\n\t"
+  "push r23\n\t"
+  "push r25\n"
+  );
+}
+#endif
+#endif	/* ARDUINO_ARCH_MEGA */
 
-void infiniteLoop();
+#if defined(ARDUINO_AVR_PRO)
+extern "C" int getPC(void);
+#if 0
+{
+ asm (
+  "pop r25\n\t"
+  "pop r24\n\t"
+  "push r24\n\t"
+  "push r25\n"
+  );
+#endif
+}
+#endif	/* ARDUINO_ARCH_PRO */
 
 /* setup routine */
 
@@ -631,18 +644,18 @@ void setup()
   checkBuffers();
   printf("setup %04x loop %04x cmdLoop %04x\n",
 	 addr(setup), addr(loop), addr(cmdLoop));
-#else
-  printf("\nstarting 0\n");
-#endif	/* ARDUINO_ARCH_AVR */
- }
 
-#if defined(ARDUINO_AVR_MEGA2560)
  if (MCUSR & _BV(WDRF))
  {
   MCUSR = 0;
   printf("\n");
   unsigned char *p = &__bss_end;
-  printf("wdt pc %lx\n", 2 * (*(unsigned long int *) (p + 2)));
+#if defined(ARDUINO_AVR_MEGA2560)
+  printf("wdt pc %06lx\n", 2 * (*(unsigned long int *) (p + 2)));
+#endif	/* ARDUINO_AVR_MEGA */
+#if defined(ARDUINO_AVR_PRO)
+  printf("wdt pc %04x\n", 2 * (*(unsigned int *) (p + 2)));
+#endif	/* ARDUINO_AVR_PRO */
   char col = 0;
   for (int i = 0; i < (64 + 8); i++)
   {
@@ -660,11 +673,12 @@ void setup()
    printf("\n");
   printf("\n");
  }
-#endif	/* ARDUINO_AVR_MEGA2560 */
 
-#if defined(ARDUINO_ARCH_AVR)
  MCUSR = 0;
+#else
+  printf("\nstarting 0\n");
 #endif	/* ARDUINO_ARCH_AVR */
+ }
 
  memset(stringBuffer, 0, sizeof(stringBuffer));
  memset(dataBuffer, 0, sizeof(dataBuffer));
@@ -1128,7 +1142,13 @@ void cmdLoop()
     WDTCSR = _BV(WDE) | _BV(WDIE) | _BV(WDP2) | _BV(WDP1) | _BV(WDP0);
     interrupts();
 
-    printf(F3("mcuusr %02x wdtcsr %02x PC %06lx\n"), MCUSR, WDTCSR, 2 * getPC());
+    printf(F3("mcuusr %02x wdtcsr %02x "), MCUSR, WDTCSR);
+#if defined(ARDUINO_AVR_MEGA2560)
+    printf(F3("PC %06lx\n"), 2 * getPC());
+#endif	/* ARDUINO_AVR_MEGA2560 */
+#if defined(ARDUINO_AVR_PRO)
+    printf(F3("PC %04x\n"), 2 * getPC());
+#endif	/* ARDUINO_AVR_PRO */
     DBGPORT.flush();
     dbg2Set();
     while (1)
@@ -2125,13 +2145,19 @@ ISR(WDT_vect)
 {
  dbg2Clr();
  char *src = (char *) SP;
-  char *dst = (char *) &__bss_end;
+ char *dst = (char *) &__bss_end;
  *dst++ = 0x55;
  *dst++ = 0xAA;
+#if defined(ARDUINO_AVR_MEGA2560)
  *dst++ = *(src + 14);
  *dst++ = *(src + 13);
  *dst++ = *(src + 12);
  *dst++ = 0;
+#endif	/* ARDUINO_AVR_MEGA2560 */
+#if defined(ARDUINO_AVR_PRO)
+ *dst++ = *(src + 12);
+ *dst++ = *(src + 11);
+#endif	/* ARDUINO_AVR_PRO */
  for (int i = 0; i < 64; i++)
   *dst++ = *src++;
  *dst++ = 0xAA;

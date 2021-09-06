@@ -192,10 +192,10 @@ extern DeviceAddress tempDev[TEMPDEVS];
 #define dbg1Clr() DBG1_Port &= ~DBG1_Mask
 
 #define DBG2_Pin 9
-#define DBG2_Port PORTB
-#define DBG2_DDR DDRB
-#define DBG2_In PINB
-#define DBG2_Bit PB1
+#define DBG2_Port PORTH
+#define DBG2_DDR DDRH
+#define DBG2_In PINH
+#define DBG2_Bit PH6
 #define DBG2_Mask _BV(DBG2_Bit)
 #define dbg2Read() ((DBG2_Port & DBG2_Mask) != 0)
 #define dbg2Set() DBG2_Port |= DBG2_Mask
