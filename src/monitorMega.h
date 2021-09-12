@@ -171,45 +171,85 @@ extern DeviceAddress tempDev[TEMPDEVS];
 
 #if 1
 
-#define DBG0_Pin 7
-#define DBG0_Port PORTD
-#define DBG0_DDR DDRD
-#define DBG0_In PIND
-#define DBG0_Bit PD7
+#define DBG0_Pin 22
+#define DBG0_Port PORTA
+#define DBG0_DDR DDRA
+#define DBG0_In PINa
+#define DBG0_Bit PA0
 #define DBG0_Mask _BV(DBG0_Bit)
 #define dbg0Read() ((DBG0_Port & DBG0_Mask) != 0)
 #define dbg0Set() DBG0_Port |= DBG0_Mask
 #define dbg0Clr() DBG0_Port &= ~DBG0_Mask
 
-#define DBG1_Pin 8
-#define DBG1_Port PORTB
-#define DBG1_DDR DDRB
-#define DBG1_In PINB
-#define DBG1_Bit PB0
+#define DBG1_Pin 23
+#define DBG1_Port PORTA
+#define DBG1_DDR DDRA
+#define DBG1_In PINA
+#define DBG1_Bit PA1
 #define DBG1_Mask _BV(DBG1_Bit)
 #define dbg1Read() ((DBG1_Port & DBG1_Mask) != 0)
 #define dbg1Set() DBG1_Port |= DBG1_Mask
 #define dbg1Clr() DBG1_Port &= ~DBG1_Mask
 
-#define DBG2_Pin 9
-#define DBG2_Port PORTH
-#define DBG2_DDR DDRH
-#define DBG2_In PINH
-#define DBG2_Bit PH6
+#define DBG2_Pin 24
+#define DBG2_Port PORTA
+#define DBG2_DDR DDRA
+#define DBG2_In PINA
+#define DBG2_Bit PA2
 #define DBG2_Mask _BV(DBG2_Bit)
 #define dbg2Read() ((DBG2_Port & DBG2_Mask) != 0)
 #define dbg2Set() DBG2_Port |= DBG2_Mask
 #define dbg2Clr() DBG2_Port &= ~DBG2_Mask
 
-#define DBG3_Pin 10
-#define DBG3_Port PORTB
-#define DBG3_DDR DDRB
-#define DBG3_In PINB
-#define DBG3_Bit PB4
+#define DBG3_Pin 25
+#define DBG3_Port PORTA
+#define DBG3_DDR DDRA
+#define DBG3_In PINA
+#define DBG3_Bit PA3
 #define DBG3_Mask _BV(DBG3_Bit)
 #define dbg3Read() ((DBG3_Port & DBG3_Mask) != 0)
 #define dbg3Set() DBG3_Port |= DBG3_Mask
 #define dbg3Clr() DBG3_Port &= ~DBG3_Mask
+
+#define DBG4_Pin 26
+#define DBG4_Port PORTA
+#define DBG4_DDR DDRA
+#define DBG4_In PINA
+#define DBG4_Bit PA4
+#define DBG4_Mask _BV(DBG4_Bit)
+#define dbg4Read() ((DBG4_Port & DBG4_Mask) != 0)
+#define dbg4Set() DBG4_Port |= DBG4_Mask
+#define dbg4Clr() DBG4_Port &= ~DBG4_Mask
+
+#define DBG5_Pin 27
+#define DBG5_Port PORTA
+#define DBG5_DDR DDRA
+#define DBG5_In PINA
+#define DBG5_Bit PA5
+#define DBG5_Mask _BV(DBG5_Bit)
+#define dbg5Read() ((DBG5_Port & DBG5_Mask) != 0)
+#define dbg5Set() DBG5_Port |= DBG5_Mask
+#define dbg5Clr() DBG5_Port &= ~DBG5_Mask
+
+#define DBG6_Pin 28
+#define DBG6_Port PORTA
+#define DBG6_DDR DDRA
+#define DBG6_In PINA
+#define DBG6_Bit PA6
+#define DBG6_Mask _BV(DBG6_Bit)
+#define dbg6Read() ((DBG6_Port & DBG6_Mask) != 0)
+#define dbg6Set() DBG6_Port |= DBG6_Mask
+#define dbg6Clr() DBG6_Port &= ~DBG6_Mask
+
+#define DBG7_Pin 29
+#define DBG7_Port PORTA
+#define DBG7_DDR DDRA
+#define DBG7_In PINA
+#define DBG7_Bit PA7
+#define DBG7_Mask _BV(DBG7_Bit)
+#define dbg7Read() ((DBG7_Port & DBG7_Mask) != 0)
+#define dbg7Set() DBG7_Port |= DBG7_Mask
+#define dbg7Clr() DBG7_Port &= ~DBG7_Mask
 
 #else
 #define dbg2Set()
