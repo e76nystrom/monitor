@@ -179,6 +179,15 @@ int dehumDelay;			/* on or off delay counter */
 
 extern unsigned char __bss_end;
 
+typedef struct dbgInfo
+{
+ char adcFlag;
+ char rsv0;
+ int adcIsrCount;
+} T_DBG_INFO, *P_DBG_INFO;
+
+#define DBG_INFO ((P_DBG_INFO) (&__bss_end))
+
 #if ESP8266_TIME
 char esp8266TimeEnable();
 char esp8266Time();
@@ -535,12 +544,13 @@ void checkBuffers()
 
 #if !defined(PRINT_STACK) | (PRINT_STACK == 0)
     unsigned int len = SP - (int) &__bss_end;
-    unsigned char *p = (unsigned char *) &__bss_end;
+    unsigned char *p = ((unsigned char *) &__bss_end) + sizeof(T_DBG_INFO);
     for (unsigned int i = 0; i < len; i++)
     {
      if (*p != 0)
      {
-      printf(F3("unused stack %d\n"), (int) (p - &__bss_end));
+      printf(F3("unused stack %d\n"),
+	     (int) (p - (&__bss_end + sizeof(T_DBG_INFO))));
       break;
      }
      p += 1;
@@ -564,8 +574,10 @@ uint16_t intMillis()
 #endif	/* ARDUINO_ARCH_STM32 */
 
 #if defined(ARDUINO_AVR_MEGA2560)
+#if !defined(VMICRO)
 extern "C" unsigned long int getPC(void);
-#if 0
+#else
+unsigned long int getPC(void)
 {
  asm (
   "clr 25\n\t"
@@ -576,6 +588,7 @@ extern "C" unsigned long int getPC(void);
   "push r23\n\t"
   "push r25\n"
   );
+ return(0);
 }
 #endif
 #endif	/* ARDUINO_ARCH_MEGA */
@@ -590,8 +603,8 @@ extern "C" int getPC(void);
   "push r24\n\t"
   "push r25\n"
   );
-#endif
 }
+#endif
 #endif	/* ARDUINO_ARCH_PRO */
 
 /* setup routine */
@@ -651,13 +664,15 @@ void setup()
   printf("\n");
   unsigned char *p = &__bss_end;
 #if defined(ARDUINO_AVR_MEGA2560)
-  printf("wdt pc %06lx\n", 2 * (*(unsigned long int *) (p + 2)));
+  printf("wdt pc %06lx\n",
+	 2 * (*(unsigned long int *) (p + 2 + sizeof(T_DBG_INFO))));
 #endif	/* ARDUINO_AVR_MEGA */
 #if defined(ARDUINO_AVR_PRO)
-  printf("wdt pc %04x\n", 2 * (*(unsigned int *) (p + 2)));
+  printf("wdt pc %04x\n",
+	 2 * (*(unsigned int *) (p + 2 + SIZEOF(T_DBG_INFO))));
 #endif	/* ARDUINO_AVR_PRO */
   char col = 0;
-  for (int i = 0; i < (64 + 8); i++)
+  for (unsigned int i = 0; i < (64 + 8 + sizeof(T_DBG_INFO)); i++)
   {
    if (col == 0)
     printf("%04x ", (unsigned int) p);
@@ -717,7 +732,27 @@ void setup()
 #if DBG3_Pin
  pinMode(DBG3_Pin, OUTPUT);
  dbg3Clr();
-#endif /* DBG2_Pin */
+#endif /* DBG3_Pin */
+
+#if DBG4_Pin
+ pinMode(DBG4_Pin, OUTPUT);
+ dbg4Clr();
+#endif /* DBG4_Pin */
+
+#if DBG5_Pin
+ pinMode(DBG5_Pin, OUTPUT);
+ dbg5Clr();
+#endif /* DBG5_Pin */
+
+#if DBG6_Pin
+ pinMode(DBG6_Pin, OUTPUT);
+ dbg6Clr();
+#endif /* DBG6_Pin */
+
+#if DBG7_Pin
+ pinMode(DBG7_Pin, OUTPUT);
+ dbg7Clr();
+#endif /* DBG7_Pin */
 
 #if WATER_MONITOR
  pinMode(LED, OUTPUT);
@@ -991,7 +1026,7 @@ void setTime()
 
  if ((millis() - ntpStart) > ntpTimeout)
  {
-  char status;
+  char status = 0;
 
 #if defined(WIFI_ENA)
 #if (ESP8266_TIME == 0)
@@ -1416,32 +1451,40 @@ void cmdLoop()
  }
 #if defined(ARDUINO_ARCH_AVR)
  wdt_enable(WDT_TO);
+
+#if defined(ARDUINO_AVR_MEGA2560)
+ noInterrupts();
+ WDTCSR = _BV(WDCE) | _BV(WDE);
+ WDTCSR = _BV(WDE) | _BV(WDIE) | _BV(WDP3) | _BV(WDP2) | _BV(WDP1) | _BV(WDP0);
+ interrupts();
+#endif	/* ARDUINO_AVR_MEGA2560 */
+
 #endif /* ARDUINO_ARCH_AVR */
 } /* end cmdloop */
 
 void loop()
 {
- if (DBGPORT.available())
- {
-  DBGPORT.print('>');
-  char ch = DBGPORT.read();
-  DBGPORT.print(ch);
-  DBGPORT.flush();
-  if (ch == 'C')
-  {
-   while (DBGPORT.available())
-    ch = DBGPORT.read();
-   newLine();
-   
-   cmdLoop();
-  }
-  newLine();
- }
- 
  unsigned int tPrev = intMillis(); /* init time for short interval */
  while (1)			/* wait for end of interval */
  {
   wdt_reset();
+  if (DBGPORT.available())
+  {
+   DBGPORT.print('>');
+   char ch = DBGPORT.read();
+   DBGPORT.print(ch);
+   DBGPORT.flush();
+   if (ch == 'C')
+   {
+    while (DBGPORT.available())
+     ch = DBGPORT.read();
+    newLine();
+   
+    cmdLoop();
+   }
+   newLine();
+  }
+ 
   unsigned int t0 = intMillis(); /* read time */
   if ((unsigned int) (t0 - tLast) > TINTERVAL) /* if long interval up */
   {
@@ -1470,7 +1513,8 @@ void loop()
 #if defined(CURRENT_STM32)
   powerUpdate();
 #endif	/* CURRENT_STM32 */
- }
+
+ } /* short interval */
 
  printf(F3("%d "), loopCount);
  printTime();
@@ -1514,10 +1558,13 @@ void loop()
  if (loopCount >= LOOP_MAX)	/* if at maximum */
  {
 #if defined(ARDUINO_ARCH_AVR)
+  printf("isrCount %d\n", DBG_INFO->adcIsrCount);
+  DBG_INFO->adcIsrCount = 0;
   checkBuffers();
 #endif	/* ARDUINO_ARCH_AVR */
   loopCount = 0;		/* reset to beginning */
  }
+
 } /* *end loop */
 
 #if DEHUMIDIFIER
@@ -1781,9 +1828,7 @@ char sendHTTP(char *data)
       return(1);
      }
     }
-    dbg1Set();
     printf(F0("*ok* not found p %08x retry %d\n"), (unsigned int) p, retry);
-    dbg1Clr();
     printBuf();
     printf(F3("**sendHTTP retry %d\n"), retry);
    }
@@ -2182,7 +2227,7 @@ ISR(WDT_vect)
 {
  dbg2Clr();
  unsigned char *src = (unsigned char *) SP;
- unsigned char *dst = (unsigned char *) &__bss_end;
+ unsigned char *dst = ((unsigned char *) &__bss_end) + sizeof(T_DBG_INFO);
  *dst++ = 0x55;
  *dst++ = 0xAA;
 #if defined(ARDUINO_AVR_MEGA2560)
@@ -2205,7 +2250,7 @@ ISR(WDT_vect)
 
  dst = (unsigned char *) &__bss_end;
  char col = 0;
- for (int i = 0; i < (64 + 8); i++)
+ for (unsigned int i = 0; i < (64 + 8 + sizeof(T_DBG_INFO)); i++)
  {
   if (col == 0)
   {
@@ -2382,8 +2427,11 @@ void timer3()
 
 ISR(ADC_vect)
 {
- PORTH |= _BV(PH5);
+ dbg5Set();
 
+ DBG_INFO->adcFlag = 1;
+ DBG_INFO->adcIsrCount += 1;
+ 
  P_CURRENT p = &iData[iChan];
  if (adcState == 0)		/* if sampling data */
  {
@@ -2406,7 +2454,7 @@ ISR(ADC_vect)
     ADMUX = _BV(REFS0) | _BV(MUX4) | _BV(MUX3) | _BV(MUX2) | _BV(MUX1);
     ADCSRB = 0;
     adcState = 1;		/* set state to calibrate voltage */
-    PORTH |= _BV(PH6);
+    dbg6Set();
    }
   }
  }
@@ -2434,10 +2482,11 @@ ISR(ADC_vect)
   if (iChan >= ADCCHANS)	/* if at end */
    iChan = 0;			/* back to channel zero */
   sampleCount = SAMPLES;	/* set number of samples */
-  PORTH &= ~_BV(PH6);
+  dbg6Clr();
  }
- 
- PORTH &= ~_BV(PH5);
+
+ DBG_INFO->adcFlag = 0;
+ dbg5Clr();
 }
 
 #if 0
