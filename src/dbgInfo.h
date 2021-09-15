@@ -7,7 +7,7 @@ typedef struct dbgInfo
  char adcFlag;
  char rsv0;
  int adcIsrCount;
- int i;
+ unsigned int i;
  unsigned int trace[TRACE_SIZE];
 } T_DBG_INFO, *P_DBG_INFO;
 

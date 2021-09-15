@@ -617,31 +617,34 @@ void setup()
 
   if (DBG_INFO->trace[0] != 0)
   {
-   int index = DBG_INFO->i;
-   char col = 0;
-   int count = 0;
-   for (int i = 0; i < TRACE_SIZE; i++)
+   unsigned int index = DBG_INFO->i;
+   if (index < TRACE_SIZE)
    {
-    if (col == 0)
-     printf(F3("%02x  "), count);
-    unsigned int pc = DBG_INFO->trace[index] * 2;
-    index += 1;
-    if (index >= TRACE_SIZE)
-     index = 0;
-    if (pc != 0)
+    char col = 0;
+    int count = 0;
+    for (int i = 0; i < TRACE_SIZE; i++)
     {
-     printf(F3("%04x "), pc);
-     col += 1;
-     count += 1;
-     if (col == 16)
+     if (col == 0)
+      printf(F3("%02x  "), count);
+     unsigned int pc = DBG_INFO->trace[index] * 2;
+     index += 1;
+     if (index >= TRACE_SIZE)
+      index = 0;
+     if (pc != 0)
      {
-      col = 0;
-      newLine();
+      printf(F3("%04x "), pc);
+      col += 1;
+      count += 1;
+      if (col == 16)
+      {
+       col = 0;
+       newLine();
+      }
      }
     }
+    if (col != 0)
+     newLine();
    }
-   if (col != 0)
-    newLine();
   }
 
   if (MCUSR & _BV(WDRF))
