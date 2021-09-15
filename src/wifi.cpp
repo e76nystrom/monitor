@@ -36,6 +36,7 @@
 #endif	/* WIN32 */
 
 #include "monitor.h"
+#include "dbgInfo.h"
 
 #include "wdt.h"
 
@@ -165,6 +166,7 @@ void sioPutc(char c);
 #define getChar(ch) ch = _getch()
 
 #include "stdint.h"
+#include "dbgInfo.h"
 
 #if !INCLUDE
 #include "Windows.h"
@@ -1313,6 +1315,7 @@ void wifiWriteData(char *s, int size, unsigned int timeout)
 char *wifiWriteTCPx(char *s, int size, 
 		    int *dataLen, unsigned int timeout)
 {
+ trace();
  wifiClrRx();
  if (DBG)
   printf(F0("Sending %d\n"), size);

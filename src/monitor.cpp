@@ -177,16 +177,7 @@ int dehumDelay;			/* on or off delay counter */
 #define INITEE 1		/* init eeprom values on boot */
 #define LOCAL 0			/* use local server */
 
-extern unsigned char __bss_end;
-
-typedef struct dbgInfo
-{
- char adcFlag;
- char rsv0;
- int adcIsrCount;
-} T_DBG_INFO, *P_DBG_INFO;
-
-#define DBG_INFO ((P_DBG_INFO) (&__bss_end))
+#include "dbgInfo.h"
 
 #if ESP8266_TIME
 char esp8266TimeEnable();
@@ -490,7 +481,7 @@ char updateEE(const char *prompt, char eeLoc, char eeLen)
  return(0);
 }
 
-void dumpBuf(char *p, unsigned int len)
+void dumpBuf(unsigned char *p, unsigned int len)
 {
 #define MAX_COL 16
  char col = 0;
@@ -513,10 +504,10 @@ void dumpBuf(char *p, unsigned int len)
   newLine();
 }
 
-void bufferCheck(const char *name, char *buf, int size)
+void bufferCheck(const char *name, unsigned char *buf, int size)
 {
  int val = size;
- char *p = buf + size;
+ unsigned char *p = buf + size;
  for (int i = 0; i < size; i++)
  {
   if (*--p != 0)
@@ -537,10 +528,10 @@ void checkBuffers()
 	RAMEND, SP, &__bss_end, SP - (int) (&__bss_end),
 	RAMEND - (int) (&__bss_end));
 
- bufferCheck(F0("string"), stringBuffer, sizeof(stringBuffer));
- bufferCheck(F0("data"),   dataBuffer, sizeof(dataBuffer));
- bufferCheck(F0("cmd"),    cmdBuffer, sizeof(cmdBuffer));
- bufferCheck(F0("rsp"),    packetRsp, sizeof(packetRsp));
+ bufferCheck(F0("string"), (unsigned char *) stringBuffer, sizeof(stringBuffer));
+ bufferCheck(F0("data"),   (unsigned char *) dataBuffer, sizeof(dataBuffer));
+ bufferCheck(F0("cmd"),    (unsigned char *) cmdBuffer, sizeof(cmdBuffer));
+ bufferCheck(F0("rsp"),    (unsigned char *) packetRsp, sizeof(packetRsp));
 
 #if !defined(PRINT_STACK) | (PRINT_STACK == 0)
     unsigned int len = SP - (int) &__bss_end;
@@ -572,40 +563,6 @@ uint16_t intMillis()
 }
 
 #endif	/* ARDUINO_ARCH_STM32 */
-
-#if defined(ARDUINO_AVR_MEGA2560)
-#if !defined(VMICRO)
-extern "C" unsigned long int getPC(void);
-#else
-unsigned long int getPC(void)
-{
- asm (
-  "clr 25\n\t"
-  "pop r24\n\t"
-  "pop r23\n\t"
-  "pop r22\n\t"
-  "push r22\n\t"
-  "push r23\n\t"
-  "push r25\n"
-  );
- return(0);
-}
-#endif
-#endif	/* ARDUINO_ARCH_MEGA */
-
-#if defined(ARDUINO_AVR_PRO)
-extern "C" int getPC(void);
-#if 0
-{
- asm (
-  "pop r25\n\t"
-  "pop r24\n\t"
-  "push r24\n\t"
-  "push r25\n"
-  );
-}
-#endif
-#endif	/* ARDUINO_ARCH_PRO */
 
 /* setup routine */
 
@@ -658,40 +615,53 @@ void setup()
   printf("setup %04x loop %04x cmdLoop %04x\n",
 	 addr(setup), addr(loop), addr(cmdLoop));
 
- if (MCUSR & _BV(WDRF))
- {
-  MCUSR = 0;
-  printf("\n");
-  unsigned char *p = &__bss_end;
+  if (DBG_INFO->trace[0] != 0)
+  {
+   int index = DBG_INFO->i;
+   char col = 0;
+   int count = 0;
+   for (int i = 0; i < TRACE_SIZE; i++)
+   {
+    if (col == 0)
+     printf(F3("%02x  "), count);
+    unsigned int pc = DBG_INFO->trace[index] * 2;
+    index += 1;
+    if (index >= TRACE_SIZE)
+     index = 0;
+    if (pc != 0)
+    {
+     printf(F3("%04x "), pc);
+     col += 1;
+     count += 1;
+     if (col == 16)
+     {
+      col = 0;
+      newLine();
+     }
+    }
+   }
+   if (col != 0)
+    newLine();
+  }
+
+  if (MCUSR & _BV(WDRF))
+  {
+   MCUSR = 0;
+   newLine();
+   unsigned char *p = &__bss_end;
 #if defined(ARDUINO_AVR_MEGA2560)
-  printf("wdt pc %06lx\n",
-	 2 * (*(unsigned long int *) (p + 2 + sizeof(T_DBG_INFO))));
+   printf(F3("wdt pc %06lx\n"),
+	  2 * (*(unsigned long int *) (p + 2 + sizeof(T_DBG_INFO))));
 #endif	/* ARDUINO_AVR_MEGA */
 #if defined(ARDUINO_AVR_PRO)
-  printf("wdt pc %04x\n",
-	 2 * (*(unsigned int *) (p + 2 + SIZEOF(T_DBG_INFO))));
+   printf(F3("wdt pc %04x\n"),
+	  2 * (*(unsigned int *) (p + 2 + SIZEOF(T_DBG_INFO))));
 #endif	/* ARDUINO_AVR_PRO */
-  char col = 0;
-  for (unsigned int i = 0; i < (64 + 8 + sizeof(T_DBG_INFO)); i++)
-  {
-   if (col == 0)
-    printf("%04x ", (unsigned int) p);
-   printf("%02x ", *p++);
-   col += 1;
-   if (col == 16)
-   {
-    col = 0;
-    printf("\n");
-   }
+   dumpBuf(p, 64 + 8 + sizeof(T_DBG_INFO));
   }
-  if (col != 0)
-   printf("\n");
-  printf("\n");
- }
 
- MCUSR = 0;
 #else
-  printf("\nstarting 0\n");
+  printf(F3("\nstarting 0\n"));
 #endif	/* ARDUINO_ARCH_AVR */
  }
 
@@ -1019,8 +989,9 @@ void setup()
 
 void setTime()
 {
+ trace();
 #if RTC_CLOCK
- printf("setTime rtc time ");
+ printf(F3("setTime rtc time "));
  printTime(RTC.get());
 #endif	/* RTC_CLOCK */
 
@@ -1055,12 +1026,12 @@ void setTime()
 #if RTC_CLOCK
   else
   {
-   printf("rtc setting time\n");
+   printf(F3("rtc setting time\n"));
    setTime(RTC.get());
    setSyncProvider(RTC.get);	/* set rtc to provide clock time */
   }
 #endif	/* RTC_CLOCK */
-  printf("time set ");
+  printf(F3("time set "));
   printTime();
  }
 }
@@ -1179,7 +1150,7 @@ void cmdLoop()
 
     printf(F3("mcuusr %02x wdtcsr %02x "), MCUSR, WDTCSR);
 #if defined(ARDUINO_AVR_MEGA2560)
-    printf(F3("PC %06lx\n"), 2 * getPC());
+    printf(F3("PC %04x\n"), 2 * getPC());
 #endif	/* ARDUINO_AVR_MEGA2560 */
 #if defined(ARDUINO_AVR_PRO)
     printf(F3("PC %04x\n"), 2 * getPC());
@@ -1199,6 +1170,15 @@ void cmdLoop()
      unsigned char tmp = PORTG;
      PORTG = (char) val;
      printf(F3("\nportg %x %x\n"), tmp, PORTG);
+    }
+   }
+   else if (ch == 'k')		/* mega2560 write to port g */
+   {
+    if (getNum())
+    {
+     unsigned char tmp = PORTK;
+     PORTK = (unsigned char) val;
+     printf(F3("\nddrk %02x portk %02x %02x\n"), DDRK, tmp, PORTK);
     }
    }
 #endif	/* ARDUINO_AVR_MEGA2560 */
@@ -1464,6 +1444,7 @@ void cmdLoop()
 
 void loop()
 {
+ trace();
  unsigned int tPrev = intMillis(); /* init time for short interval */
  while (1)			/* wait for end of interval */
  {
@@ -1558,7 +1539,7 @@ void loop()
  if (loopCount >= LOOP_MAX)	/* if at maximum */
  {
 #if defined(ARDUINO_ARCH_AVR)
-  printf("isrCount %d\n", DBG_INFO->adcIsrCount);
+  printf(F3("isrCount %d\n"), DBG_INFO->adcIsrCount);
   DBG_INFO->adcIsrCount = 0;
   checkBuffers();
 #endif	/* ARDUINO_ARCH_AVR */
@@ -1766,7 +1747,7 @@ void loopTemp()
   *p = 0;			/* terminat line */
  }
  
- printf("emonData %s\n", buf);
+ printf(F3("emonData %s\n"), buf);
  emonData(buf);
 } /* *end loopTemp */
 
@@ -1776,6 +1757,7 @@ void loopTemp()
 
 char checkIn()
 {
+ trace();
 #if WATER_MONITOR
  char state = 0;
  if (water0.state == STATE_ALARM)
@@ -1791,6 +1773,7 @@ char checkIn()
 
 char sendHTTP(char *data)
 {
+ trace();
 #if LOCAL
  strncpy(serverIP, HOST, sizeof(serverIP));
 #else
@@ -2055,6 +2038,7 @@ float printTemperature(DeviceAddress deviceAddress)
 #if TEMP_SENSOR | DHT_SENSOR | CURRENT_SENSOR | CURRENT_STM32
 char emonData(char *data)
 {
+ trace();
 #if 1
  sprintf((char *) dataBuffer,
 	 F3("get /emoncms/input/post.json?%s&apikey=" EMONCMS_KEY), data);
@@ -2231,14 +2215,14 @@ ISR(WDT_vect)
  *dst++ = 0x55;
  *dst++ = 0xAA;
 #if defined(ARDUINO_AVR_MEGA2560)
- *dst++ = *(src + 26);
- *dst++ = *(src + 25);
- *dst++ = *(src + 24);
+ *dst++ = *(src + PC_OFFSET);
+ *dst++ = *(src + PC_OFFSET - 1);
+ *dst++ = *(src + PC_OFFSET - 2);
  *dst++ = 0;
 #endif	/* ARDUINO_AVR_MEGA2560 */
 #if defined(ARDUINO_AVR_PRO)
- *dst++ = *(src + 12);
- *dst++ = *(src + 11);
+ *dst++ = *(src + PC_OFFSET);
+ *dst++ = *(src + PC_OFFSET - 1);
 #endif	/* ARDUINO_AVR_PRO */
  for (int i = 0; i < 64; i++)
   *dst++ = *src++;
@@ -2348,6 +2332,7 @@ void printCurrent()
 
 void currentCheck()
 {
+ trace();
  P_CURRENT p = curPSave;
  if (p == 0)			/* if no current saved */
  {
