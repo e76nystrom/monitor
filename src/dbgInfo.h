@@ -1,6 +1,17 @@
 extern unsigned char __bss_end;
+extern unsigned char __noinit_start;
+extern unsigned char __noinit_end;
+extern unsigned char __heap_start;
 
 #define TRACE_SIZE 256
+
+typedef struct wdtInfo
+{
+ unsigned int tag0;
+ unsigned long int pc;
+ unsigned char data[64];
+ unsigned int tag1;
+} T_WDT_INFO, *P_WDT_INFO;
 
 typedef struct dbgInfo
 {
@@ -55,14 +66,48 @@ extern "C" int getPC(void);
 #endif
 #endif	/* ARDUINO_ARCH_PRO */
 
-#define DBG_INFO ((P_DBG_INFO) (&__bss_end))
+//#define DBG_INFO ((P_DBG_INFO) (&__noinit_start))
+#define DBG_INFO ((P_DBG_INFO) (&dbgData))
 
-inline void trace()
+#if defined(__MONITOR__)
+
+#if 0
+volatile char wdtData[64 + 8]
+__attribute__((section(".noinit")));
+
+volatile char dbgBuffer[sizeof(T_DBG_INFO)]
+__attribute__((section(".noinit")));
+#else
+volatile T_WDT_INFO wdtData __attribute__((section(".noinit")));
+volatile T_DBG_INFO dbgData __attribute__((section(".noinit")));
+#endif
+
+#if 0
+void trace()
 {
+#if 1
+
+#if 0
  int i = DBG_INFO->i;
  DBG_INFO->trace[i] = getPC();
  i += 1;
  if (i >= TRACE_SIZE)
   i = 0;
  DBG_INFO->i = i;
+#else
+ int i = dbgData.i;
+ dbgData.trace[i] = getPC();
+ i += 1;
+ if (i >= TRACE_SIZE)
+  i = 0;
+ dbgData.i = i;
+#endif
+
+#endif
 }
+#endif
+#else
+void trace();
+extern char wdtData[];
+extern char dbgBuffer[];
+#endif

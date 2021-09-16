@@ -82,6 +82,13 @@ int val;
 #include "monitor.h"
 
 void setTime();
+unsigned char uartSave;
+void putInit(void);
+void putRestore();
+void putx0(char c);
+void putstr0(const char *str);
+void putstr0(const __FlashStringHelper *str);
+void sndhex(unsigned char *p, int size);
 
 #if TEMP_SENSOR
 
@@ -566,6 +573,29 @@ uint16_t intMillis()
 
 /* setup routine */
 
+#define TRACE_OFFSET 3
+
+void trace()
+{
+#if 1
+ int i = dbgData.i;
+ unsigned char *sp = (unsigned char *) SP;
+ unsigned char *p = (unsigned char *) &dbgData.trace[i];
+ *p++ = *(sp + TRACE_OFFSET);
+ *p = *(sp + TRACE_OFFSET - 1);
+ //dbgData.trace[i] = getPC();
+ //unsigned int pc = getPC();
+ //unsigned int *p = (unsigned int *) &dbgData.trace[i];
+ //printf("p %04x pc %04x\n", (unsigned int) p, pc);
+ //DBGPORT.flush();
+ //*p = pc;
+ i += 1;
+ if (i >= TRACE_SIZE)
+  i = 0;
+ dbgData.i = i;
+#endif
+}
+
 void setup()
 {
  char ch;
@@ -606,32 +636,38 @@ void setup()
 #endif	/* ARDUINO_ARCH_STM32 */
 
 #define addr(x) (2 * (unsigned int) &x)
+#define daddr(x) (unsigned int) &x
  
  if (DBG)
  {
 #if defined(ARDUINO_ARCH_AVR)
   printf(F3("\nmcusr %x wdtcsr %02x\n"), MCUSR, WDTCSR);
   checkBuffers();
-  printf("setup %04x loop %04x cmdLoop %04x\n",
+  printf(F3("setup %04x loop %04x cmdLoop %04x\n"),
 	 addr(setup), addr(loop), addr(cmdLoop));
-
-  if (DBG_INFO->trace[0] != 0)
+  printf(F3("__noinit_start %04x __noinit_end %04x __heap_start %04x\n"),
+	 daddr(__noinit_start), daddr(__noinit_end), daddr(__heap_start));
+  
+  //if (DBG_INFO->trace[0] != 0)
+  if (dbgData.trace[0] != 0)
   {
-   unsigned int index = DBG_INFO->i;
+   //unsigned int index = DBG_INFO->i;
+   unsigned int index =dbgData.i;
    if (index < TRACE_SIZE)
    {
     char col = 0;
     int count = 0;
     for (int i = 0; i < TRACE_SIZE; i++)
     {
-     if (col == 0)
-      printf(F3("%02x  "), count);
-     unsigned int pc = DBG_INFO->trace[index] * 2;
+     //unsigned int pc = DBG_INFO->trace[index] * 2;
+     unsigned int pc = dbgData.trace[index] * 2;
      index += 1;
      if (index >= TRACE_SIZE)
       index = 0;
      if (pc != 0)
      {
+      if (col == 0)
+       printf(F3("%02x  "), count);
       printf(F3("%04x "), pc);
       col += 1;
       count += 1;
@@ -651,16 +687,18 @@ void setup()
   {
    MCUSR = 0;
    newLine();
-   unsigned char *p = &__bss_end;
+   //unsigned char *p = &__bss_end;
 #if defined(ARDUINO_AVR_MEGA2560)
    printf(F3("wdt pc %06lx\n"),
-	  2 * (*(unsigned long int *) (p + 2 + sizeof(T_DBG_INFO))));
+	  wdtData.pc);
+//	  2 * (*(unsigned long int *) (p + 2 + sizeof(T_DBG_INFO))));
 #endif	/* ARDUINO_AVR_MEGA */
 #if defined(ARDUINO_AVR_PRO)
    printf(F3("wdt pc %04x\n"),
 	  2 * (*(unsigned int *) (p + 2 + SIZEOF(T_DBG_INFO))));
 #endif	/* ARDUINO_AVR_PRO */
-   dumpBuf(p, 64 + 8 + sizeof(T_DBG_INFO));
+   //dumpBuf(p, 64 + 8 + sizeof(T_DBG_INFO));
+   dumpBuf((unsigned char *) &wdtData, sizeof(wdtData));
   }
 
 #else
@@ -984,6 +1022,7 @@ void setup()
  setTime();
 
 #if CURRENT_SENSOR
+ trace();
  initCurrent(1);		/* initial current sensor */
 #endif	/* CURRENT_SENSOR */
 
@@ -2174,11 +2213,52 @@ void findAddresses(void)
 
 #include <avr/io.h>
 
+void putInit()
+{
+ uartSave = UCSR0B;
+ UCSR0B &= ~(_BV(RXCIE0) | _BV(RXCIE0) | _BV(UDRIE0) | _BV(RXEN0));
+ UCSR0B |= _BV(TXEN0);
+}
+
+void putRestore()
+{
+ UCSR0B = uartSave;
+}
+
 void putx0(char c)
 {
  while ((UCSR0A & _BV(UDRE0)) == 0)
   wdt_reset();
  UDR0 = c;
+}
+
+void putstr0(const char *str)
+{
+ char c;
+ while (true)
+ {
+  c = *str++;
+  if (c == 0)
+   break;
+  if (c == '\n')
+   putx0('\r');
+  putx0(c);
+ }
+}
+
+void putstr0(const __FlashStringHelper *str)
+{
+ PGM_P p = reinterpret_cast <PGM_P> (str);
+ char c;
+ while (true)
+ {
+  c = pgm_read_byte(p++);
+  if (c == 0)
+   break;
+  if (c == '\n')
+   putx0('\r');
+  putx0(c);
+ }
 }
 
 void sndhex(unsigned char *p, int size)
@@ -2213,6 +2293,22 @@ void sndhex(unsigned char *p, int size)
 ISR(WDT_vect)
 {
  dbg2Clr();
+#if 1
+
+ wdtData.tag0 = 0x55AA;
+ unsigned char *src = (unsigned char *) SP;
+ unsigned char *dst = (unsigned char *) &wdtData.pc;
+ *dst++ = *(src + PC_OFFSET);
+ *dst++ = *(src + PC_OFFSET - 1);
+ *dst++ = *(src + PC_OFFSET - 2);
+ *dst++ = 0;
+ dst = (unsigned char *) wdtData.data;
+ for (int i = 0; i < 64; i++)
+  *dst++ = *src++;
+ wdtData.tag1 = 0xAA55;
+
+#else
+
  unsigned char *src = (unsigned char *) SP;
  unsigned char *dst = ((unsigned char *) &__bss_end) + sizeof(T_DBG_INFO);
  *dst++ = 0x55;
@@ -2232,12 +2328,15 @@ ISR(WDT_vect)
  *dst++ = 0xAA;
  *dst++ = 0x55;
 
- UCSR0B &= ~(_BV(RXCIE0) | _BV(RXCIE0) | _BV(UDRIE0) | _BV(RXEN0));
- UCSR0B |= _BV(TXEN0);
+#endif
 
- dst = (unsigned char *) &__bss_end;
+ putInit();
+
+// dst = (unsigned char *) &__bss_end;
+ dst = (unsigned char *) &wdtData;
  char col = 0;
- for (unsigned int i = 0; i < (64 + 8 + sizeof(T_DBG_INFO)); i++)
+ //for (unsigned int i = 0; i < (64 + 8 + sizeof(T_DBG_INFO)); i++)
+ for (unsigned int i = 0; i < sizeof(wdtData); i++)
  {
   if (col == 0)
   {
@@ -2293,18 +2392,16 @@ void initCurrent(char isr)
  adcState = 0;
  cState = 0;
  sampleCount = 100;
+ trace();
  if (isr)
  {
-  pinMode(10, OUTPUT);		/* pb4 */
-  pinMode(11, OUTPUT);		/* pb5 */
-  pinMode(8, OUTPUT);		/* ph5 */
-  pinMode(9, OUTPUT);		/* ph6 */
-  pinMode(17, OUTPUT);		/* pd4 */
   printf(F3("attach interrupt\n"));
-  digitalWrite(7, HIGH);
+  DBGPORT.flush();
+  dbg0Set();
   Timer3.attachInterrupt(timer3, 1000000L / 600);
-  digitalWrite(7, LOW);
+  dbg0Clr();
  }
+ trace();
 }
 
 void printCurrent()

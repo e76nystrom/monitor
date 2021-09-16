@@ -17,7 +17,7 @@ getPC:
 	pop r22
 	push r22
 	push r23
-	push r25
+	push r24
 	ret
 #endif	
 #endif
@@ -32,4 +32,3 @@ getPC:
 	ret
 	
 #endif
-	

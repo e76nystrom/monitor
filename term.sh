@@ -10,7 +10,10 @@ then
 
 else
  port=$1
- export PLATFROMIO_UPLOAD_PORT=$port
 fi
+
+echo "port" $port
+export PLATFORMIO_UPLOAD_PORT=$port
+echo "upload port" $PLATFORMIO_UPLOAD_PORT
 
 "putty" -load $port-19200
