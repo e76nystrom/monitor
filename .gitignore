@@ -29,6 +29,7 @@ old/
 data/
 data1/
 convert
+build/*
 
 include/adc.h
 include/current.h
