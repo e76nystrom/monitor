@@ -471,6 +471,7 @@ char *sendData(const char *ip, const char *data, unsigned int timeout)
 char *sendData(const char *ip, int port, const char *data,
 	       unsigned int timeout)
 {
+ trace();
  wifiMux();			/* in case device restarted */
  int cmdLen = strlen((const char *) data);
  if (DBG & 0)
@@ -1074,6 +1075,7 @@ char wifiWriteStr(const char *s, unsigned int timeout)
 
 char wifiWrite(char *s, int size, unsigned int timeout)
 {
+ trace();
  wifiClrRx();
  if (DBG)
   printf(F0("\nSending %d "), size);
@@ -1121,6 +1123,7 @@ char wifiWriteStr(const __FlashStringHelper *s, unsigned int timeout)
 
 char wifiWrite(const __FlashStringHelper *s, int size, unsigned int timeout)
 {
+ trace();
  wifiClrRx();
  if (DBG)
   printf(F0("\nSending %d "), size);
@@ -1235,6 +1238,7 @@ void wifiStart(int chan, char *protocol, char *ip, int port,
 
 void wifiStartData(char *s, int size, unsigned int timeout)
 {
+ trace();
  wifiClrRx();
  if (DBG)
   printf(F0("StartData Sending %d "), size);
@@ -1263,6 +1267,7 @@ void wifiStartData(char *s, int size, unsigned int timeout)
 
 void wifiWriteData(char *s, int size, unsigned int timeout)
 {
+ trace();
  wifiClrRx();
  if (DBG)
   printf(F0("Data Sending %d "), size);
