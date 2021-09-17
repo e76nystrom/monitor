@@ -531,9 +531,9 @@ void bufferCheck(const char *name, unsigned char *buf, int size)
 
 void checkBuffers()
 {
- printf(F3("RAMEND %x sp %x bss_end %x free %d of %d\n"),
-	RAMEND, SP, &__bss_end, SP - (int) (&__bss_end),
-	RAMEND - (int) (&__bss_end));
+ printf(F3("RAMEND %x sp %x noinit_end %x free %d of %d\n"),
+	RAMEND, SP, &__noinit_end, SP - (int) (&__noinit_end),
+	RAMEND - (int) (&__noinit_end));
 
  bufferCheck(F0("string"), (unsigned char *) stringBuffer, sizeof(stringBuffer));
  bufferCheck(F0("data"),   (unsigned char *) dataBuffer, sizeof(dataBuffer));
@@ -541,14 +541,13 @@ void checkBuffers()
  bufferCheck(F0("rsp"),    (unsigned char *) packetRsp, sizeof(packetRsp));
 
 #if !defined(PRINT_STACK) | (PRINT_STACK == 0)
-    unsigned int len = SP - (int) &__bss_end;
-    unsigned char *p = ((unsigned char *) &__bss_end) + sizeof(T_DBG_INFO);
+    unsigned int len = SP - (int) &__noinit_end;
+    unsigned char *p = ((unsigned char *) &__noinit_end);
     for (unsigned int i = 0; i < len; i++)
     {
      if (*p != 0)
      {
-      printf(F3("unused stack %d\n"),
-	     (int) (p - (&__bss_end + sizeof(T_DBG_INFO))));
+      printf(F3("unused stack %d\n"), (int) (p - &__noinit_end));
       break;
      }
      p += 1;
@@ -581,14 +580,8 @@ void trace()
  int i = dbgData.i;
  unsigned char *sp = (unsigned char *) SP;
  unsigned char *p = (unsigned char *) &dbgData.trace[i];
- *p++ = *(sp + TRACE_OFFSET);
- *p = *(sp + TRACE_OFFSET - 1);
- //dbgData.trace[i] = getPC();
- //unsigned int pc = getPC();
- //unsigned int *p = (unsigned int *) &dbgData.trace[i];
- //printf("p %04x pc %04x\n", (unsigned int) p, pc);
- //DBGPORT.flush();
- //*p = pc;
+ *(p + 0) = *(sp + TRACE_OFFSET);
+ *(p + 1) = *(sp + TRACE_OFFSET - 1);
  i += 1;
  if (i >= TRACE_SIZE)
   i = 0;
@@ -648,18 +641,17 @@ void setup()
   printf(F3("__noinit_start %04x __noinit_end %04x __heap_start %04x\n"),
 	 daddr(__noinit_start), daddr(__noinit_end), daddr(__heap_start));
   
-  //if (DBG_INFO->trace[0] != 0)
   if (dbgData.trace[0] != 0)
   {
-   //unsigned int index = DBG_INFO->i;
-   unsigned int index =dbgData.i;
+   printf(F3("adcFlag %d adcIsrCount %u\n"),
+	  dbgData.adcFlag, dbgData.adcIsrCount);
+   unsigned int index = dbgData.i;
    if (index < TRACE_SIZE)
    {
     char col = 0;
     int count = 0;
     for (int i = 0; i < TRACE_SIZE; i++)
     {
-     //unsigned int pc = DBG_INFO->trace[index] * 2;
      unsigned int pc = dbgData.trace[index] * 2;
      index += 1;
      if (index >= TRACE_SIZE)
@@ -681,25 +673,23 @@ void setup()
     if (col != 0)
      newLine();
    }
+   printf(F3("i %3d index %3d\n"), dbgData.i, index);
   }
 
   if (MCUSR & _BV(WDRF))
   {
-   MCUSR = 0;
    newLine();
-   //unsigned char *p = &__bss_end;
+
 #if defined(ARDUINO_AVR_MEGA2560)
-   printf(F3("wdt pc %06lx\n"),
-	  wdtData.pc);
-//	  2 * (*(unsigned long int *) (p + 2 + sizeof(T_DBG_INFO))));
+   printf(F3("wdt pc %06lx\n"), wdtData.pc);
 #endif	/* ARDUINO_AVR_MEGA */
 #if defined(ARDUINO_AVR_PRO)
-   printf(F3("wdt pc %04x\n"),
-	  2 * (*(unsigned int *) (p + 2 + SIZEOF(T_DBG_INFO))));
+   printf(F3("wdt pc %04x\n"), wdtData.pc);
 #endif	/* ARDUINO_AVR_PRO */
-   //dumpBuf(p, 64 + 8 + sizeof(T_DBG_INFO));
+
    dumpBuf((unsigned char *) &wdtData, sizeof(wdtData));
   }
+  MCUSR = 0;
 
 #else
   printf(F3("\nstarting 0\n"));
@@ -1581,8 +1571,8 @@ void loop()
  if (loopCount >= LOOP_MAX)	/* if at maximum */
  {
 #if defined(ARDUINO_ARCH_AVR)
-  printf(F3("isrCount %d\n"), DBG_INFO->adcIsrCount);
-  DBG_INFO->adcIsrCount = 0;
+  printf(F3("isrCount %d\n"), dbgData.adcIsrCount);
+  dbgData.adcIsrCount = 0;
   checkBuffers();
 #endif	/* ARDUINO_ARCH_AVR */
   loopCount = 0;		/* reset to beginning */
@@ -2293,7 +2283,6 @@ void sndhex(unsigned char *p, int size)
 ISR(WDT_vect)
 {
  dbg2Clr();
-#if 1
 
  wdtData.tag0 = 0x55AA;
  unsigned char *src = (unsigned char *) SP;
@@ -2307,35 +2296,10 @@ ISR(WDT_vect)
   *dst++ = *src++;
  wdtData.tag1 = 0xAA55;
 
-#else
-
- unsigned char *src = (unsigned char *) SP;
- unsigned char *dst = ((unsigned char *) &__bss_end) + sizeof(T_DBG_INFO);
- *dst++ = 0x55;
- *dst++ = 0xAA;
-#if defined(ARDUINO_AVR_MEGA2560)
- *dst++ = *(src + PC_OFFSET);
- *dst++ = *(src + PC_OFFSET - 1);
- *dst++ = *(src + PC_OFFSET - 2);
- *dst++ = 0;
-#endif	/* ARDUINO_AVR_MEGA2560 */
-#if defined(ARDUINO_AVR_PRO)
- *dst++ = *(src + PC_OFFSET);
- *dst++ = *(src + PC_OFFSET - 1);
-#endif	/* ARDUINO_AVR_PRO */
- for (int i = 0; i < 64; i++)
-  *dst++ = *src++;
- *dst++ = 0xAA;
- *dst++ = 0x55;
-
-#endif
-
  putInit();
 
-// dst = (unsigned char *) &__bss_end;
  dst = (unsigned char *) &wdtData;
  char col = 0;
- //for (unsigned int i = 0; i < (64 + 8 + sizeof(T_DBG_INFO)); i++)
  for (unsigned int i = 0; i < sizeof(wdtData); i++)
  {
   if (col == 0)
@@ -2359,11 +2323,7 @@ ISR(WDT_vect)
   putx0('\r');
  }
 
- //WDTCSR = _BV(WDCE) | _BV(WDE);
- //WDTCSR = _BV(WDE);
  dbg3Set();
- //while (1)
-//  ;
 }
 
 void initCurrent(char isr)
@@ -2514,8 +2474,8 @@ ISR(ADC_vect)
 {
  dbg5Set();
 
- DBG_INFO->adcFlag = 1;
- DBG_INFO->adcIsrCount += 1;
+ dbgData.adcFlag = 1;
+ dbgData.adcIsrCount += 1;
  
  P_CURRENT p = &iData[iChan];
  if (adcState == 0)		/* if sampling data */
@@ -2570,7 +2530,7 @@ ISR(ADC_vect)
   dbg6Clr();
  }
 
- DBG_INFO->adcFlag = 0;
+ dbgData.adcFlag = 0;
  dbg5Clr();
 }
 

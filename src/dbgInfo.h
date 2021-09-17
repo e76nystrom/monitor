@@ -17,7 +17,7 @@ typedef struct dbgInfo
 {
  char adcFlag;
  char rsv0;
- int adcIsrCount;
+ unsigned int adcIsrCount;
  unsigned int i;
  unsigned int trace[TRACE_SIZE];
 } T_DBG_INFO, *P_DBG_INFO;
@@ -72,14 +72,14 @@ extern "C" int getPC(void);
 #if defined(__MONITOR__)
 
 #if 0
-volatile char wdtData[64 + 8]
+char wdtData[64 + 8]
 __attribute__((section(".noinit")));
 
-volatile char dbgBuffer[sizeof(T_DBG_INFO)]
+char dbgBuffer[sizeof(T_DBG_INFO)]
 __attribute__((section(".noinit")));
 #else
-volatile T_WDT_INFO wdtData __attribute__((section(".noinit")));
-volatile T_DBG_INFO dbgData __attribute__((section(".noinit")));
+T_WDT_INFO wdtData __attribute__((section(".noinit")));
+T_DBG_INFO dbgData __attribute__((section(".noinit")));
 #endif
 
 #if 0

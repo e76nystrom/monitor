@@ -116,6 +116,7 @@ void sioPutc(char c);
 #define getChar(ch) ch = _getch()
 
 #include "stdint.h"
+#include "dbgInfo.h"
 
 #if !INCLUDE
 #include "Windows.h"
@@ -191,10 +192,18 @@ char wifiWriteStr(const __FlashStringHelper *s, unsigned int timeout);
 char wifiWrite(const __FlashStringHelper *s, int size, unsigned int timeout);
 #endif	/* ARDUINO_ARCH_AVR */
 
-EXT char stringBuffer[80];	/* buffer for strings made from program data */
-EXT char dataBuffer[192];	/* buffer for data sent */
-EXT char cmdBuffer[64];		/* buffer for command sent */
-EXT char packetRsp[460];	/* buffer for response */
+/* buffer for strings made from program data */
+EXT char stringBuffer[80] __attribute__((section(".noinit")));
+
+/* buffer for data sent */
+EXT char dataBuffer[192] __attribute__((section(".noinit")));
+
+/* buffer for command sent */
+EXT char cmdBuffer[64] __attribute__((section(".noinit")));
+
+/* buffer for response */
+EXT char packetRsp[460] __attribute__((section(".noinit")));
+
 EXT char *rsp;
 EXT unsigned int rspLen;
 #define MAX_RSP 2
