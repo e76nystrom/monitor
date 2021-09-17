@@ -34,7 +34,6 @@ then
 
     if [ $usbasp -eq 0 ]
     then
-	port=COM9
 
 	/cygdrive/c/DevSoftware/avrdude-v6.3.1.1-windows/avrdude \
 	    -v \
@@ -49,7 +48,6 @@ then
     fi
 
 else
-    port=COM9
 
     /cygdrive/c/DevSoftware/avrdude-v6.3.1.1-windows/avrdude \
 	-v \
