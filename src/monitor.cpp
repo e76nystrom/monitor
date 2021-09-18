@@ -397,7 +397,7 @@ void timer3();			/* timer isr for reading current */
 
 typedef struct
 {
- unsigned long iTime;		/* time of data reading */
+ //unsigned long iTime;		/* time of data reading */
  unsigned long lastTime;	/* last time data sent */
  float lastIRms0;
  float lastIRms1;
@@ -411,6 +411,7 @@ typedef struct
  int count;
  int sent;
  int adc;
+ char send;
 } T_CURRENT, *P_CURRENT;
 
 unsigned char iChan;		/* data channel for current reading */
@@ -1242,15 +1243,16 @@ void cmdLoop()
       chan = ADCCHANS - 1;
     }
     P_CURRENT p = &iData[chan];
+    
     printf(F3("value: "));
     len = readStr(cmdBuffer, sizeof(cmdBuffer) - 1);
-    printf(F3("iTime %ld len %d cState %d\n"), p->iTime, len, cState);
+    printf(F3("lastTime %ld len %d cState %d\n"), p->lastTime, len, cState);
     if (len != 0)
     {
      p->lastIRms1 = p->lastIRms0;
      p->lastIRms0 = atof(cmdBuffer);
-     p->iTime = now();
-     printTime(p->iTime);
+     p->lastTime = now();
+     printTime(p->lastTime);
     }
    }
    else if (ch == 'C')		/* arduino run current check code */
@@ -1275,12 +1277,13 @@ void cmdLoop()
      printf(F3("iRatio %s\n"), dtostrf(p->iRatio, 8, 6, tmp));
      printf(F3("node %d count %d sent %d adc %02x\n"),
 	    p->node, p->count, p->sent, p->adc);
-     if (p->iTime != 0)
+     if (p->send != 0)
      {
-      printTime(p->iTime);
+      p->lastTime = now();
+      printTime(p->lastTime);
       printf(F3("lastIRms0 %s\n"), dtostrf(p->lastIRms0, 4, 2, tmp));
       printf(F3("offset %s\n"), dtostrf(p->offsetI, 4, 2, tmp));
-      p->iTime = 0;
+      p->send = 0;
      }
     }
    }
@@ -2334,7 +2337,7 @@ void initCurrent(char isr)
  for (unsigned char i = 0; i < ADCCHANS; i++)
  {
   P_CURRENT p = &iData[i];
-  p->iTime = 0;
+  //p->iTime = 0;
   p->lastTime = 0;
   p->lastIRms0 = 0.0;
   p->lastIRms = 0.0;
@@ -2375,11 +2378,7 @@ void printCurrent()
 //  printf("iRatio %s\n", dtostrf(p->iRatio, 8, 6, tmp));
 //  printf("iCal %s\n", dtostrf(p->iCal, 8, 6, tmp));
   printf(F3("%d iRms %s "), i, dtostrf(p->iRms, 4, 2, tmp));
-  if (p->iTime != 0)
-   printTime(p->iTime);
-  else
-   printf(F3("\n"));
-
+  printTime(p->lastTime);
   float delta = abs(p->iRms - p->lastIRms);
   if (delta > .05)
   {
@@ -2399,9 +2398,9 @@ void currentCheck()
   for (unsigned char i = 0; i < ADCCHANS; i++) /* for all channels */
   {
    p = &iData[i];
-   if (p->iTime != 0)		/* if current reading */
+   if (p->send != 0)		/* if current reading */
    {
-    p->lastTime = p->iTime;
+    p->lastTime = now();
     curPSave = p;		/* save current pointer */
     break;
    }
@@ -2431,14 +2430,14 @@ void currentCheck()
   if (cState == 0)		/* if time to send last value */
   {
    sprintf(buf, F3("time=%ld&node=%s&csv=%s"), /* format last reading sent */
-           p->iTime - 1, p->node, dtostrf(p->lastIRms1, 4, 2, tmp));
+           p->lastTime - 1, p->node, dtostrf(p->lastIRms1, 4, 2, tmp));
    cState = 1;			/* set to send current value */
   }
   else
   {
    sprintf(buf, F3("time=%ld&node=%s&csv=%s"), /* format current reading */
-           p->iTime, p->node, dtostrf(p->lastIRms0, 4, 2, tmp));
-   p->iTime = 0;		/* reset time */
+           p->lastTime, p->node, dtostrf(p->lastIRms0, 4, 2, tmp));
+   p->send = 0;			/* reset send flag */
    cState = 0;			/* reset state */
    curPSave = 0;		/* clear save pointer */
   }
@@ -2512,14 +2511,14 @@ ISR(ADC_vect)
 
   p->iRatio = p->iCal * ((result / 1000.0) / (ADC_COUNTS));
   p->iRms = p->iRatio * sqrt(p->sumI / SAMPLES);
-  if (p->iTime == 0)		/* if previous reading sent */
+  if (p->send == 0)		/* if previous reading sent */
   {
    if (abs(p->iRms - p->lastIRms0) > .1) /* if change in current */
    {
     p->sent++;
     p->lastIRms1 = p->lastIRms0; /* set current value */
     p->lastIRms0 = p->iRms;
-    p->iTime = now();		/* set time of change */
+    p->send = 1;
    }
   }
   adcState = 0;			/* set to start sampling */
