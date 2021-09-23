@@ -2,7 +2,7 @@
 
 #define ESP8266_TIME 0
 
-#define MONITOR_INDEX 3
+#define MONITOR_INDEX 2
 
 /* -------------------- monitor index 1 -------------------- */
 
