@@ -160,6 +160,9 @@ int dehumDelay;			/* on or off delay counter */
 #if CURRENT_SENSOR
 #include "TimerThree.h"
 
+#include "struct.h"
+#include "timer3.h"
+
 #define READVCC_CALIBRATION_CONST 1126400L
 #define ADC_BITS 10
 #define ADC_COUNTS (1<<ADC_BITS)
@@ -356,9 +359,9 @@ char *strEnd(char *p);
 
 #if (TEMP_SENSOR | DHT_SENSOR | CURRENT_SENSOR | CURRENT_STM32)
 
-#define TEST_GET "get /emoncms/input/post.json?node=4"	\
-"&csv=0.0&apikey=" EMONCMS_KEY\
-" HTTP/1.0\r\nHost: 192.168.42.10\r\nConnection: close\r\n\r\n"
+#define TEST_GET "get /emoncms/input/post.json?node=4"\
+ "&csv=0.0&apikey=" EMONCMS_KEY\
+ " HTTP/1.0\r\nHost: 192.168.42.10\r\nConnection: close\r\n\r\n"
 
 #define HTTP1 " HTTP/1.1\r\nHost: " EMONCMS_ADDR "\r\nConnection: Close\r\n\r\n"
 
@@ -373,6 +376,7 @@ float rtcTemp();
 void cmdLoop();
 unsigned int tLast;
 int loopCount;
+char monDbg;
 
 #define TINTERVAL (10000U)	/* timer interval */
 #define T1SEC (1000U)		/* one second interval */
@@ -390,7 +394,11 @@ void currentCheck();		/* check for time to send data */
 void timer3();			/* timer isr for reading current */
 //int adcRead(char chan);
 
+#if 1
+#define CYCLE_COUNT 60		/* cycles per sample */
+#else
 #define SAMPLES (100)		/* samples per reading */
+#endif
 #define ADCCHANS (2)		/* number of adc channels to read */
 
 #define CSENDTIME (10 * 60)	/* if no change for this time send current */
@@ -398,6 +406,7 @@ void timer3();			/* timer isr for reading current */
 typedef struct
 {
  //unsigned long iTime;		/* time of data reading */
+ char index;			/* channel number */
  unsigned long lastTime;	/* last time data sent */
  float lastIRms0;
  float lastIRms1;
@@ -407,6 +416,9 @@ typedef struct
  float iCal;
  float iRatio;			/* conversion ratio */
  float sumI;			/* current sum of squares */
+ float lastPrint;
+ int iVcc;
+ unsigned int samples;
  const char *node;
  int count;
  int sent;
@@ -414,14 +426,41 @@ typedef struct
  char send;
 } T_CURRENT, *P_CURRENT;
 
+#define CROSS_TMO 240
+
 unsigned char iChan;		/* data channel for current reading */
 P_CURRENT curPSave;		/* saved current pointer */
 int sampleCount;		/* sample counter */
 char adcState;			/* adc state */
 char cState;			/* current processing state */
+#if 1
+char waitCrossing;		/* wait for zero crossing */
+int crossTmr;			/* crossing timer */
+char lastBelow;			/* last value below zero */
+int cycleCount;			/* cycle counter */
+#endif
 T_CURRENT iData[ADCCHANS];	/* current channel data */
-int vcc;			/* current vcc */
 float tempSumI;			/* current sum accumulator */
+
+typedef struct
+{
+ P_CURRENT chan;		/* channel channel */
+ unsigned int iVcc;		/* voltage result */
+ unsigned int sampleCount;	/* sample count */
+ float sumI;			/* sum of squares */
+} T_CUR_DATA, *P_CUR_DATA;
+
+#define MAX_CUR_DATA 6
+typedef struct
+{
+ char count;			/* number in queue */
+ unsigned int fil;		/* fill pointer */
+ unsigned int emp;		/* empty pointer */
+ T_CUR_DATA curData[MAX_CUR_DATA]; /* data */
+} T_CUR_QUE, *P_CUR_QUE;
+
+char curBusy;			/* busy sending data */
+T_CUR_QUE curQue;		/* current queue */
 
 #endif  /* CURRENT_SENSOR */
 
@@ -542,19 +581,19 @@ void checkBuffers()
  bufferCheck(F0("rsp"),    (unsigned char *) packetRsp, sizeof(packetRsp));
 
 #if !defined(PRINT_STACK) | (PRINT_STACK == 0)
-    unsigned int len = SP - (int) &__noinit_end;
-    unsigned char *p = ((unsigned char *) &__noinit_end);
-    for (unsigned int i = 0; i < len; i++)
-    {
-     if (*p != 0)
-     {
-      printf(F3("unused stack %d\n"), (int) (p - &__noinit_end));
-      break;
-     }
-     p += 1;
-    }
+ unsigned int len = SP - (int) &__noinit_end;
+ unsigned char *p = ((unsigned char *) &__noinit_end);
+ for (unsigned int i = 0; i < len; i++)
+ {
+  if (*p != 0)
+  {
+   printf(F3("unused stack %d\n"), (int) (p - &__noinit_end));
+   break;
+  }
+  p += 1;
+ }
 #else
-    dumpBuf(p, len);
+ dumpBuf(p, len);
 #endif	/* PRINT_STACK */
 }
 
@@ -572,6 +611,24 @@ uint16_t intMillis()
 #endif	/* ARDUINO_ARCH_STM32 */
 
 /* setup routine */
+
+T_TIMER_CTL tmr3;
+
+void showTimer(P_TIMER_CTL tmr)
+{
+ P_PORT p = tmr->aPort;
+ if (p != 0)
+  printf(F0("aPort %02x aDDR %02x aMask %02x "),
+	 p->port, p->ddr, tmr->aMask);
+
+ P_TMR t = tmr->timer;
+ printf("tccra %02x tccrb %02x tccrc %02x\n",
+	t->tccra, t->tccrb, t->tccrc);
+ printf(F0("tcnt %04x ocra %04x ocrb %04x ocrc %04x icr %04X\n"),
+	t->tcnt, t->ocra, t->ocrb, t->ocrc, t->icr);
+ printf(F0("timsk %02x tifr %02x\n"),
+	*tmr->timsk, *tmr->tifr);
+}
 
 #define TRACE_OFFSET 3
 
@@ -644,8 +701,7 @@ void setup()
   
   if (dbgData.trace[0] != 0)
   {
-   printf(F3("adcFlag %d adcIsrCount %u\n"),
-	  dbgData.adcFlag, dbgData.adcIsrCount);
+   printf(F3("adcFlag %d\n"), dbgData.adcFlag);
    unsigned int index = dbgData.i;
    if (index < TRACE_SIZE)
    {
@@ -1012,6 +1068,10 @@ void setup()
 
  setTime();
 
+ monDbg = 0;
+ wifiDbg = 0;
+ printf(F3("monDbg %d wifiDbg %d\n"), monDbg, wifiDbg);
+
 #if CURRENT_SENSOR
  trace();
  initCurrent(1);		/* initial current sensor */
@@ -1024,8 +1084,11 @@ void setTime()
 {
  trace();
 #if RTC_CLOCK
- printf(F3("setTime rtc time "));
- printTime(RTC.get());
+ if (monDbg)
+ {
+  printf(F3("setTime rtc time "));
+  printTime(RTC.get());
+ }
 #endif	/* RTC_CLOCK */
 
  if ((millis() - ntpStart) > ntpTimeout)
@@ -1059,13 +1122,17 @@ void setTime()
 #if RTC_CLOCK
   else
   {
-   printf(F3("rtc setting time\n"));
+   if (monDbg)
+    printf(F3("rtc setting time\n"));
    setTime(RTC.get());
    setSyncProvider(RTC.get);	/* set rtc to provide clock time */
   }
 #endif	/* RTC_CLOCK */
-  printf(F3("time set "));
-  printTime();
+  if (monDbg)
+  {
+   printf(F3("time set "));
+   printTime();
+  }
  }
 }
 
@@ -1181,7 +1248,7 @@ void cmdLoop()
     WDTCSR = _BV(WDE) | _BV(WDIE) | _BV(WDP2) | _BV(WDP1) | _BV(WDP0);
     interrupts();
 
-    printf(F3("mcuusr %02x wdtcsr %02x "), MCUSR, WDTCSR);
+    printf(F3("mcusr %02x wdtcsr %02x "), MCUSR, WDTCSR);
 #if defined(ARDUINO_AVR_MEGA2560)
     printf(F3("PC %04x\n"), 2 * getPC());
 #endif	/* ARDUINO_AVR_MEGA2560 */
@@ -1231,6 +1298,10 @@ void cmdLoop()
 #endif	/* ARDUINO_ARCH_STM32 */
 
 #if CURRENT_SENSOR
+   else if (ch == '*')
+   {
+    showTimer(&tmr3);
+   }
    else if (ch == 'e')		/* arduino current read a to d converter */
    {
     printf(F3("chan: "));
@@ -1269,7 +1340,6 @@ void cmdLoop()
    else if (ch == 'I')		/* arduino print current results */
    {
     char tmp[12];
-    printf(F3("vcc %d\n"), vcc);
     for (unsigned char i = 0; i < ADCCHANS; i++)
     {
      P_CURRENT p = &iData[i];
@@ -1532,12 +1602,16 @@ void loop()
 
  } /* short interval */
 
- printf(F3("%d "), loopCount);
- printTime();
- flush();
+ if (monDbg)
+ {
+  printf(F3("%d "), loopCount);
+  printTime();
+  flush();
+ }
 
 #if CURRENT_SENSOR
- printCurrent();
+ if (1 || monDbg)
+  printCurrent();
 #endif	/* CURRENT_SENSOR */
 
 #if TEMP_SENSOR | DHT_SENSOR
@@ -1559,7 +1633,8 @@ void loop()
  if (loopCount == CHECKIN_COUNT) /* if time to check water alarm */
  {
 #if defined(ARDUINO_ARCH_AVR)
-  printf(F3("mcuusr %02x wdtcsr %02x\n"), MCUSR, WDTCSR);
+  if (monDbg)
+   printf(F3("mcusr %02x wdtcsr %02x\n"), MCUSR, WDTCSR);
 #endif	/* ARDUINO_ARCH_AVR */
   checkIn();
  }
@@ -1574,9 +1649,8 @@ void loop()
  if (loopCount >= LOOP_MAX)	/* if at maximum */
  {
 #if defined(ARDUINO_ARCH_AVR)
-  printf(F3("isrCount %d\n"), dbgData.adcIsrCount);
-  dbgData.adcIsrCount = 0;
-  checkBuffers();
+  if (monDbg)
+   checkBuffers();
 #endif	/* ARDUINO_ARCH_AVR */
   loopCount = 0;		/* reset to beginning */
  }
@@ -1628,9 +1702,12 @@ void loopTemp()
    }
   }
   temp0[i] = t;
-  printf(F3("%d temp "), i);
-  DBGPORT.print(t);
-  printf(F3("F\n"));
+  if (monDbg)
+  {
+   printf(F3("%d temp "), i);
+   DBGPORT.print(t);
+   printf(F3("F\n"));
+  }
  }
 #elif TEMP_SENSOR == 2
  P_TEMP_SENSOR ts = tempSensor;
@@ -1663,9 +1740,12 @@ void loopTemp()
      break;
     }
    }
-   printf(F3("%d %d temp "), j, i);
-   DBGPORT.print(t);
-   printf(F3("F\n"));
+   if (monDbg)
+   {
+    printf(F3("%d %d temp "), j, i);
+    DBGPORT.print(t);
+    printf(F3("F\n"));
+   }
    *temp++ = t;
    addr += 1;
   }
@@ -1681,13 +1761,17 @@ void loopTemp()
 #if DHT_SENSOR
  float dhtHumidity = dht.readHumidity();
  float dhtTemp = dht.readTemperature(true);
- printf(F3("temp "));
- printTemp(dhtTemp);
- printf(F3(" F humidity "));
- printTemp(dhtHumidity);
- newLine();
+ if (monDbg)
+ {
+  printf(F3("temp "));
+  printTemp(dhtTemp);
+  printf(F3(" F humidity "));
+  printTemp(dhtHumidity);
+  newLine();
+ }
 #if DEHUMIDIFIER
- printf(F3("dehumState %d dehumDelay %d\n"), dehumState, dehumDelay);
+ if (monDbg)
+  printf(F3("dehumState %d dehumDelay %d\n"), dehumState, dehumDelay);
  if (dehumState)		/* if dehumidifer on */
  {
   if (dhtHumidity <= dehumOff)	/* if humidity below turn off point */
@@ -1698,7 +1782,8 @@ void loopTemp()
     {
      dehumState = 0;		/* set state to off */
      switchRelay(DEHUM_OFF_PIN);
-     printf(F3("dehumidifier off\n"));
+     if (monDbg)
+      printf(F3("dehumidifier off\n"));
     }
    }
    else				/* if timer not active */
@@ -1721,7 +1806,8 @@ void loopTemp()
     {
      dehumState = 1;		/* set state to off */
      switchRelay(DEHUM_ON_PIN); /* turn dehumidifier on */
-     printf(F3("dehumidifier on\n"));
+     if (monDbg)
+      printf(F3("dehumidifier on\n"));
     }
    }
    else				/* if timer not active */
@@ -1782,7 +1868,8 @@ void loopTemp()
   *p = 0;			/* terminat line */
  }
  
- printf(F3("emonData %s\n"), buf);
+ if (wifiDbg)
+  printf(F3("emonData %s\n"), buf);
  emonData(buf);
 } /* *end loopTemp */
 
@@ -1814,8 +1901,9 @@ char sendHTTP(char *data)
 #else
  char hostBuffer[sizeof(HOST)];
  unsigned long int t = millis();
- printf(F0("sendHTTP ip %s time %lu\n"),
-	serverIP, (unsigned long) (t - serverIPTime));
+ if (wifiDbg)
+  printf(F0("sendHTTP ip %s time %lu\n"),
+	 serverIP, (unsigned long) (t - serverIPTime));
  if ((serverIP[0] == 0) || ((t - serverIPTime) > SERVER_IP_TIMEOUT))
  {     
   if (dnsLookup(serverIP, argConv(F2(HOST), hostBuffer)))
@@ -1932,8 +2020,9 @@ void loopWater()
 
 void procAlarm(P_INPUT water, boolean inp)
 {
- printf(F3("inp %d alarm%d cur %d counter %d state %d\n"),
-	inp, water->index, water->inp, water->counter, water->state);
+ if (monDbg)
+  printf(F3("inp %d alarm%d cur %d counter %d state %d\n"),
+	 inp, water->index, water->inp, water->counter, water->state);
  if (water->inp != inp)		/* if input state changed */
  {
   water->inp = inp;		/* save state */
@@ -1960,7 +2049,8 @@ void procAlarm(P_INPUT water, boolean inp)
    }
   }
  }
- printf(F3("procAlarm done\n"));
+ if (monDbg)
+  printf(F3("procAlarm done\n"));
 }
 
 char notify(int alarm, boolean val)
@@ -2117,12 +2207,18 @@ float rtcTemp()
 {
  int val = RTC.temperature();
  float degC = val / 4.0;
- printf(F3("rtc temp "));
- printTemp(degC);
- printf(F3(" C "));
+ if (monDbg)
+ {
+  printf(F3("rtc temp "));
+  printTemp(degC);
+  printf(F3(" C "));
+ }
  float degF = (degC * 9.0) / 5.0 + 32.0;
- printTemp(degF);
- printf(F3(" F\n"));
+ if (monDbg)
+ {
+  printTemp(degF);
+  printf(F3(" F\n"));
+ }
  return(degF);
 }
 
@@ -2301,6 +2397,8 @@ ISR(WDT_vect)
 
  putInit();
 
+ putx0('\n');
+ putx0('\r');
  dst = (unsigned char *) &wdtData;
  char col = 0;
  for (unsigned int i = 0; i < sizeof(wdtData); i++)
@@ -2329,6 +2427,8 @@ ISR(WDT_vect)
  dbg3Set();
 }
 
+void timer3() {}
+
 void initCurrent(char isr)
 {
  curPSave = 0;			/* clear saved current pointer */
@@ -2338,7 +2438,8 @@ void initCurrent(char isr)
  {
   P_CURRENT p = &iData[i];
   //p->iTime = 0;
-  p->lastTime = 0;
+  p->index = i;
+  p->lastTime = now();
   p->lastIRms0 = 0.0;
   p->lastIRms = 0.0;
   p->offsetI = ADC_COUNTS >> 1;
@@ -2346,6 +2447,7 @@ void initCurrent(char isr)
   p->iRatio = p->iCal * ((5000 / 1000.0) / (ADC_COUNTS));
   p->adc = -1;
   p->count = 0;
+  p->lastPrint = 0.0;
  }
  iData[0].node = CURRENT0_NODE;
 #if ADCCHANS > 1
@@ -2354,14 +2456,36 @@ void initCurrent(char isr)
  tempSumI = 0.0;
  adcState = 0;
  cState = 0;
- sampleCount = 100;
+#if 1
+ waitCrossing = true;
+ crossTmr= CROSS_TMO;
+ lastBelow = false;
+#else
+ sampleCount = SAMPLES;
+#endif
  trace();
  if (isr)
  {
+  P_TIMER_CTL t = &tmr3;
+  t->timer = (P_TMR) &TCCR3A;
+  t->timsk = (uint8_t *) &TIMSK3;
+  t->tifr = (uint8_t *) &TIFR3;
+  t->aPort = 0;
+  t->aMask = 0;
+//  t->aPort = (P_PORT) &OC3A_Port;
+//  t->aMask = OC3A_Mask;
+
   printf(F3("attach interrupt\n"));
   DBGPORT.flush();
   dbg0Set();
-  Timer3.attachInterrupt(timer3, 1000000L / 600);
+  unsigned long int uSec = 1024;
+#if 0
+  Timer3.attachInterrupt(timer3, uSec);
+#else
+  initTimer3(uSec);
+  printf(F3("period %d preScaler %d\n"), timer3Period, timer3Prescale);
+#endif
+  showTimer(&tmr3);
   dbg0Clr();
  }
  trace();
@@ -2371,20 +2495,21 @@ void printCurrent()
 {
  char tmp[10];
 
- printf(F3("iVcc %d\n"), vcc);
  for (unsigned char i = 0; i < ADCCHANS; i++)
  {
   P_CURRENT p = &iData[i];
 //  printf("iRatio %s\n", dtostrf(p->iRatio, 8, 6, tmp));
 //  printf("iCal %s\n", dtostrf(p->iCal, 8, 6, tmp));
-  printf(F3("%d iRms %s "), i, dtostrf(p->iRms, 4, 2, tmp));
-  printTime(p->lastTime);
-  float delta = abs(p->iRms - p->lastIRms);
+  float delta = abs(p->iRms - p->lastPrint);
   if (delta > .05)
   {
+   p->lastPrint = p->iRms;
+   printTime(p->lastTime, false);
+   printf(F3(" %d iRms %s "), i, dtostrf(p->iRms, 4, 2, tmp));
+   printf(F3("offset %s iVcc %5d samples %5d"),
+	  dtostrf(p->offsetI, 5, 1, tmp), p->iVcc, p->samples);
    p->lastIRms = p->iRms;
-   printf(F3("%d iRms %s delta %3d\n"), i, dtostrf(p->iRms, 4, 2, tmp),
-	  (int) (delta * 100));
+   printf(F3(" delta %3d\n"), (int) (delta * 100));
   }
  }
 }
@@ -2392,6 +2517,89 @@ void printCurrent()
 void currentCheck()
 {
  trace();
+#if 1
+
+ char send = false;
+ unsigned long t = 0;
+ float *rms = 0;
+
+ P_CURRENT p = curPSave;
+ if (p != 0)
+ {
+  curPSave = 0;		/* clear save pointer */
+  send = true;
+  t = p->lastTime;
+  rms = &p->lastIRms0;
+ }
+ else if (curQue.count > 0)
+ {
+  unsigned int emp = curQue.emp;
+  P_CUR_DATA curData = &curQue.curData[emp];
+  emp += 1;
+  if (emp >= MAX_CUR_DATA)
+   emp = 0;
+  curQue.emp = emp;
+
+  p = curData->chan;
+
+ #define V_REF 5.0
+  
+  int iVcc = (int) (READVCC_CALIBRATION_CONST / curData->iVcc);
+  //p->iRatio = p->iCal * ((iVcc / 1000.0) / (ADC_COUNTS));
+  p->iRatio = V_REF / 1024.0;
+  // Vin = ADC * VRef / 1024;
+  p->iRms = p->iRatio * sqrt(curData->sumI / curData->sampleCount);
+  
+  if (abs(p->iRms - p->lastIRms0) > 0.2) /* if change in current */
+  {
+   dbg7Set();
+   curBusy = 2;
+   curPSave = p;
+   p->iVcc = iVcc;
+   p->samples = curData->sampleCount;
+   p->lastIRms1 = p->lastIRms0; /* set current value */
+   p->lastIRms0 = p->iRms;
+   p->lastTime = now();
+
+   send = true;
+   t = p->lastTime - 1;
+   rms = &p->lastIRms1;
+  }
+  else if ((now() - p->lastTime) > CSENDTIME) /* if time to send */
+  {
+   dbg7Set();
+   curBusy = 1;
+   p->iVcc = iVcc;
+   p->samples = curData->sampleCount;
+   p->lastTime = now();
+
+   send = true;
+   t = p->lastTime;
+   rms = &p->iRms;
+  }
+
+  cli();
+  curQue.count -= 1;
+  sei();
+ }
+
+ if (send)
+ {
+  char buf[64];
+  char tmp[10];
+
+  p->sent++;
+  sprintf(buf, F3("time=%ld&node=%s&csv=%s"),
+	  t, p->node, dtostrf(*rms, 4, 2, tmp));
+  printf(F3("%d %d %d emonData %s\n"), iChan, p->index, curBusy, buf);
+  emonData(buf);		/* send current data */
+  if (curBusy > 0)
+   curBusy -= 1;
+  if (curBusy == 0)
+   dbg7Clr();
+ }
+
+#else
  P_CURRENT p = curPSave;
  if (p == 0)			/* if no current saved */
  {
@@ -2427,7 +2635,7 @@ void currentCheck()
  {
   char buf[64];
   char tmp[10];
-  if (cState == 0)		/* if time to send last value */
+  if (cState == 0)		/* if time to send prev value */
   {
    sprintf(buf, F3("time=%ld&node=%s&csv=%s"), /* format last reading sent */
            p->lastTime - 1, p->node, dtostrf(p->lastIRms1, 4, 2, tmp));
@@ -2442,19 +2650,21 @@ void currentCheck()
    curPSave = 0;		/* clear save pointer */
   }
   printTime();
-  printf(F3("%d emonData %s\n"), cState, buf);
+  printf(F3("%d %d emonData %s\n"), p->index, cState, buf);
   emonData(buf);		/* send data */
  }
+#endif
 }
 
-void timer3()
+//void timer3()
+ISR(TIMER3_OVF_vect)
 {
  PORTB ^= _BV(PB4);
  PORTB |= _BV(PB5);
  
  if (adcState == 0)		/* if sampling data */
  {
-  if (sampleCount)		/* if sample count non zero */
+  //if (sampleCount)		/* if sample count non zero */
   {
    ADCSRB = 0;			/* set channel number */
    ADMUX = _BV(REFS0) | iChan;	/* VCC Ref and channel */
@@ -2474,11 +2684,94 @@ ISR(ADC_vect)
  dbg5Set();
 
  dbgData.adcFlag = 1;
- dbgData.adcIsrCount += 1;
  
  P_CURRENT p = &iData[iChan];
  if (adcState == 0)		/* if sampling data */
  {
+#if 1
+  
+  int sampleI = ADCL;
+  sampleI |= (ADCH << 8);
+  p->offsetI = (p->offsetI + (sampleI - p->offsetI) / 1024);
+  float filteredI = sampleI - p->offsetI;
+
+  if (waitCrossing)		/* if waiting for zero crossing */
+  {
+   crossTmr -= 1;
+   if (crossTmr <= 0)
+   {
+    iChan++;			/* advance to next channel */
+    if (iChan >= ADCCHANS)	/* if at end */
+     iChan = 0;			/* back to channel zero */
+
+    crossTmr = CROSS_TMO;
+    lastBelow = false;
+   }
+   else
+   {
+    if (filteredI >= 0)		/* if value gt eqal zero */
+    {
+     if (lastBelow)
+     {
+      dbg4Set();
+      waitCrossing = false;
+      crossTmr = CROSS_TMO;
+      lastBelow = false;
+      cycleCount = CYCLE_COUNT;
+      sampleCount = 0;
+      tempSumI = 0.0;
+     }
+    }
+    else				/* data negative */
+     lastBelow = true;
+   }
+  }
+  else				/* if sampling data */
+  {
+   crossTmr -= 1;
+   if (crossTmr <= 0)
+   {
+    iChan++;			/* advance to next channel */
+    if (iChan >= ADCCHANS)	/* if at end */
+     iChan = 0;			/* back to channel zero */
+
+    waitCrossing = true;
+    crossTmr = CROSS_TMO;
+    lastBelow = false;
+   }
+   else
+   {
+    if (cycleCount > 0)		/* if not done sampling */
+    {
+     float sqI = filteredI * filteredI;
+     tempSumI += sqI;
+     sampleCount += 1;
+     if (filteredI >= 0)	/* if data positive */
+     {
+      if (lastBelow)		/* if zero crossing */
+      {
+       crossTmr = CROSS_TMO;
+       cycleCount -= 1;
+       if (cycleCount == 0)
+       {
+	dbg4Clr();
+	p->adc = ADMUX;
+	p->sumI = tempSumI;	/* update sum */
+	ADMUX = _BV(REFS0) | _BV(MUX4) | _BV(MUX3) | _BV(MUX2) | _BV(MUX1);
+	ADCSRB = 0;
+	adcState = 1;		/* set state to calibrate voltage */
+	dbg6Set();
+       }
+       lastBelow = false;
+      }
+     }
+     else			/* data negative */
+      lastBelow = true;
+    }
+   }
+  }
+  
+#else
   if (sampleCount)		/* if not done */
   {
    int sampleI = ADCL;
@@ -2501,9 +2794,32 @@ ISR(ADC_vect)
     dbg6Set();
    }
   }
+#endif
  }
  else				/* calibrate voltage and process data */
  {
+#if 1
+  
+  if ((curBusy == 0)
+  &&  (curQue.count < (MAX_CUR_DATA - 1)))
+  {
+   unsigned int fil = curQue.fil;
+   P_CUR_DATA curData = &curQue.curData[fil];
+   fil += 1;
+   if (fil >= MAX_CUR_DATA)
+    fil = 0;
+   curQue.fil = fil;
+
+   p->count++;
+   curData->chan = p;
+   curData->iVcc = ADCL;
+   curData->iVcc |= ADCH << 8;
+   curData->sampleCount = sampleCount;
+   curData->sumI = p->sumI;
+   curQue.count += 1;
+  }
+  
+#else
   long result = ADCL;
   result |= ADCH << 8;
   result = READVCC_CALIBRATION_CONST / result;
@@ -2521,11 +2837,20 @@ ISR(ADC_vect)
     p->send = 1;
    }
   }
+#endif
+  
   adcState = 0;			/* set to start sampling */
   iChan++;			/* advance to next channel */
   if (iChan >= ADCCHANS)	/* if at end */
    iChan = 0;			/* back to channel zero */
+  
+#if 1
+  waitCrossing = true;		/* set to wait for zero crossing */
+  crossTmr = CROSS_TMO;
+  lastBelow = false;
+#else
   sampleCount = SAMPLES;	/* set number of samples */
+#endif
   dbg6Clr();
  }
 

@@ -25,10 +25,12 @@ TimerThree Timer3;		// preinstatiate
 
 // interrupt service routine that wraps a user defined function
 
+#if 0
 ISR(TIMER3_OVF_vect)
 {
  Timer3.isrCallback();
 }
+#endif
 
 void TimerThree::initialize(long microseconds)
 {

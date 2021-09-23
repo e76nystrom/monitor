@@ -262,6 +262,8 @@ EXT char *rspPtr[MAX_RSP];
 EXT int rspL[MAX_RSP];
 EXT char id[ID_LEN];
 
+EXT bool wifiDbg;
+
 #define IPD_STR "+IPD,"
 #define IPD F1(IPD_STR)
 #define IPDLEN (sizeof(IPD_STR) - 1)
@@ -304,13 +306,16 @@ void newLine()
 
 void dbgChar(char ch)
 {
- if (ch == '\n')
+ if (wifiDbg)
  {
-  putChar('\r');
-  putChar(ch);
+  if (ch == '\n')
+  {
+   putChar('\r');
+   putChar(ch);
+  }
+  else if ((ch >= ' ') && (ch < 0x7f))
+   putChar(ch);
  }
- else if ((ch >= ' ') && (ch < 0x7f))
-  putChar(ch);
 }
 
 #if defined(ARDUINO_ARCH_AVR)
@@ -482,7 +487,7 @@ char *sendData(const char *ip, int port, const char *data,
  trace();
  wifiMux();			/* in case device restarted */
  int cmdLen = strlen((const char *) data);
- if (DBG & 0)
+ if (wifiDbg)
   printf(F0("sendData %d %s\n"), cmdLen, data);
 
  char *p = 0;
@@ -505,7 +510,7 @@ char *sendData(const char *ip, int port, const char *data,
    }
 
    *(p + dataLen) = 0;
-   if (1)
+   if (wifiDbg)
    {
     printf(F0("\nclosed %d rspCount %d p %08x rspLen %d dataLen %d\n"),
 	   closed, rspCount, (unsigned int) p, rspLen, dataLen);
@@ -1085,7 +1090,7 @@ char wifiWrite(char *s, int size, unsigned int timeout)
 {
  trace();
  wifiClrRx();
- if (DBG)
+ if (wifiDbg)
   printf(F0("\nSending %d "), size);
 
  wifiPut(s, size);
@@ -1133,7 +1138,7 @@ char wifiWrite(const __FlashStringHelper *s, int size, unsigned int timeout)
 {
  trace();
  wifiClrRx();
- if (DBG)
+ if (wifiDbg)
   printf(F0("\nSending %d "), size);
 
  wifiPut(s, size);
@@ -1248,7 +1253,7 @@ void wifiStartData(char *s, int size, unsigned int timeout)
 {
  trace();
  wifiClrRx();
- if (DBG)
+ if (wifiDbg)
   printf(F0("StartData Sending %d "), size);
 
  wifiPut(s, size);
@@ -1277,7 +1282,7 @@ void wifiWriteData(char *s, int size, unsigned int timeout)
 {
  trace();
  wifiClrRx();
- if (DBG)
+ if (wifiDbg)
   printf(F0("Data Sending %d "), size);
 
  wifiPut(s, size);
@@ -1330,7 +1335,7 @@ char *wifiWriteTCPx(char *s, int size,
 {
  trace();
  wifiClrRx();
- if (DBG)
+ if (wifiDbg)
   printf(F0("Sending %d\n"), size);
 
  wifiPut(s, size);

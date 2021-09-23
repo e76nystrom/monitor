@@ -1,6 +1,7 @@
 #!/bin/bash
 
 ./inc.py src/wifi.cpp include/wifi.h
+./inc.py src/timer3.cpp include/timer3.h
 ./inc.py src/dns.cpp include/dns.h
 ./inc.py src/ntp.cpp include/ntp.h
 ./inc.py src/current.cpp include/current.h

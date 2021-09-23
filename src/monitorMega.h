@@ -2,7 +2,9 @@
 
 #define ESP8266_TIME 0
 
-#define MONITOR_INDEX 2
+#define MONITOR_INDEX 3
+
+/* -------------------- monitor index 1 -------------------- */
 
 /* outside temperature */
 
@@ -39,6 +41,8 @@ extern DeviceAddress tempDev[TEMPDEVS];
 #endif /* defined(__MONITOR__) */
 
 #endif	/* MONITOR_INDEX == 1 */
+
+/* -------------------- monitor index 2 -------------------- */
 
 /* basement dehumidifer and furnace monitor */
 
@@ -78,25 +82,32 @@ extern DeviceAddress tempDev[TEMPDEVS];
 
 #endif	/* MONITOR_INDEX == 2 */
 
+/* -------------------- monitor index 3 -------------------- */
+
 /* basement water alarm and pump shutoff */
 
 #if (MONITOR_INDEX == 3)
 
-#define EMONCMS_ADDR EMONCMS_ADDR0
-#define EMONCMS_KEY EMONCMS_KEY0
-#define EMONCMS_NODE "5"
+#define EMONCMS_ADDR EMONCMS_ADDR1
+#define EMONCMS_KEY EMONCMS_KEY1
+
+#define EMONCMS_NODE "MegaTest"
+#define CURRENT0_NODE "cTst0"
+#define CURRENT1_NODE "cTst1"
+
+#define WIFI_ENA
 
 #define TEMP_SENSOR 1
-#define RTC_CLOCK 1
-#define DHT_SENSOR 1
-#define CURRENT_SENSOR 0
-#define WATER_MONITOR 1
-#define CHECK_IN 0
-#define DEHUMIDIFIER 1
+#define RTC_CLOCK 0
+#define DHT_SENSOR 0
+#define CURRENT_SENSOR 1
+#define WATER_MONITOR 0
+#define CHECK_IN 1
+#define DEHUMIDIFIER 0
 
-#define SSID "dd-wrt_vap"
-#define PASS "minidonk"
-#define MONITOR_ID "Monitor3"
+#define SSID "hug2g996565"
+#define PASS "candle14salt"
+#define MONITOR_ID "MegaTest"
 
 #define TEMPDEVS 1
 #if defined(__MONITOR__)
@@ -109,6 +120,8 @@ extern DeviceAddress tempDev[TEMPDEVS];
 #endif /* defined(__MONITOR__) */
 
 #endif	/* MONITOR_INDEX == 3 */
+
+/* -------------------- monitor index 4 -------------------- */
 
 #if (MONITOR_INDEX == 4)
 
