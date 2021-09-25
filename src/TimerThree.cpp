@@ -17,7 +17,7 @@
  *
  */
 
-#if ARDUINO_AVR_MEGA2560
+#if defined(ARDUINO_AVR_MEGA2560)
 #include "TimerThree.h"
 #include <stdio.h>
 

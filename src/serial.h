@@ -29,7 +29,7 @@ extern SoftwareSerial dbgPort;
 
 #endif	/* ARDUINO_AVR_PRO */
 
-#if ARDUINO_AVR_MEGA2560
+#if defined(ARDUINO_AVR_MEGA2560)
 
 #define DBGPORT Serial
 #define WIFI Serial1
@@ -49,7 +49,7 @@ extern SoftwareSerial dbgPort;
 #define F3(x) x
 #endif	/* FLASH_STRINGS */
 
-#endif	/* ARDUINO_AVR_NEGA2560 */
+#endif	/* ARDUINO_AVR_MEGA2560 */
 
 inline void flush() {}
 

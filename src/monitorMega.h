@@ -1,8 +1,11 @@
-#if ARDUINO_AVR_MEGA2560
+#if defined(ARDUINO_AVR_MEGA2560)
 
 #define ESP8266_TIME 0
 
-#define MONITOR_INDEX 2
+#define MONITOR_INDEX 1
+
+#define MON_DBG 1
+#define WIFI_DBG 1
 
 /* -------------------- monitor index 1 -------------------- */
 

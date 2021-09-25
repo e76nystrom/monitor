@@ -57,6 +57,7 @@ Compatible frameworks: arduino
 */
 
 #define __MONITOR__
+#include <Arduino.h>
 #include <SoftwareSerial.h>
 #include <DallasTemperature.h>
 #include <TimeLib.h>
@@ -290,8 +291,8 @@ char failCount;			/* send failure count */
 #define SITE
 #else
 #define TCPPORT 80
-//#define HOST "test.ericnystrom.com"
-#define HOST "www.ericnystrom.com"
+#define HOST "test.ericnystrom.com"
+//#define HOST "www.ericnystrom.com"
 #define SITE "/alert"
 #endif  /* LOCAL */
 
@@ -376,7 +377,10 @@ float rtcTemp();
 void cmdLoop();
 unsigned int tLast;
 int loopCount;
+
+#if !defined(monDbg)
 char monDbg;
+#endif	/* monDbg */
 
 #define TINTERVAL (10000U)	/* timer interval */
 #define T1SEC (1000U)		/* one second interval */
@@ -612,6 +616,8 @@ uint16_t intMillis()
 
 /* setup routine */
 
+#if CURRENT_SENSOR
+
 T_TIMER_CTL tmr3;
 
 void showTimer(P_TIMER_CTL tmr)
@@ -630,11 +636,13 @@ void showTimer(P_TIMER_CTL tmr)
 	*tmr->timsk, *tmr->tifr);
 }
 
+#endif	/* CURRENT_SENSOR */
+
 #define TRACE_OFFSET 3
 
 void trace()
 {
-#if 1
+#if defined(ARDUINO_AVR_MEGA2560)
  int i = dbgData.i;
  unsigned char *sp = (unsigned char *) SP;
  unsigned char *p = (unsigned char *) &dbgData.trace[i];
@@ -644,7 +652,7 @@ void trace()
  if (i >= TRACE_SIZE)
   i = 0;
  dbgData.i = i;
-#endif
+#endif	/* ARDUINO_AVR_MEGA2560 */
 }
 
 void setup()
@@ -694,6 +702,7 @@ void setup()
 #if defined(ARDUINO_ARCH_AVR)
   printf(F3("\nmcusr %x wdtcsr %02x\n"), MCUSR, WDTCSR);
   checkBuffers();
+#if defined(ARDUINO_AVR_MEGA2650)
   printf(F3("setup %04x loop %04x cmdLoop %04x\n"),
 	 addr(setup), addr(loop), addr(cmdLoop));
   printf(F3("__noinit_start %04x __noinit_end %04x __heap_start %04x\n"),
@@ -747,6 +756,7 @@ void setup()
    dumpBuf((unsigned char *) &wdtData, sizeof(wdtData));
   }
   MCUSR = 0;
+#endif	/* ARDUINO_AVR_MEGA2560 */
 
 #else
   printf(F3("\nstarting 0\n"));
@@ -1068,8 +1078,12 @@ void setup()
 
  setTime();
 
- monDbg = 0;
- wifiDbg = 0;
+#if !defined(monDbg)
+ monDbg = MON_DBG;
+#endif	/* monDdb */
+#if !defined(wifiDbg)
+ wifiDbg = WIFI_DBG;
+#endif	/* wifiDbg */
  printf(F3("monDbg %d wifiDbg %d\n"), monDbg, wifiDbg);
 
 #if CURRENT_SENSOR
@@ -1262,7 +1276,7 @@ void cmdLoop()
    }
 #endif  /* ARDUINO_ARCH_AVR */
 
-#if ARDUINO_AVR_MEGA2560
+#if defined(ARDUINO_AVR_MEGA2560)
    else if (ch == 'p')		/* mega2560 write to port g */
    {
     if (getNum())

@@ -212,7 +212,9 @@ EXT char *rspPtr[MAX_RSP];
 EXT int rspL[MAX_RSP];
 EXT char id[ID_LEN];
 
+#if !defined(wifiDbg)
 EXT bool wifiDbg;
+#endif	/* wifiDbg */
 
 #define IPD_STR "+IPD,"
 #define IPD F1(IPD_STR)

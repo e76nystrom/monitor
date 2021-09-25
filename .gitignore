@@ -30,6 +30,7 @@ data/
 data1/
 convert
 build/*
+io/*
 
 include/adc.h
 include/current.h

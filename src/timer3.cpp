@@ -1,5 +1,7 @@
 #define __TIMER3__
 
+#if defined(ARDUINO_AVR_MEGA2560)
+
 #include <Arduino.h>
 #include <stdio.h>
 #include "struct.h"
@@ -152,3 +154,4 @@ void stopTimer3()
 }
 
 #endif	/* __TIMER3__ */
+#endif	/* ARDUINO_AVR_MEGA2560 */

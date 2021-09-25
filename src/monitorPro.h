@@ -7,7 +7,10 @@ ATMega328 Pin 7 - Arduino Pin 4 - Ext1 - RJ45 Pin 6 - S2 - 3 Pin DS18S20
 
 */
 
-#define MONITOR_INDEX 1
+#define MONITOR_INDEX 6
+
+#define monDbg 1
+#define wifiDbg 1
 
 /* -------------------- monitor index 1 -------------------- */
 
@@ -54,7 +57,7 @@ ATMega328 Pin 7 - Arduino Pin 4 - Ext1 - RJ45 Pin 6 - S2 - 3 Pin DS18S20
 
 #define SSID "hug2g996565"
 #define PASS "candle14salt"
-#define MONITOR_ID "Monitor3"
+#define MONITOR_ID "MasterBr"
 
 #define ONE_WIRE_BUS 3		/* one wire bus pin */
 
@@ -89,7 +92,7 @@ extern DeviceAddress tempDev[TEMPDEVS];
 
 #define SSID "hug2g996565"
 #define PASS "candle14salt"
-#define MONITOR_ID "Monitor4"
+#define MONITOR_ID "FamRoom"
 
 #endif	/* MONITOR_INDEX == 4 */
 
@@ -109,7 +112,7 @@ extern DeviceAddress tempDev[TEMPDEVS];
 
 #define SSID "hug2g996565"
 #define PASS "candle14salt"
-#define MONITOR_ID "Monitor5"
+#define MONITOR_ID "GeoH20"
 
 #define ONE_WIRE_BUS0 3		/* one wire bus pin */
 #define ONE_WIRE_BUS1 4		/* one wire bus pin */
@@ -134,7 +137,7 @@ extern DeviceAddress tempDev[TEMPDEVS];
 
 #endif	/* MONITOR_INDEX == 5 */
 
-/* -------------------- monitor index 5 -------------------- */
+/* -------------------- monitor index 6 -------------------- */
 
 #if (MONITOR_INDEX == 6)
 
@@ -153,7 +156,7 @@ extern DeviceAddress tempDev[TEMPDEVS];
 
 #define SSID "hug2g996565"
 #define PASS "candle14salt"
-#define MONITOR_ID "Monitor6"
+#define MONITOR_ID "Garage"
 
 #endif	/* MONITOR_INDEX == 6 */
 
@@ -173,7 +176,7 @@ extern DeviceAddress tempDev[TEMPDEVS];
 
 #define SSID "hug2g996565"
 #define PASS "candle14salt"
-#define MONITOR_ID "Test"
+#define MONITOR_ID "SmallBr"
 
 #define ONE_WIRE_BUS0 4		/* one wire bus pin */
 #define ONE_WIRE_BUS1 4		/* one wire bus pin */

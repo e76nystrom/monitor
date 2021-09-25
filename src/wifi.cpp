@@ -262,7 +262,9 @@ EXT char *rspPtr[MAX_RSP];
 EXT int rspL[MAX_RSP];
 EXT char id[ID_LEN];
 
+#if !defined(wifiDbg)
 EXT bool wifiDbg;
+#endif	/* wifiDbg */
 
 #define IPD_STR "+IPD,"
 #define IPD F1(IPD_STR)
@@ -1222,7 +1224,7 @@ void wifiQuit()
 
 char wifiJoin()
 {
-#if ARDUINO_ARCH_AVR
+#if defined(ARDUINO_ARCH_AVR)
  strcpy(cmdBuffer, F3("AT+CWJAP=\""));
  readEE(stringBuffer, SSID_LOC, SSID_LEN);
  strcat(cmdBuffer, stringBuffer);
