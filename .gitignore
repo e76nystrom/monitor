@@ -39,6 +39,7 @@ include/dma.h
 include/gpio.h
 include/main.h
 include/stm32info.h
+include/stm32spi.h
 include/tim.h
 include/spi.h
 include/i2c.h

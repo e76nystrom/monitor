@@ -2,7 +2,7 @@
 
 #define ESP8266_TIME 0
 
-#define MONITOR_INDEX 1
+#define MONITOR_INDEX 3
 
 #define MON_DBG 1
 #define WIFI_DBG 1
@@ -29,7 +29,6 @@
 
 #define SSID "hug2g996565"
 #define PASS "candle14salt"
-
 #define MONITOR_ID "FrontPorch"
 
 #define TEMPDEVS 1
@@ -107,6 +106,8 @@ extern DeviceAddress tempDev[TEMPDEVS];
 #define WATER_MONITOR 0
 #define CHECK_IN 1
 #define DEHUMIDIFIER 0
+
+#define OLED_ENA 1
 
 #define SSID "hug2g996565"
 #define PASS "candle14salt"
