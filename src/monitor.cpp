@@ -484,6 +484,19 @@ LiquidCrystal_I2C lcd(PCF8574_ADDR_A21_A11_A01,
 
 #endif	/* LCD_ENA */
 
+#if defined(OLED_ENA)
+
+#include <U8x8lib.h>
+
+#ifdef U8X8_HAVE_HW_I2C
+#include <Wire.h>
+#endif	/* U8X8_HAVE_HW_I2C */
+
+//U8X*_SH1106_128X64_NONAME_F_HW_I2C u8g2(U8G2_R0, /* reset=*/ U8X8_PIN_NONE);
+U8X8_SH1106_128X64_NONAME_HW_I2C u8x8(/* reset=*/ U8X8_PIN_NONE);
+
+#endif	/* OLED_ENA */
+
 void putx0(void *p, char c);
 void putx(char c);
 
@@ -768,8 +781,10 @@ void setup()
  memset(cmdBuffer, 0, sizeof(cmdBuffer));
  memset(packetRsp, 0, sizeof(packetRsp));
 
+#if defined(ARDUINO_ARCH_AVR)
  int len = (int) SP - 16 - (int) &__bss_end;
  memset((void *) (&__bss_end), 0, len);
+#endif	/* ARDUINO_ARCH_AVR */
 
 #if defined(LCD_ENA)
  while (lcd.begin(COLUMS, ROWS, LCD_5x8DOTS) != 1)
@@ -781,6 +796,16 @@ void setup()
  rccInfo();
  lcd.print("PCF8574 is OK...");
 #endif	/* LCD_ENA */
+
+#if defined(OLED_ENA)
+
+ //u8g2.clearBuffer();		 /* clear the internal memory */
+ //u8g2.setFont(u8g2_font_5x8_tr); /* choose a suitable font */
+ u8x8.begin();
+ u8x8.setPowerSave(0);
+ u8x8.setFont(u8x8_font_chroma48medium8_r);
+ 
+#endif	/* OLED_ENA */
 
 #if DBG0_Pin
  pinMode(DBG0_Pin, OUTPUT);
@@ -1610,6 +1635,16 @@ void loop()
 #endif
   }
 
+#if defined(OLED_ENA)
+  char buf[2];
+  buf[0] = loopCount + '0';
+  buf[1] = 0;
+  //u8g2.drawStr(0, 8, buf);  // write something to the internal memory
+  //u8g2.sendBuffer();	    // transfer internal memory to the display
+  u8x8.drawString(0, 1, buf);
+  u8x8.refreshDisplay();	// only required for SSD1606/7  
+#endif
+ 
 #if defined(CURRENT_STM32)
   powerUpdate();
 #endif	/* CURRENT_STM32 */

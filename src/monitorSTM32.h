@@ -10,6 +10,8 @@
 #define MONITOR_INDEX 2
 
 #define DBG 1
+#define MON_DBG 1
+#define WIFI_DBG 1
 
 #define EMONCMS_ADDR EMONCMS_ADDR1
 #define EMONCMS_KEY EMONCMS_KEY1
@@ -42,6 +44,7 @@
 /* -------------------- monitor index 2 -------------------- */
 
 #if (MONITOR_INDEX == 2)
+
 #define MONITOR_ID "stm32Pwr0"
 #define EMONCMS_NODE "stm32-2"
 
@@ -54,6 +57,8 @@
 #define CURRENT_STM32 1
 #define EMON_POWER 1
 #define EMON_RMS 0
+
+//#define OLED_ENA 1
 
 #define MAX_CHAN_POWER 1
 #define MAX_CHAN_RMS 2
