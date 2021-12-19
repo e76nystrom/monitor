@@ -19,7 +19,7 @@ rm include\dma.h
 rm include\gpio.h
 rm include\i2c.h
 rm include\main.h
-rm include\spi.h
+rem rm include\spi.h
 rm include\tim.h
 rm include\cyclectr.h
 rm include\stm32Info.h
@@ -45,7 +45,7 @@ mklink include\dma.h ..\..\..\EclipseCPP\MonitorCPP\Inc\dma.h
 mklink include\gpio.h ..\..\..\EclipseCPP\MonitorCPP\Inc\gpio.h
 mklink include\i2c.h ..\..\..\EclipseCPP\MonitorCPP\Inc\i2c.h
 mklink include\main.h ..\..\..\EclipseCPP\MonitorCPP\Inc\main.h
-mklink include\spi.h ..\..\..\EclipseCPP\MonitorCPP\Inc\spi.h
+rem mklink include\spi.h ..\..\..\EclipseCPP\MonitorCPP\Inc\spi.h
 mklink include\tim.h ..\..\..\EclipseCPP\MonitorCPP\Inc\tim.h
 mklink include\cyclectr.h  ..\..\..\EclipseCPP\MonitorCPP\include\cyclectr.h
 mklink include\stm32Info.h  ..\..\..\EclipseCPP\LatheCPP\include\stm32Info.h
