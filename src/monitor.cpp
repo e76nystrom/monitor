@@ -159,7 +159,6 @@ int dehumDelay;			/* on or off delay counter */
 #endif  /* RTC_CLOCK */
 
 #if CURRENT_SENSOR
-#include "TimerThree.h"
 
 #include "struct.h"
 #include "timer3.h"
@@ -167,6 +166,7 @@ int dehumDelay;			/* on or off delay counter */
 #define READVCC_CALIBRATION_CONST 1126400L
 #define ADC_BITS 10
 #define ADC_COUNTS (1<<ADC_BITS)
+
 #endif  /* CURRENT_SENSOR */
 
 #include <TimeLib.h>
@@ -1194,6 +1194,35 @@ char prompt(const char *str)
 }
 #endif	/* ARDUINO_ARCH_STM32 */
 
+#ifdef ARDUINO_AVR_MEGA2560
+
+asm volatile(
+ ".global getPC\n\t"
+ "getPC:\n\t"
+ "pop 23\n\t"
+ "pop 25\n\t"
+ "pop 24\n\t"
+ "push 24\n\t"
+ "push 25\n\t"
+ "push 23\n\t"
+ "ret\n\t"
+ );
+
+#endif	/* ARDUINO_AVR_MEGA2560 */
+
+#ifdef ARDUINO_AVR_PRO
+	
+asm volatile(
+ "getPC:\n\t"
+ "pop r25\n\t"
+ "pop r24\n\t"
+ "push r24\n\t"
+ "push r25\n\t"
+ "ret\n\t"
+ );
+	
+#endif	/* ARDUINO_AVR_PRO */
+
 void cmdLoop()
 {
  wdt_disable();
@@ -1643,7 +1672,7 @@ void loop()
   //u8g2.sendBuffer();	    // transfer internal memory to the display
   u8x8.drawString(0, 1, buf);
   u8x8.refreshDisplay();	// only required for SSD1606/7  
-#endif
+#endif	/* OLED_ENA */
  
 #if defined(CURRENT_STM32)
   powerUpdate();
