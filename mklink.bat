@@ -1,28 +1,28 @@
-rm src\stm32f1adc.c 
-rm src\stm32f1dma.c 
-rm src\stm32f1gpio.c
-rm src\stm32f1i2c.c 
-rm src\stm32f1spi.c 
-rm src\stm32f1tim.c 
-rm src\current.cpp
-rm src\i2cx.cpp
-rm src\i2cx.h
-rm src\spix.cpp
-rm src\spix.h
-rm src\lcd.cpp
-rm src\lcd.h
-rm src\stm32Info.cpp
+del src\stm32f1adc.c 
+del src\stm32f1dma.c 
+del src\stm32f1gpio.c
+del src\stm32f1i2c.c 
+del src\stm32f1spi.c 
+del src\stm32f1tim.c 
+del src\current.cpp
+del src\i2cx.cpp
+del src\i2cx.h
+del src\spix.cpp
+del src\spix.h
+del src\lcd.cpp
+del src\lcd.h
+del src\stm32Info.cpp
 
-rm include\adc.h
-rm include\current.h
-rm include\dma.h
-rm include\gpio.h
-rm include\i2c.h
-rm include\main.h
-rem rm include\spi.h
-rm include\tim.h
-rm include\cyclectr.h
-rm include\stm32Info.h
+del include\adc.h
+del include\current.h
+del include\dma.h
+del include\gpio.h
+del include\i2c.h
+del include\main.h
+rem del include\spi.h
+del include\tim.h
+del include\cyclectr.h
+del include\stm32Info.h
 
 mklink src\stm32f1adc.c  ..\..\..\EclipseCPP\MonitorCPP\src\adc.c
 mklink src\stm32f1dma.c  ..\..\..\EclipseCPP\MonitorCPP\src\dma.c
