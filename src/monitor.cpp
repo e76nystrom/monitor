@@ -197,7 +197,7 @@ char esp8266Time();
 
 #if defined(ARDUINO_AVR_PRO)
 SoftwareSerial dbgPort = SoftwareSerial(rxPin, txPin);
-#endif
+#endif	/* ARDUINO_AVR_PRO */
 
 #if PRINTF
 void putx1(void *p, char c)
@@ -270,7 +270,7 @@ extern char _ebss;
 extern char _sdata;
 extern char _edata;
 extern char _estack;
-#endif
+#endif	/* DATA_SIZE */
 
 extern "C" unsigned int getSP(void);
 
@@ -402,7 +402,8 @@ void timer3();			/* timer isr for reading current */
 #define CYCLE_COUNT 60		/* cycles per sample */
 #else
 #define SAMPLES (100)		/* samples per reading */
-#endif
+#endif	/* 1 */
+
 #define ADCCHANS (2)		/* number of adc channels to read */
 
 #define CSENDTIME (10 * 60)	/* if no change for this time send current */
@@ -442,7 +443,7 @@ char waitCrossing;		/* wait for zero crossing */
 int crossTmr;			/* crossing timer */
 char lastBelow;			/* last value below zero */
 int cycleCount;			/* cycle counter */
-#endif
+#endif	/* 1 */
 T_CURRENT iData[ADCCHANS];	/* current channel data */
 float tempSumI;			/* current sum accumulator */
 
@@ -693,12 +694,12 @@ void setup()
 
 #if PRINTF
  init_printf(NULL, putx1);
-#endif
+#endif	/* PRINTF */
 
 #if !PRINTF
  fdev_setup_stream(&uartout, putx, NULL, _FDEV_SETUP_WRITE);
  stdout = &uartout;
-#endif
+#endif	/* !PRINTF */
 
 #endif  /* ARDUINO_ARCH_AVR */
 
@@ -907,7 +908,7 @@ void setup()
 
 #if MEGA32
  init_printf(NULL, putx0);
-#endif
+#endif	/* MEGA32 */
 
  if (DBG)
   printf(F3("\nstarting 1\n"));
@@ -1661,7 +1662,7 @@ void loop()
 
 #if defined(Led_Pin)
    ledToggle();
-#endif
+#endif	/* Led_Pin */
   }
 
 #if defined(OLED_ENA)
@@ -2028,7 +2029,7 @@ char sendHTTP(char *data)
 
 #if WATER_MONITOR
  updateFail();
-#endif
+#endif	/* WATER_MONITOR */
  return(0);
 }
 
@@ -2119,10 +2120,12 @@ void procAlarm(P_INPUT water, boolean inp)
     if (water->state != inp)	/* if state changed */
     {
      water->state = inp;	/* save current state */
+#if CHECK_IN
      if (!notify(water->index, inp == STATE_ALARM)) /* if notify failure */
      {
       water->counter = 1;	/* set counter to send again */
      }
+#endif	/* CHECK_IN */
     }
    }
   }
@@ -2131,12 +2134,14 @@ void procAlarm(P_INPUT water, boolean inp)
   printf(F3("procAlarm done\n"));
 }
 
+#if CHECK_IN
 char notify(int alarm, boolean val)
 {
  sprintf((char *) dataBuffer,
 	 F3("GET " SITE "/notify?id=%s&alarm=%d&val=%d"), id, alarm, val);
  return(sendHTTP(dataBuffer));
 }
+#endif	/* CHECK_IN */
 
 void updateFail()
 {
@@ -2234,7 +2239,7 @@ float printTemperature(DeviceAddress deviceAddress)
  printf(F3(" F\n"));
  return(temp);
 }
-#endif
+#endif	/* 0 */
 
 #endif	/* TEMP_SENSOR */
 
@@ -2248,7 +2253,7 @@ char emonData(char *data)
  strcat(dataBuffer, F3(HTTP1));
 #else
  argConv(F(TEST_GET), dataBuffer);
-#endif
+#endif	/* 1 */
 
  if (DBG & 0)
   printf(F3("emonData len %d\n%s\n"), strlen(dataBuffer), dataBuffer);
@@ -2530,7 +2535,7 @@ void initCurrent(char isr)
  iData[0].node = CURRENT0_NODE;
 #if ADCCHANS > 1
  iData[1].node = CURRENT1_NODE;
-#endif
+#endif	/* ADCCHANS */
  tempSumI = 0.0;
  adcState = 0;
  cState = 0;
@@ -2540,7 +2545,7 @@ void initCurrent(char isr)
  lastBelow = false;
 #else
  sampleCount = SAMPLES;
-#endif
+#endif	/* 1 */
  trace();
  if (isr)
  {
@@ -2562,7 +2567,7 @@ void initCurrent(char isr)
 #else
   initTimer3(uSec);
   printf(F3("period %d preScaler %d\n"), timer3Period, timer3Prescale);
-#endif
+#endif	/* 0 */
   showTimer(&tmr3);
   dbg0Clr();
  }
@@ -2731,7 +2736,7 @@ void currentCheck()
   printf(F3("%d %d emonData %s\n"), p->index, cState, buf);
   emonData(buf);		/* send data */
  }
-#endif
+#endif	/* 1 */
 }
 
 //void timer3()
@@ -2872,7 +2877,7 @@ ISR(ADC_vect)
     dbg6Set();
    }
   }
-#endif
+#endif	/* 1 */
  }
  else				/* calibrate voltage and process data */
  {
@@ -2915,7 +2920,7 @@ ISR(ADC_vect)
     p->send = 1;
    }
   }
-#endif
+#endif	/* 1 */
   
   adcState = 0;			/* set to start sampling */
   iChan++;			/* advance to next channel */
@@ -2928,7 +2933,7 @@ ISR(ADC_vect)
   lastBelow = false;
 #else
   sampleCount = SAMPLES;	/* set number of samples */
-#endif
+#endif	/* 1 */
   dbg6Clr();
  }
 
@@ -2961,7 +2966,7 @@ int adcRead(char pin)
  // combine the two bytes
  return (high << 8) | low;
 }
-#endif
+#endif	/* 0 */
 
 #endif  /* CURRENT_MONITOR */
 

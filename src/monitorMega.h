@@ -2,7 +2,7 @@
 
 #define ESP8266_TIME 0
 
-#define MONITOR_INDEX 3
+#define MONITOR_INDEX 4
 
 #define MON_DBG 1
 #define WIFI_DBG 1
@@ -129,8 +129,10 @@ extern DeviceAddress tempDev[TEMPDEVS];
 
 #if (MONITOR_INDEX == 4)
 
-#define EMONCMS_ADDR EMONCMS_ADDR0
-#define EMONCMS_KEY EMONCMS_KEY0
+#define EMONCMS_ADDR EMONCMS_ADDR1
+#define EMONCMS_KEY EMONCMS_KEY1
+
+//#define WIFI_ENA
 
 #define TEMP_SENSOR 0
 #define RTC_CLOCK 0
@@ -140,9 +142,9 @@ extern DeviceAddress tempDev[TEMPDEVS];
 #define CHECK_IN 0
 #define DEHUMIDIFIER 0
 
-#define SSID "dd-wrt_vap"
-#define PASS "minidonk"
-#define MONITOR_ID "Monitor4"
+#define SSID "hug2g996565"
+#define PASS "candle14salt"
+#define MONITOR_ID "MegaTest1"
 
 #endif	/* MONITOR_INDEX == 4 */
 
