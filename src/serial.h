@@ -57,7 +57,14 @@ inline void flush() {}
 
 #ifdef ARDUINO_ARCH_STM32
 
+#if defined(ARDUINO_NUCLEO_F103RB)
+#define DBGPORT Serial2
+#endif	/* ARDUINO_NUCLEO_F103RB */
+
+#if defined(ARDUINO_BLUEPILL_F103C8)
 #define DBGPORT Serial1
+#endif  /* ARDUINO_BLUEPILL_F103C8 */
+
 #define WIFI Serial3
 
 inline const char *argConv(const char *s) {return(s);}
@@ -93,5 +100,6 @@ char prompt(const char *str);
 
 #if !defined(DBG)
 #define DBG 1
-#endif
+#endif	/* DBG */
+
 #endif	/* __SERIAL_H__ */

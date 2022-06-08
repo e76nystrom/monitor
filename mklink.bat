@@ -13,6 +13,9 @@ del src\lcd.cpp
 del src\lcd.h
 del src\stm32Info.cpp
 
+del src\stm32f1Nadc.c 
+del src\stm32f1Ngpio.c
+
 del include\adc.h
 del include\current.h
 del include\dma.h
@@ -23,6 +26,8 @@ rem del include\spi.h
 del include\tim.h
 del include\cyclectr.h
 del include\stm32Info.h
+
+del include\mainN.h
 
 mklink src\stm32f1adc.c  ..\..\..\EclipseCPP\MonitorCPP\src\adc.c
 mklink src\stm32f1dma.c  ..\..\..\EclipseCPP\MonitorCPP\src\dma.c
@@ -39,6 +44,9 @@ mklink src\lcd.cpp  ..\..\..\EclipseCPP\LatheCPP\lathe_src\lcd.cpp
 mklink src\lcd.h ..\..\..\EclipseCPP\LatheCPP\include\lcd.h
 mklink src\stm32Info.cpp  ..\..\..\EclipseCPP\LatheCPP\lathe_src\stm32Info.cpp
 
+mklink src\stm32f1Nadc.c  ..\..\..\EclipseCPP\MonitorCPPN\src\adc.c
+mklink src\stm32f1Ngpio.c ..\..\..\EclipseCPP\MonitorCPPN\src\gpio.c
+
 mklink include\adc.h ..\..\..\EclipseCPP\MonitorCPP\Inc\adc.h
 mklink include\current.h ..\..\..\EclipseCPP\MonitorCPP\include\current.h
 mklink include\dma.h ..\..\..\EclipseCPP\MonitorCPP\Inc\dma.h
@@ -49,3 +57,5 @@ rem mklink include\spi.h ..\..\..\EclipseCPP\MonitorCPP\Inc\spi.h
 mklink include\tim.h ..\..\..\EclipseCPP\MonitorCPP\Inc\tim.h
 mklink include\cyclectr.h  ..\..\..\EclipseCPP\MonitorCPP\include\cyclectr.h
 mklink include\stm32Info.h  ..\..\..\EclipseCPP\LatheCPP\include\stm32Info.h
+
+mklink include\mainN.h ..\..\..\EclipseCPP\MonitorCPPN\Inc\main.h

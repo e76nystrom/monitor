@@ -7,7 +7,7 @@
 #include <Wire.h>
 #include "serial.h"
 
-#define MONITOR_INDEX 2
+#define MONITOR_INDEX 3
 
 #define DBG 1
 #define MON_DBG 1
@@ -65,6 +65,31 @@
 #define MAX_CHAN (MAX_CHAN_POWER + MAX_CHAN_RMS)
 
 #endif	/* MONITOR_INDEX == 2 */
+
+/* -------------------- monitor index 3 -------------------- */
+
+#if (MONITOR_INDEX == 3)
+
+#define MONITOR_ID "stm32x"
+#define EMONCMS_NODE "stm32-x"
+
+//#define WIFI_ENA 1
+#define CHECK_IN 1
+
+#define INT_MILLIS 0
+#define ESP8266_TIME 0
+
+#define CURRENT_STM32 1
+#define EMON_POWER 1
+#define EMON_RMS 0
+
+//#define OLED_ENA 1
+
+#define MAX_CHAN_POWER 1
+#define MAX_CHAN_RMS 2
+#define MAX_CHAN (MAX_CHAN_POWER + MAX_CHAN_RMS)
+
+#endif	/* MONITOR_INDEX == 3 */
 
 /* -------------------- monitor end of definitions -------------------- */
 

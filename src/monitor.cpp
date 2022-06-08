@@ -1050,6 +1050,23 @@ void setup()
 
  printf("initialize adc\n");
  flush();
+
+#if defined(STM32F103xB)
+ __HAL_RCC_USART1_CLK_DISABLE();
+
+ /*
+    PA9     ------> USART1_TX
+    PA10     ------> USART1_RX
+ */
+
+ HAL_GPIO_DeInit(GPIOA, GPIO_PIN_9|GPIO_PIN_10);
+
+ MX_GPIO_Init();
+ MX_ADC1_Init();
+ ADC_MspInit(&hadc1);
+ MX_ADC2_Init();
+ ADC_MspInit(&hadc2);
+#else
  MX_GPIO_Init();
  MX_ADC1_Init();
  ADC_MspInit(&hadc1);
@@ -1059,6 +1076,8 @@ void setup()
  MX_TIM1_Init();
  HAL_TIM_Base_MspInit(&htim1);
 // HAL_TIM_MspPostInit(&htim1);
+#endif	/* STM32F103xB */
+
  printf("adc initialization complete\n");
  flush();
 
