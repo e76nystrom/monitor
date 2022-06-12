@@ -669,6 +669,13 @@ void trace()
 #endif	/* ARDUINO_AVR_MEGA2560 */
 }
 
+#if defined(ARDUINO_ARCH_AVR)
+
+#define addr(x) (2 * (unsigned int) (&x))
+#define daddr(x) ((unsigned int) (&x))
+
+#endif  /* ARDUINO_ARCH_AVR */
+
 void setup()
 {
  char ch;
@@ -708,9 +715,6 @@ void setup()
  DBGPORT.begin(19200);
 #endif	/* ARDUINO_ARCH_STM32 */
 
-#define addr(x) (2 * (unsigned int) &x)
-#define daddr(x) (unsigned int) &x
- 
  if (DBG)
  {
 #if defined(ARDUINO_ARCH_AVR)
@@ -1499,7 +1503,7 @@ void cmdLoop()
    {
     wifiWriteStr(F2("AT+CIPSTART=4,\"TCP\",\"184.106.153.149\",80"), 4000);
    }
-   else if (ch == 'z')		/* close wiif */
+   else if (ch == 'z')		/* close wifi */
    {
     wifiClose(4, 15000);
    }
