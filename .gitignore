@@ -42,6 +42,7 @@ include/stm32info.h
 include/stm32spi.h
 include/tim.h
 include/i2c.h
+include/mainN.h
 
 src/current.cpp
 src/i2cx.cpp
@@ -57,5 +58,13 @@ src/stm32f1gpio.c
 src/stm32f1i2c.c
 src/stm32f1spi.c
 src/stm32f1tim.c
+
+src/stm32f1Nadc.c
+src/stm32f1Ngpio.c
+
+cmake-build-*/*
+.idea/*
+link.sh
+project
 
 *.rules

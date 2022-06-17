@@ -214,8 +214,8 @@ inline bool dbg5() {return(0);}
 inline void dbg5Toggle() {}
 #endif	/* Dbg5_Pin */
 
-#define Dbg6_Pin GPIO_PIN_3
-#define Dbg6_GPIO_Port GPIOB
+//#define Dbg6_Pin GPIO_PIN_3
+//#define Dbg6_GPIO_Port GPIOB
 
 #ifdef Dbg6_Pin
 inline void dbg6Ini() {}

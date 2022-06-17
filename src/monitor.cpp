@@ -58,19 +58,40 @@ Compatible frameworks: arduino
 
 #define __MONITOR__
 #include <Arduino.h>
+
+#if defined(ARDUINO_ARCH_AVR)
+#include <string.h>
+#include <stdio.h>
+#endif	/* ARDUINO_ARCH_AVR */
+
+#if defined(ARDUINO_ARCH_STM32)
+#include <cstring>
+#include <cstdio>
+#endif	/* ARDUINO_ARCH_STM32 */
+
+#if defined(ARDUINO_AVR_PRO)
 #include <SoftwareSerial.h>
+#endif	/* ARDUINO_AVR_PRO */
+
+#if DHT_SENSOR
 #include <DallasTemperature.h>
-#include <TimeLib.h>
+#endif	/* DHT_SENSOR */
+
+//#include <TimeLib.h>
+
+#if TEMP_SENSOR | DHT_SENSOR
 #include <OneWire.h>
+#endif	/* TEMP_SENSOR | DHT_SENSOR*/
+
 #include <Wire.h>
 
-#define EMONCMS_ADDR0 "192.168.1.111"
-#define EMONCMS_KEY0 "b53ec1abe610c66009b207d6207f2c9e"
+// #define EMONCMS_ADDR0 "192.168.1.111"
+// #define EMONCMS_KEY0 "b53ec1abe610c66009b207d6207f2c9e"
 
 #define EMONCMS_ADDR1 "192.168.42.10"
 #define EMONCMS_KEY1 "cd5f31b05f8008756e76f87ecb762199"
 
-#define TEST_NODE 0
+// #define TEST_NODE 0
 
 #define RETRY_JOIN 3
 #define RETRY_SEND_HTTP 2
@@ -84,7 +105,7 @@ int val;
 
 void setTime();
 unsigned char uartSave;
-void putInit(void);
+void putInit();
 void putRestore();
 void putx0(char c);
 void putstr0(const char *str);
@@ -93,7 +114,7 @@ void sndhex(unsigned char *p, int size);
 
 #if TEMP_SENSOR
 
-void findAddresses(void);
+void findAddresses();
 
 #if TEMP_SENSOR == 1
 OneWire oneWire(ONE_WIRE_BUS);	/* one wire instance */
@@ -169,11 +190,9 @@ int dehumDelay;			/* on or off delay counter */
 
 #endif  /* CURRENT_SENSOR */
 
-#include <TimeLib.h>
-#include <string.h>
-#include <stdio.h>
-#include <stdlib.h>
-#include <ctype.h>
+//#include <TimeLib.h>
+//#include <stdlib.h>
+//#include <ctype.h>
 
 #include "wdt.h"
 #include "dns.h"
@@ -252,9 +271,9 @@ const char *argConv(const __FlashStringHelper *s, char *buf)
 
 #if defined(ARDUINO_ARCH_STM32)
 #include "adc.h"
-#include "dma.h"
+//#include "dma.h"
 #include "gpio.h"
-#include "tim.h"
+//#include "tim.h"
 #include "stm32Info.h"
 #undef EXT
 #define EXT extern
@@ -272,7 +291,7 @@ extern char _edata;
 extern char _estack;
 #endif	/* DATA_SIZE */
 
-extern "C" unsigned int getSP(void);
+extern "C" unsigned int getSP();
 
 #endif	/* ARDUINO_ARCH_STM32 */
 
@@ -355,8 +374,11 @@ char sendHTTP(char *data);
 void updateFail();
 #endif  /* WATER_MONITOR */
 
+#if TEMP_SENSOR | DHT_SENSOR
 char *cpyStr(char *dst, const char *str);
-char *strEnd(char *p);
+#endif  /* TEMP_SENSOR | DHT_SENSOR */
+
+// char *strEnd(char *p);
 
 #if (TEMP_SENSOR | DHT_SENSOR | CURRENT_SENSOR | CURRENT_STM32)
 
@@ -366,7 +388,7 @@ char *strEnd(char *p);
 
 #define HTTP1 " HTTP/1.1\r\nHost: " EMONCMS_ADDR "\r\nConnection: Close\r\n\r\n"
 
-char emonData(char *data);
+//char emonData(char *data);
 
 #endif	/* TEMP_SENSOR | DHT_SENSOR | CURRENT_SENSOR | CURRENT_STM32 */
 
@@ -619,7 +641,7 @@ void checkBuffers()
 
 #if defined(ARDUINO_ARCH_STM32)
 
-extern __IO uint32_t uwTick;
+//extern __IO uint32_t uwTick;
 
 uint16_t intMillis()
 {
@@ -1204,7 +1226,7 @@ char prompt(const char *str)
 {
  char ch;
  
- if (str != 0)
+ if (str != nullptr)
  {
   printf(str);
   flush();
@@ -1252,7 +1274,7 @@ void cmdLoop()
  wdt_disable();
  printf(F3("command loop\n"));
  flush();
- while (1)
+ while (true)
  {
   if (DBGPORT.available())
   {
@@ -1290,11 +1312,11 @@ void cmdLoop()
 #if defined(ARDUINO_ARCH_STM32)
    else if (ch == 't')		/* thermocouple commands */
    {
-    while (1)
+    while (true)
     {
      printf("thermocouple: ");
      flush();
-     char ch = DBGPORT.read();
+     ch = DBGPORT.read();
      DBGPORT.write(ch);
      newLine();
      if (ch == 'i')
@@ -1643,7 +1665,7 @@ void loop()
 {
  trace();
  unsigned int tPrev = intMillis(); /* init time for short interval */
- while (1)			/* wait for end of interval */
+ while (true)			/* wait for end of interval */
  {
   wdt_reset();
   if (DBGPORT.available())
@@ -2023,7 +2045,7 @@ char sendHTTP(char *data)
    dbg0Set();
    char *p = sendData(serverIP, TCPPORT, data, 10000);
    dbg0Clr();
-   if (p != 0)
+   if (p != nullptr)
    {
     for (int i = 0; i < rspCount; i++)
     {
@@ -2183,9 +2205,10 @@ void updateFail()
 
 #endif  /* WATER_MONITOR */
 
+#if 0
 char *strEnd(char *p)
 {
- while (1)
+ while (true)
  {
   char ch = *p;
   if (ch == 0)
@@ -2193,10 +2216,11 @@ char *strEnd(char *p)
   p++;
  }
 }
+#endif
 
 char *cpyStr(char *dst, const char *src)
 {
- while (1)
+ while (true)
  {
   char ch = *src++;
   *dst = ch;
@@ -2215,7 +2239,7 @@ char *writeTemp(char *buf, float temp)
  sprintf(buf, F3("%d.%d"), deg, frac);
  char *p = buf;
  int ofs = 0;
- while (1)
+ while (true)
  {
   if (*p == 0)
    break;
@@ -2286,7 +2310,7 @@ char emonData(char *data)
   if (retry != 0)
    printf(F3("**emonData retry %d\n"), retry);
   char *p = sendData(emonIP, (const char *) dataBuffer);
-  if (p != 0)
+  if (p != nullptr)
   {
    failCount = 0;
    return(1);
@@ -2330,12 +2354,14 @@ float rtcTemp()
 
 #endif  /* RTC_CLOCK */
 
+#if 0
 void putx0(void *p, char c)
 {
  DBGPORT.write(c);
  if (c == '\n')
   DBGPORT.write('\r');
 }
+#endif
 
 void putx(char c)
 {
@@ -2346,7 +2372,7 @@ void putx(char c)
 
 #if TEMP_SENSOR
 
-void findAddresses(void)
+void findAddresses()
 {
  byte i;
  byte addr[8];
@@ -3009,7 +3035,7 @@ unsigned char getNum()
  val = 0;
  chidx = 0;
  count = 0;
- while (1)
+ while (true)
  {
   getChar(ch);
   if ((ch >= '0')
@@ -3240,6 +3266,7 @@ extern "C" int _write(int fd, char *ptr, int len)
  return(0);
 }
 
+#if 0
 extern "C" int _write_r(void *p, int fd, char *ptr, int len)
 {
  while (--len >= 0)
@@ -3251,5 +3278,6 @@ extern "C" int _write_r(void *p, int fd, char *ptr, int len)
  }
  return(0);
 }
+#endif
 
 #endif	/* ARDUINO_ARCH_STM32 */
