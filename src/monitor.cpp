@@ -1316,6 +1316,8 @@ void cmdLoop()
     {
      printf("thermocouple: ");
      flush();
+     while (DBGPORT.available() == 0)
+      ;
      ch = DBGPORT.read();
      DBGPORT.write(ch);
      newLine();
