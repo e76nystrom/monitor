@@ -68,9 +68,9 @@ typedef enum			/* conversion modes */
   MX56_CONTINUOUS
 } mx56_conversion_t;
 
-void max56Init(mx56_type_t type, mx56_conversion_t mode);
-void max56SetConversionType(mx56_conversion_t type);
-void max56SetThermocoupleType(mx56_type_t type);
+void max56Init(int dev, mx56_type_t type, mx56_conversion_t mode);
+void max56SetConversionType(int dev, mx56_conversion_t type);
+void max56SetThermocoupleType(int dev, mx56_type_t type);
 
 int32_t max56ReadTemp();
 float max56ConvTemp(int t);

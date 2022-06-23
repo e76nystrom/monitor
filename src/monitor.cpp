@@ -1312,6 +1312,8 @@ void cmdLoop()
 #if defined(ARDUINO_ARCH_STM32)
    else if (ch == 't')		/* thermocouple commands */
    {
+    int spiDev = 0;
+
     while (true)
     {
      printf("thermocouple: ");
@@ -1323,12 +1325,12 @@ void cmdLoop()
      newLine();
      if (ch == 'i')
      {
-      max56Init(MX56_TCTYPE_K, MX56_ONESHOT);
+      max56Init(spiDev, MX56_TCTYPE_K, MX56_ONESHOT);
      }
      else if (ch == 't')
      {
       char buf[10];
-      printf("temp %s\n", max56FmtTemp(buf, sizeof(buf)));
+      printf("temp %s\n", max56FmtTemp(spiDev, buf, sizeof(buf)));
      }
      else if (ch == 'x')
      {

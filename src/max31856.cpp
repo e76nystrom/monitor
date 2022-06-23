@@ -106,9 +106,9 @@ typedef enum			/* conversion modes */
   MX56_CONTINUOUS
 } mx56_conversion_t;
 
-void max56Init(mx56_type_t type, mx56_conversion_t mode);
-void max56SetConversionType(mx56_conversion_t type);
-void max56SetThermocoupleType(mx56_type_t type);
+void max56Init(int dev, mx56_type_t type, mx56_conversion_t mode);
+void max56SetConversionType(int dev, mx56_conversion_t type);
+void max56SetThermocoupleType(int dev, mx56_type_t type);
 
 int32_t max56ReadTemp();
 float max56ConvTemp(int t);
@@ -127,39 +127,39 @@ void max56Cmds(void);
 
 #if defined(__MAX31856__)
 
-void max56Init(mx56_type_t type, mx56_conversion_t mode)
+void max56Init(int dev, mx56_type_t type, mx56_conversion_t mode)
 {
- loadb(MX56_MASK | MX56_W, 0x0);	/* enable all faults */
- loadb(MX56_CR0 | MX56_W, MX56_CR0_OCFAULT0); /* enable open detection */
- loadb(MX56_CJTO | MX56_W, 0x0);	/* set cold junct compensation */
- max56SetConversionType(mode);		/* conversion mode */
- max56SetThermocoupleType(type);	/* set thermocouple type */
+ loadb(dev, MX56_MASK | MX56_W, 0x0);	/* enable all faults */
+ loadb(dev, MX56_CR0 | MX56_W, MX56_CR0_OCFAULT0); /* enable open detection */
+ loadb(dev, MX56_CJTO | MX56_W, 0x0);	/* set cold junct compensation */
+ max56SetConversionType(dev, mode);		/* conversion mode */
+ max56SetThermocoupleType(dev, type);	/* set thermocouple type */
 }
 
-void max56SetConversionType(mx56_conversion_t type)
+void max56SetConversionType(int dev, mx56_conversion_t type)
 {
- uint8_t tmp = readb(MX56_CR0); /* read register */
+ uint8_t tmp = readb(dev, MX56_CR0); /* read register */
  tmp &= ~(MX56_CR0_AUTOCONVERT | MX56_CR0_1SHOT);
  if (type == MX56_CONTINUOUS)
   tmp |= MX56_CR0_AUTOCONVERT;
  else
   tmp |= MX56_CR0_1SHOT;
- loadb(MX56_CR0 | MX56_W, tmp);
+ loadb(dev, MX56_CR0 | MX56_W, tmp);
 }
 
-void max56SetThermocoupleType(mx56_type_t type)
+void max56SetThermocoupleType(int dev, mx56_type_t type)
 {
- uint8_t tmp = readb(MX56_CR1); /* read register */
+ uint8_t tmp = readb(dev, MX56_CR1); /* read register */
  tmp &= ~MX56_CR1_THERMO_MASK;
  tmp |= (uint8_t) type;
- loadb(MX56_CR1 | MX56_W, tmp); /* set thermocouple type */
- tmp = readb(MX56_CR1);
+ loadb(dev, MX56_CR1 | MX56_W, tmp); /* set thermocouple type */
+ tmp = readb(dev, MX56_CR1);
 // printf("cr1 %02x\n", (unsigned int) tmp);
 }
 
-int32_t max56ReadTemp()
+int32_t max56ReadTemp(int dev)
 {
- int32_t rtnVal = read24(MX56_LTB2); /* read temp */
+ int32_t rtnVal = read24(dev, MX56_LTB2); /* read temp */
 // printf("max56ReadTemp %06x\n", (unsigned int) rtnVal);
  if (rtnVal & 0x100000)		/* if negative */
   rtnVal |= 0xff000000;		/* sign extend */
@@ -171,9 +171,9 @@ float max56ConvTemp(int t)
  return((float) t / 4096.0);
 }
 
-char *max56FmtTemp(char *buf, size_t bufLen)
+char *max56FmtTemp(int dev, char *buf, size_t bufLen)
 {
- return(max56FmtTemp(max56ReadTemp(), buf, bufLen));
+ return(max56FmtTemp(max56ReadTemp(dev), buf, bufLen));
 }
 
 char *max56FmtTemp(int32_t temp, char *buf, size_t bufLen)
@@ -194,9 +194,9 @@ char *max56FmtTemp(int32_t temp, char *buf, size_t bufLen)
  return(buf);
 }
 
-int32_t max56ReadCJ()
+int32_t max56ReadCJ(int dev)
 {
- int32_t rtnVal = read16(MX56_CJH); /* read cold junction temp */
+ int32_t rtnVal = read16(dev, MX56_CJH); /* read cold junction temp */
 // printf("max56ReadCJ %04x\n", (unsigned int) rtnVal);
  if (rtnVal & 0x8000)		/* if negative */
   rtnVal |= 0xffff0000;		/* sign extend */
@@ -208,9 +208,9 @@ float max56ConvCJ(int t)
  return((float) t / 256.0);
 }
 
-char *max56FmtCJ(char *buf, size_t bufLen)
+char *max56FmtCJ(int dev, char *buf, size_t bufLen)
 {
- return(max56FmtCJ(max56ReadCJ(), buf, bufLen));
+ return(max56FmtCJ(max56ReadCJ(dev), buf, bufLen));
 }
 
 char *max56FmtCJ(int32_t temp, char *buf, size_t bufLen)
@@ -233,18 +233,20 @@ char *max56FmtCJ(int32_t temp, char *buf, size_t bufLen)
 
 void max56Cmds(void)
 {
+ int spiDev = 0;
+ 
  while (1)
  {
   char ch = prompt("\nthermocouple: ");
   if (ch == 'i')
   {
-   max56Init(MX56_TCTYPE_K, MX56_ONESHOT);
+   max56Init(spiDev, MX56_TCTYPE_K, MX56_ONESHOT);
   }
   else if (ch == 't')
   {
-   max56SetConversionType(MX56_ONESHOT);
+   max56SetConversionType(spiDev, MX56_ONESHOT);
    delayMSec(200);
-   int32_t temp = max56ReadTemp();
+   int32_t temp = max56ReadTemp(spiDev);
    char buf[10];
    printf("temp %sc %5.2ff\n", max56FmtTemp(temp, buf, sizeof(buf)),
 	  (max56ConvTemp(temp) * 9) / 5 + 32);
@@ -252,7 +254,7 @@ void max56Cmds(void)
   else if (ch == 'c')
   {
    char buf[10];
-   int32_t temp = max56ReadCJ();
+   int32_t temp = max56ReadCJ(spiDev);
    printf("cold junction %s %5.2ff\n", max56FmtCJ(temp, buf, sizeof(buf)),
 	  (max56ConvCJ(temp) * 9) / 5 + 32);
   }
@@ -260,9 +262,10 @@ void max56Cmds(void)
   {
    printf(" 0  1  2  3  4  5  6  7  8  9 10 11 12 13 14 15\n");
    for (int i = 0; i < 16; i++)
-    printf("%02x ", (readb(i) & 0xff));
+    printf("%02x ", (readb(spiDev, i) & 0xff));
    printf("\n");
   }
+
 #if !defined(ARDUINO_ARCH_STM32)
   else if (ch == 'd')
   {
@@ -280,9 +283,9 @@ void max56Cmds(void)
     if ((t1 - t) > 1000)
     {
      t = t1;
-     max56SetConversionType(MX56_ONESHOT);
+     max56SetConversionType(spiDev, MX56_ONESHOT);
      delayMSec(200);
-     int32_t temp = max56ReadTemp();
+     int32_t temp = max56ReadTemp(spiDev);
      setCursorBuf(0, 0);
      float c = max56ConvTemp(temp);
      char buf[22];
@@ -298,6 +301,7 @@ void max56Cmds(void)
    }
   }
 #endif	/* ARDUINO_ARCH_STM32 */
+
   else if (ch == 'x')
   {
    break;

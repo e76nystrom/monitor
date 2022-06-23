@@ -81,15 +81,15 @@ typedef enum mx65Wires_t
 #define RTD_A 3.9083e-3
 #define RTD_B -5.775e-7
 
-void max65Init(mx65Wires_t wires);
-void max65SetWires(mx65Wires_t wires);
-void max65EnableBias(bool bias);
-void max65AutoConvert(bool convert);
-uint8_t max65ReadFault(void);
-void max65ClearFault(void);
-uint8_t max65CheckFault(void);
-unsigned int max65Temp(void);
-uint16_t max65ReadRTD(void);
+void max65Init(int dev, mx65Wires_t wires);
+void max65SetWires(int dev, mx65Wires_t wires);
+void max65EnableBias(int dev, bool bias);
+void max65AutoConvert(int dev, bool convert);
+uint8_t max65ReadFault(int dev);
+void max65ClearFault(int dev);
+uint8_t max65CheckFault(int dev);
+unsigned int max65Temp(int dev);
+uint16_t max65ReadRTD(int dev);
 
 void max65Cmds();
 
@@ -97,71 +97,71 @@ void max65Cmds();
 #endif	// ->
 #if defined(__MAX31865__)
 
-void max65Init(mx65Wires_t wires)
+void max65Init(int dev, mx65Wires_t wires)
 {
- max65SetWires(wires);
- max65EnableBias(false);
- max65AutoConvert(false);
- max65ClearFault();
+ max65SetWires(dev, wires);
+ max65EnableBias(dev, false);
+ max65AutoConvert(dev, false);
+ max65ClearFault(dev);
 }
 
-void max65SetWires(mx65Wires_t wires)
+void max65SetWires(int dev, mx65Wires_t wires)
 {
- uint8_t t = readb(MX65_CFG);
+ uint8_t t = readb(dev, MX65_CFG);
  if (wires == MX65_3WIRE)
   t |=  MX65_CFG_3WIRE;
  else
   t |=  ~MX65_CFG_3WIRE;
 }
 
-void max65EnableBias(bool bias)
+void max65EnableBias(int dev, bool bias)
 {
- uint8_t t = readb(MX65_CFG);
+ uint8_t t = readb(dev, MX65_CFG);
  if (bias)
   t |= MX65_CFG_BIAS;
  else
   t &= ~MX65_CFG_BIAS;
- loadb(MX65_WRITE | MX65_CFG, t);
+ loadb(dev, MX65_WRITE | MX65_CFG, t);
 }
 
-void max65AutoConvert(bool convert)
+void max65AutoConvert(int dev, bool convert)
 {
- uint8_t t = readb(MX65_CFG);
+ uint8_t t = readb(dev, MX65_CFG);
  if (convert)
   t |= MX65_CFG_MODEAUTO;
  else
   t &= ~MX65_CFG_MODEAUTO;
- loadb(MX65_WRITE | MX65_CFG, t);
+ loadb(dev, MX65_WRITE | MX65_CFG, t);
 }
 
-uint8_t max65ReadFault(void)
+uint8_t max65ReadFault(int dev)
 {
- return(readb(MX65_FLT_STAT));
+ return(readb(dev, MX65_FLT_STAT));
 }
 
-void max65ClearFault(void)
+void max65ClearFault(int dev)
 {
- uint8_t t = readb(MX65_CFG);
+ uint8_t t = readb(dev, MX65_CFG);
  t &= ~(MX65_CFG_1SHOT | MX65_CFG_FLT_DET);
  t |= MX65_CFG_CLR_FLT;
- loadb(MX65_WRITE | MX65_CFG, t);
+ loadb(dev, MX65_WRITE | MX65_CFG, t);
 }
 
-uint8_t max65CheckFault(void)
+uint8_t max65CheckFault(int dev)
 {
- max65ClearFault();
- max65EnableBias(true);
+ max65ClearFault(dev);
+ max65EnableBias(dev, true);
  delayMSec(10);
- uint8_t t = readb(MX65_CFG);
+ uint8_t t = readb(dev, MX65_CFG);
  t |= MX65_CFG_FLT_AUTO;
- loadb(MX65_WRITE | MX65_CFG, t);
+ loadb(dev, MX65_WRITE | MX65_CFG, t);
  while (true)
  {
-  t = readb(MX65_CFG);
+  t = readb(dev, MX65_CFG);
   if ((t & MX65_CFG_FLT_DET) == 0)
    break;
  }
- t = readb(MX65_FLT_STAT);
+ t = readb(dev, MX65_FLT_STAT);
  return(t);
 }
 
@@ -197,9 +197,9 @@ const uint16_t pt100Table[] =
  10410, 10566, 10723, 10879, 11035, 11191, 11346
 };
 
-unsigned int max65Temp(void)
+unsigned int max65Temp(int dev)
 {
- uint16_t val = max65ReadRTD();
+ uint16_t val = max65ReadRTD(dev);
  uint16_t index;
  if ((val > ADC_MIN)
  &&  (val <= ADC_MAX))
@@ -238,17 +238,17 @@ unsigned int max65Temp(void)
  return(-273);
 }
 
-uint16_t max65ReadRTD(void)
+uint16_t max65ReadRTD(int dev)
 {
- max65ClearFault();
- max65EnableBias(true);
+ max65ClearFault(dev);
+ max65EnableBias(dev, true);
  delayMSec(10);
- uint8_t t = readb(MX65_CFG);
+ uint8_t t = readb(dev, MX65_CFG);
  t |= MX65_CFG_1SHOT;
- loadb(MX65_WRITE | MX65_CFG, t);
+ loadb(dev, MX65_WRITE | MX65_CFG, t);
  delayMSec(65);
- uint16_t val = read16(MX65_RTD_MSB);
- max65EnableBias(false);
+ uint16_t val = read16(dev, MX65_RTD_MSB);
+ max65EnableBias(dev, false);
  val >>= 1;
  return(val);
 }
@@ -277,35 +277,37 @@ extern int val;
 
 void max65Cmds(void)
 {
+ int spiDev = 0;
+ 
  while (1)
  {
   char ch = prompt("\nrtd: ");
   if (ch == 'i')
   {
-   max65Init(MX65_2WIRE);
+   max65Init(spiDev, MX65_2WIRE);
   }
   else if (ch == 'b')
   {
-   uint8_t t = readb(MX65_CFG);
+   uint8_t t = readb(spiDev, MX65_CFG);
    if (query(&getNum, "bias [%d]: ", (t & MX65_CFG_BIAS) != 0))
-    max65EnableBias(val);
-   t = readb(MX65_CFG);
+    max65EnableBias(spiDev, val);
+   t = readb(spiDev, MX65_CFG);
    printf("cfg %02x\n", (unsigned int) t);
   }
   else if (ch == 'f')
   {
-   uint8_t t = max65CheckFault();
+   uint8_t t = max65CheckFault(spiDev);
    printf("fault status %2x\n", (unsigned int) t);
   }
   else if (ch == 'c')
   {
-   uint16_t val = max65ReadRTD();
+   uint16_t val = max65ReadRTD(spiDev);
    printf("val %4x %5d\n", (unsigned int) val, val);
   }
   else if (ch == 't')
   {
    char buf[8];
-   unsigned int tempC = max65Temp();
+   unsigned int tempC = max65Temp(spiDev);
    unsigned int tempF = (9 * tempC) / 5 + 32 * TEMP_SCALE;
    printf("temp %sC ", fmtTemp(tempC, buf));
    printf("temp %sF\n", fmtTemp(tempF, buf));
@@ -314,7 +316,7 @@ void max65Cmds(void)
   {
    printf(" 0  1  2  3  4  5  6  7\n");
    for (int i = 0; i < 8; i++)
-    printf("%02x ", (readb(i) & 0xff));
+    printf("%02x ", (readb(spiDev, i) & 0xff));
    printf("\n");
   }
 #if !defined(ARDUINO_ARCH_STM32)
@@ -334,7 +336,7 @@ void max65Cmds(void)
     if ((t1 - t) > 1000)
     {
      t = t1;
-     unsigned int tempC = max65Temp();
+     unsigned int tempC = max65Temp(spiDev);
      unsigned int tempF = (9 * tempC) / 5 + 32 * TEMP_SCALE;
      char buf[22];
      char cBuf[8];

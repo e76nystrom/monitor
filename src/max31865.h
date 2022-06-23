@@ -44,15 +44,15 @@ typedef enum mx65Wires_t
 #define RTD_A 3.9083e-3
 #define RTD_B -5.775e-7
 
-void max65Init(mx65Wires_t wires);
-void max65SetWires(mx65Wires_t wires);
-void max65EnableBias(bool bias);
-void max65AutoConvert(bool convert);
-uint8_t max65ReadFault(void);
-void max65ClearFault(void);
-uint8_t max65CheckFault(void);
-unsigned int max65Temp(void);
-uint16_t max65ReadRTD(void);
+void max65Init(int dev, mx65Wires_t wires);
+void max65SetWires(int dev, mx65Wires_t wires);
+void max65EnableBias(int dev, bool bias);
+void max65AutoConvert(int dev, bool convert);
+uint8_t max65ReadFault(int dev);
+void max65ClearFault(int dev);
+uint8_t max65CheckFault(int dev);
+unsigned int max65Temp(int dev);
+uint16_t max65ReadRTD(int dev);
 
 void max65Cmds();
 
