@@ -22,7 +22,8 @@ del include\dma.h
 del include\gpio.h
 del include\i2c.h
 del include\main.h
-rem del include\spi.h
+del include\mainN.h
+del include\stm32spi.h
 del include\tim.h
 del include\cyclectr.h
 del include\stm32Info.h
@@ -53,7 +54,8 @@ mklink include\dma.h ..\..\..\EclipseCPP\MonitorCPP\Inc\dma.h
 mklink include\gpio.h ..\..\..\EclipseCPP\MonitorCPP\Inc\gpio.h
 mklink include\i2c.h ..\..\..\EclipseCPP\MonitorCPP\Inc\i2c.h
 mklink include\main.h ..\..\..\EclipseCPP\MonitorCPP\Inc\main.h
-rem mklink include\spi.h ..\..\..\EclipseCPP\MonitorCPP\Inc\spi.h
+mklink include\mainN.h ..\..\..\EclipseCPP\MonitorCPPN\Inc\main.h
+mklink include\stm32spi.h ..\..\..\EclipseCPP\MonitorCPP\Inc\sspi.h
 mklink include\tim.h ..\..\..\EclipseCPP\MonitorCPP\Inc\tim.h
 mklink include\cyclectr.h  ..\..\..\EclipseCPP\MonitorCPP\include\cyclectr.h
 mklink include\stm32Info.h  ..\..\..\EclipseCPP\LatheCPP\include\stm32Info.h

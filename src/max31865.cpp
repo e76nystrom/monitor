@@ -271,8 +271,6 @@ extern int val;
 
 #else
 
-#define getNum getnum
-
 #endif	/* ARDUINO_ARCH_STM32 */
 
 void max65Cmds(void)

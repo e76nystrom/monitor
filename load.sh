@@ -1,5 +1,28 @@
 #!/bin/bash
 
+optiboot=0
+usbasp=1
+avrdude=/cygdrive/c/Users/Eric/.platformio/packages/tool-avrdude/avrdude.exe
+conf="C:\\Users\\Eric\\.platformio\\packages\\tool-avrdude\\avrdude.conf"
+
+if [ $optiboot -eq 0 ]
+then
+    if [ $usbasp -eq 1 ]
+    then
+        $avrdude \
+	    -u \
+	    -v \
+	    -C $conf \
+	    -p m328p \
+	    -c usbasp-clone \
+	    -U flash:w:".pio/build/mega328/firmware.hex":a
+    fi
+
+    if [ $usbasp -eq 0 ]
+    then
+export PLATFORMIO_UPLOAD_PORT=$port
+echo "upload port" $PLATFORMIO_UPLOAD_PORT
+
 if [ $# -eq 0 ]
 then
 
@@ -13,29 +36,8 @@ else
 fi
 
 echo "port" $port
-export PLATFORMIO_UPLOAD_PORT=$port
-echo "upload port" $PLATFORMIO_UPLOAD_PORT
 
-optiboot=1
-usbasp=0
-
-if [ $optiboot -eq 0 ]
-then
-    if [ $usbasp -eq 1 ]
-    then
-	/cygdrive/c/DevSoftware/avrdude-v6.3.1.1-windows/avrdude \
-	    -u \
-	    -v \
-	    -C "C:\DevSoftware\avrdude-v6.3.1.1-windows\avrdude.conf" \
-	    -p m328p \
-	    -c usbasp-clone \
-	    -U flash:w:".pio\build\pro16MHzatmega328\firmware.hex":a
-    fi
-
-    if [ $usbasp -eq 0 ]
-    then
-
-	/cygdrive/c/DevSoftware/avrdude-v6.3.1.1-windows/avrdude \
+	$avrdude
 	    -v \
 	    -C "C:\DevSoftware\avrdude-v6.3.1.1-windows\avrdude.conf" \
 	    -p atmega2560 \
@@ -49,7 +51,7 @@ then
 
 else
 
-    /cygdrive/c/DevSoftware/avrdude-v6.3.1.1-windows/avrdude \
+    $avrdude
 	-v \
 	-C "C:\DevSoftware\avrdude-v6.3.1.1-windows\avrdude.conf" \
 	-p atmega2560 \
@@ -60,3 +62,4 @@ else
 
     "putty" -load ${port}-19200
 fi
+

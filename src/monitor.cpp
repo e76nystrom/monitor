@@ -197,6 +197,7 @@ int dehumDelay;			/* on or off delay counter */
 #include "wdt.h"
 #include "dns.h"
 #if ESP8266_TIME == 0
+#include "time.h"
 #include "ntp.h"
 #endif	/* ESP8266_TIME == 0 */
 #include "wifi.h"
@@ -353,7 +354,7 @@ char *writeTemp(char *buf, float temp);
 void printTemp(float temp);
 #endif	/* TEMP_SENSOR | DHT_SENSOR */
 
-unsigned long time = 0;
+unsigned long time0 = 0;
 
 #if CHECK_IN
 char checkIn();
@@ -1228,7 +1229,7 @@ char prompt(const char *str)
  
  if (str != nullptr)
  {
-  printf(str);
+  printf("%s", str);
   flush();
  }
  while (DBGPORT.available() == 0)

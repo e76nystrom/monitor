@@ -7,7 +7,7 @@ ATMega328 Pin 7 - Arduino Pin 4 - Ext1 - RJ45 Pin 6 - S2 - 3 Pin DS18S20
 
 */
 
-#define MONITOR_INDEX 6
+#define MONITOR_INDEX 9
 
 #define monDbg 1
 #define wifiDbg 1
@@ -212,6 +212,70 @@ extern DeviceAddress tempDev[TEMPDEVS];
 #endif /* __MONITOR__ */
  
 #endif	/* MONITOR_INDEX == 7 */
+
+/* -------------------- monitor index 8 -------------------- */
+
+#if (MONITOR_INDEX == 8)
+
+#define WIFI_ENA 1
+#define EMONCMS_ADDR EMONCMS_ADDR1
+#define EMONCMS_KEY EMONCMS_KEY1
+
+#define EMONCMS_NODE "Barn"
+
+#define ESP8266_TIME 0
+#define TEMP_SENSOR 1
+#define CHECK_IN 1
+
+#define SSID "remote"
+#define PASS "candle14salt"
+#define MONITOR_ID "Barn"
+
+#define ONE_WIRE_BUS 3		/* one wire bus pin */
+
+#define TEMPDEVS 1
+#if defined(__MONITOR__)
+DeviceAddress tempDev[TEMPDEVS] =
+{
+ {0x28, 0xff, 0x0f, 0x0b, 0x63, 0x14, 0x03, 0xc7}
+};
+#else
+extern DeviceAddress tempDev[TEMPDEVS];
+#endif /* __MONITOR__ */
+ 
+#endif	/* MONITOR_INDEX == 8 */
+
+/* -------------------- monitor index 9 -------------------- */
+
+#if (MONITOR_INDEX == 9)
+
+#define WIFI_ENA 1
+#define EMONCMS_ADDR EMONCMS_ADDR1
+#define EMONCMS_KEY EMONCMS_KEY1
+
+#define EMONCMS_NODE "Attic"
+
+#define ESP8266_TIME 0
+#define TEMP_SENSOR 1
+#define CHECK_IN 1
+
+#define SSID "hug2g996565"
+#define PASS "candle14salt"
+#define MONITOR_ID "Barn"
+
+#define ONE_WIRE_BUS 3		/* one wire bus pin */
+
+#define TEMPDEVS 1
+#if defined(__MONITOR__)
+DeviceAddress tempDev[TEMPDEVS] =
+{
+ {0x28, 0xff, 0x0f, 0x0b, 0x63, 0x14, 0x03, 0xc7}
+};
+#else
+extern DeviceAddress tempDev[TEMPDEVS];
+#endif /* __MONITOR__ */
+ 
+#endif	/* MONITOR_INDEX == 9 */
 
 /* -------------------- monitor end of definitions -------------------- */
 
