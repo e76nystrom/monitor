@@ -1,10 +1,29 @@
+#if !defined(__MONITOR_H__)
+#define __MONITOR_H__
+
 #if !defined(EXT)
 #define EXT extern
 #endif
 
+#if defined(ARDUINO_ARCH_AVR)
+#define WIFI_SERIAL
 #include "monitorAVR.h"
+#endif	/* ARDUINO_ARCH_AVR */
+
+#if defined(ARDUINO_ARCH_STM32)
+#define WIFI_SERIAL
 #include "monitorSTM32.h"
+#endif	/* ARDUINO_ARCH_STM32 */
+
+#if defined(ARDUINO_AVR_MEGA)
+#define WIFI_SERIAL
 #include "monitorMega32.h"
+#endif	/* ARDUINO_AVR_MEGA */
+
+#if defined(ARDUINO_ARCH_ESP32)
+#define WIFI_ESP32
+#include "monitorESP32.h"
+#endif	/* ARDUINO_ARCH_ESP32 */
 
 #if !defined(TEMP_SENSOR)
 #define TEMP_SENSOR 0
@@ -64,6 +83,8 @@ inline void dbg2Set() {}
 inline void dbg2Clr() {}
 #endif
 #endif
+
+#endif	/* __MONITOR_H__ */
 
 /*
 #if !defined()
