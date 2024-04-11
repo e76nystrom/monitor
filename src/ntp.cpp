@@ -1,4 +1,16 @@
 #define __NTP__
+
+#if defined(WIFI_ESP32)
+
+#include <WiFiUdp.h>
+
+extern WiFiUDP udp;
+
+void printBuf();
+void printBuf(char *p, unsigned int len);
+
+#endif	/* WIFI_ESP32 */
+
 #ifdef ARDUINO_ARCH_AVR
 #include <Arduino.h>
 #endif
@@ -17,7 +29,11 @@
 
 #define EXT extern
 #include "monitor.h"
-#include "wifi.h"
+
+#if defined(WIFI_SERIAL)
+#include "wifiSerial.h"
+#endif	/* WIFI_SERIAL */
+
 #include "dns.h"
 #include "ntp.h"
 
@@ -47,11 +63,22 @@ typedef struct
 void printTime();
 void printTime(time_t t);
 void printTime(time_t t, bool flag);
+char *fmtTime(char *buf, size_t len);
+char *fmtTime(char *buf, size_t len, time_t t);
+
 char ntpSetTime();
 
 EXT unsigned long ntpStart;	/* reference for time compare */
 EXT unsigned long ntpTimeout;	/* ntp timeout */
 EXT char ntpIP[IP_ADDRESS_LEN];	/* ntp ip address */
+
+#if defined(WIFI_SERIAL)
+#define NTP_PORT "123"
+#endif	/* WIFI_SERIAL */
+
+#if defined(WIFI_ESP32)
+#define NTP_PORT 123
+#endif	/* WIFI_ESP32 */
 
 #endif	/* __NTP_INC__ */ // ->
 
@@ -84,16 +111,41 @@ void printTime(time_t t, bool flag)
  }
 }
 
+char *fmtTime(char *buf, size_t len)
+{
+ return fmtTime(buf, len, now());
+}
+
+char *fmtTime(char *buf, size_t len, time_t t)
+{
+ char *p = buf;
+ tmElements_t tm;
+ breakTime(t, tm);
+
+ int size = snprintf(buf, len, "%02d/%02d/%d %2d:%02d:%02d",
+		     tm.Month, tm.Day, tmYearToCalendar(tm.Year),
+		     tm.Hour, tm.Minute, tm.Second);
+ return p + size;
+}
+
 char ntpSetTime()
 {
- char ntpBuf[32];
- 
+
  ntpTimeout = 5UL * 60UL * 1000UL; /* try again in 5 minutes if failure */
 
  char status = 0;
  for (char retry = 0; retry < 3; retry++)
  {
+#if defined(WIFI_SERIAL)
+  char ntpBuf[32];
   char result = dnsLookup((char *) ntpIP, argConv(F2("pool.ntp.org"), ntpBuf));
+#endif  /* WIFI_SERIAL */
+
+#if defined(WIFI_ESP32)
+  printf("ntp dnsLookup try %d\n", retry);
+  char result = dnsLookup((char *) ntpIP, "pool.ntp.org");
+#endif  /* WIFI_ESP32 */
+
   if (result
   ||  (ntpIP[0] != 0))
    break;
@@ -103,29 +155,33 @@ char ntpSetTime()
  {
   for (char retry = 0; retry < 1; retry++)
   {
-   sprintf((char *) cmdBuffer, F0("AT+CIPSTART=3,\"UDP\",\"%s\",123"), ntpIP);
-   wifiWriteStr(cmdBuffer, 3000);
+   printf("ntp try %d\n", retry);
 
    memset(dataBuffer, 0, NTP_PACKET_SIZE);
    // Initialize values needed to form NTP request
    // (see URL above for details on the packets)
-   dataBuffer[0] = 0b11100011; /* LI, Version, Mode */
+   dataBuffer[0] = (char) 0b11100011; /* LI, Version, Mode */
    dataBuffer[1] = 0; /* Stratum, or type of clock */
    dataBuffer[2] = 6; /* Polling Interval */
-   dataBuffer[3] = 0xEC; /* Peer Clock Precision */
+   dataBuffer[3] = (char) 0xEC; /* Peer Clock Precision */
    // 8 bytes of zero for Root Delay & Root Dispersion
    dataBuffer[12] = 49;
    dataBuffer[13] = 0x4E;
    dataBuffer[14] = 49;
    dataBuffer[15] = 52;
 
-   newLine();
-   int timeLen = NTP_PACKET_SIZE;
+#if defined(WIFI_SERIAL)
 
+   newLine();
+
+   sprintf((char *) cmdBuffer, F0("AT+CIPSTART=3,\"UDP\",\"%s\"," NTP_PORT), ntpIP);
+   wifiWriteStr(cmdBuffer, 3000);
+
+   unsigned int timeLen = NTP_PACKET_SIZE;
    sprintf((char *) cmdBuffer, F0("AT+CIPSEND=3,%d"), timeLen);
    wifiStartData((char *) cmdBuffer, strlen(cmdBuffer), 1000);
 
-   int dataLen;
+   unsigned int dataLen;
    wifiWriteTCPx((char *) dataBuffer, timeLen, &dataLen, 5000);
    newLine();
 
@@ -133,7 +189,8 @@ char ntpSetTime()
     printBuf();
 
    int pos = findData(0, &dataLen);
-   // printf(F0("findData pos %d\n"), pos);
+   printf(F0("findData pos %d\n"), pos);
+
    if (pos >= 0)
    {
     char *p = (char *) &packetRsp[pos + 40];
@@ -144,7 +201,7 @@ char ntpSetTime()
      val += *p++ & 0xff;
     }
     printf(F0("time %lu %lx\n"), (unsigned long) val, (unsigned long) val);
- 
+
     const time_t seventyYears = 2208988800UL; /* 1970 - 1900 */
     time_t epoch = val - seventyYears;
 
@@ -153,16 +210,74 @@ char ntpSetTime()
     ntpTimeout = 24UL * 60UL * 60UL * 1000UL;
     status = 1;
    }
+
    wifiClose(3, 1000);
+ 
+#endif  /* WIFI_SERIAL */
+
+#if defined(WIFI_ESP32)
+
+   // printf("ntp request ");
+   // printBuf(dataBuffer, (unsigned int) NTP_PACKET_SIZE);
+
+   IPAddress ip = IPAddress();
+   ip.fromString((const char *) ntpIP);
+   // printf("ntpIP %s port %d\n", ip.toString().c_str(), NTP_PORT);
+   
+   udp.beginPacket(ip, NTP_PORT);
+   udp.write((const uint8_t *) dataBuffer, NTP_PACKET_SIZE);
+   udp.endPacket();
+
+   uint32_t t0 = millis();
+   int i = 0;
+   while ((millis()) - t0 < 3000)
+   {
+    delay(100);
+    rspLen = udp.parsePacket();
+    // printf("ntp parsePacket %2d len %d\n", i, rspLen);
+    if (rspLen != 0)
+    {
+     udp.read((char *) packetRsp, rspLen);
+
+     // printf("ntp response ");
+     // printBuf();
+
+     char *p = (char *) &packetRsp[40];
+     time_t val = 0;
+     for (int i = 0; i < 4; i++)
+     {
+      val <<= 8;
+      val += *p++ & 0xff;
+     }
+     printf(F0("time %lu %lx\n"), (unsigned long) val, (unsigned long) val);
+
+     const auto seventyYears = (time_t) 2208988800UL; /* 1970 - 1900 */
+     time_t epoch = val - seventyYears;
+     printTime(epoch);
+     
+     printf("ntp set time\n");
+     setTime(epoch);
+     ntpTimeout = 24UL * 60UL * 60UL * 1000UL;
+
+     status = 1;
+     break;
+    }
+    i += 1;
+   }
+
+#endif	/* WIFI_ESP32 */
+
    if (status)			/* if time set */
     break;
    delay(1000);			/* wait before retry */
   }
  }
+
  if (DBG && (status == 0))
  {
   printf(F0("**err time not set\n"));
  }
+
  ntpStart = millis();		    /* save current time */
  return(status);
 }

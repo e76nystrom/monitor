@@ -5,6 +5,8 @@
 #define EXT extern
 #endif
 
+#include "DallasTemperature.h"
+
 #if defined(ARDUINO_ARCH_AVR)
 #define WIFI_SERIAL
 #include "monitorAVR.h"
@@ -21,7 +23,9 @@
 #endif	/* ARDUINO_AVR_MEGA */
 
 #if defined(ARDUINO_ARCH_ESP32)
+#if !defined(WIFI_ESP32)
 #define WIFI_ESP32
+#endif	/* WIFI_ESP32 */
 #include "monitorESP32.h"
 #endif	/* ARDUINO_ARCH_ESP32 */
 

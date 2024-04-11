@@ -87,6 +87,13 @@ inline void argConv(char *s, char *buf) {return(s);}
 #define F3(x) x
 #endif	/* STM32MON */
 
+#if defined(ARDUINO_ARCH_ESP32)
+#define F0(x) x
+#define F1(x) x
+#define F2(x) x
+#define F3(x) x
+#endif	/* ARDUINO_ARCH_ESP32 */
+
 #ifdef WIN32
 #define argConv(s, buf) s
 #define F0(x) x

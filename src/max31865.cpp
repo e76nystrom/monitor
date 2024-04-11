@@ -267,7 +267,7 @@ char *fmtTemp(unsigned int val, char *buf)
 
 char query(unsigned char (*get)(), const char *format, ...);
 extern unsigned char getNum();
-extern int val;
+extern int numVal;
 
 #else
 
@@ -288,7 +288,7 @@ void max65Cmds(void)
   {
    uint8_t t = readb(spiDev, MX65_CFG);
    if (query(&getNum, "bias [%d]: ", (t & MX65_CFG_BIAS) != 0))
-    max65EnableBias(spiDev, val);
+    max65EnableBias(spiDev, numVal);
    t = readb(spiDev, MX65_CFG);
    printf("cfg %02x\n", (unsigned int) t);
   }

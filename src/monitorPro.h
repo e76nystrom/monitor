@@ -88,7 +88,7 @@ extern DeviceAddress tempDev[TEMPDEVS];
 #define CHECK_IN 1
 #define DHT_SENSOR 1
 
-#define DHTPIN 3
+#define DHT_PIN 3
 
 #define SSID "hug2g996565"
 #define PASS "candle14salt"
@@ -117,9 +117,15 @@ extern DeviceAddress tempDev[TEMPDEVS];
 #define ONE_WIRE_BUS0 3		/* one wire bus pin */
 #define ONE_WIRE_BUS1 4		/* one wire bus pin */
 
-#define TEMPDEVS 1
-#define TEMPDEVS0 TEMPDEVS
+#define TEMPDEVS0 1
 #define TEMPDEVS1 3
+
+#if defined(TEMPDEVS1)
+#define TEMPDEVS  (TEMPDEVS0 + TEMPDEVS1)
+#else
+#define TEMPDEVS TEMPDEVS0
+#endif	/* TEMPDEVS1 */
+
 #if defined(__MONITOR__)
 DeviceAddress tempDev0[TEMPDEVS0] =
 {
@@ -152,7 +158,7 @@ extern DeviceAddress tempDev[TEMPDEVS];
 #define CHECK_IN 1
 #define DHT_SENSOR 1
 
-#define DHTPIN 3
+#define DHT_PIN 3
 
 #define SSID "hug2g996565"
 #define PASS "candle14salt"
@@ -183,8 +189,14 @@ extern DeviceAddress tempDev[TEMPDEVS];
 #define ONE_WIRE_BUS ONE_WIRE_BUS1 /* one wire bus pin */
 
 #define TEMPDEVS0 1
-#define TEMPDEVS TEMPDEVS0
 #define TEMPDEVS1 2
+
+#if defined(TEMPDEVS1)
+#define TEMPDEVS  (TEMPDEVS0 + TEMPDEVS1)
+#else
+#define TEMPDEVS TEMPDEVS0
+#endif	/* TEMPDEVS1 */
+
 #if defined(__MONITOR__)
 
 #if TEMP_SENSOR == 1

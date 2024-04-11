@@ -96,7 +96,6 @@ extern DeviceAddress tempDev[TEMPDEVS];
 #define EMONCMS_NODE "MegaTest"
 #define CURRENT0_NODE "cTst0"
 #define CURRENT1_NODE "cTst1"
-
 #define WIFI_ENA
 
 #define TEMP_SENSOR 1
@@ -132,7 +131,7 @@ extern DeviceAddress tempDev[TEMPDEVS];
 #define EMONCMS_ADDR EMONCMS_ADDR1
 #define EMONCMS_KEY EMONCMS_KEY1
 
-//#define WIFI_ENA
+#define WIFI_ENA
 
 #define TEMP_SENSOR 0
 #define RTC_CLOCK 0
@@ -178,7 +177,7 @@ extern DeviceAddress tempDev[TEMPDEVS];
 
 #if DHT_SENSOR
 
-#define DHTPIN 3
+#define DHT_PIN 3
 
 #if DEHUMIDIFIER
 

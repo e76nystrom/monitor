@@ -1,9 +1,22 @@
 #define __DNS__
+
+#if defined(WIFI_ESP32)
+
+#include <WiFi.h>
+#include <WiFiUdp.h>
+
+void printBuf();
+void printBuf(char *p, unsigned int len);
+
+WiFiUDP udp;
+
+#endif	/* WIFI_ESP32 */
+
 #if defined(ARDUINO_ARCH_AVR)
 #include "Arduino.h"
 #endif
 
-#if defined(ARDUINO_ARCH_STM32)
+#if defined(ARDUINO_ARCH_STM32) || defined(ARDUINO_ARCH_ESP32)
 #include <Arduino.h>
 #endif /* ARDUINO_ARCH_STM32 */
 
@@ -24,12 +37,18 @@
 
 #define EXT extern
 #include "monitor.h"
-#include "wifi.h"
+
+#if defined(WIFI_SERIAL)
+#include "wifiSerial.h"
+#endif	/* WIFI_SERIAL */
+
 #include "dns.h"
 
-#include "stdint.h"
+// #include "stdint.h"
 
 #if defined(__DNS_INC__)	// <-
+
+#if defined(WIFI_SERIAL)
 
 #define htons(x) ((int16_t) ((((x) & 0xff) << 8) | (((x) >> 8) & 0xFF)))
 #define ntohs(x) htons(x)
@@ -42,6 +61,17 @@
 
 #define DNS_IP "8.8.8.8"
 #define DNS_PORT "53"
+
+#endif	/* WIFI_SERIAL */
+
+#if defined(WIFI_ESP32)
+
+const uint8_t DNS_IP[] = {8, 8, 8, 8};
+const uint16_t DNS_PORT = 53;
+// const uint8_t DNS_IP[] = {192, 168, 42, 7};
+// const uint16_t DNS_PORT = 5555;
+
+#endif	/* WIFI_ESP32 */
 
 #define QUERY_FLAG               (0)
 #define OPCODE_STANDARD_QUERY    (0)
@@ -89,7 +119,7 @@ typedef struct
 
 char *htonsCpy(char *p, int16_t val);
 int dnsMsg(char *buffer, int buflen, const char *name);
-char *dnsDecode(char *buffer, int len, char *ip);
+char *dnsDecode(char *buffer, unsigned int len, char *ip);
 char dnsLookup(char *buf, const char *hostName);
 
 #endif // ->
@@ -104,6 +134,8 @@ char dnsLookup(char *buf, const char *hostName)
  if (DBG)
   printf("\nhost %s dnsLen %d\n", hostName, dnsLen);
 
+#if defined(WIFI_SERIAL)
+
  wifiMux();			/* in case device restarted */
  wifiWriteStr(F2("AT+CIPSTART=3,\"UDP\",\"" DNS_IP "\"," DNS_PORT), 3000);
 
@@ -113,7 +145,9 @@ char dnsLookup(char *buf, const char *hostName)
  int dataLen;
  char *p = wifiWriteTCPx((char *) dnsBuffer, dnsLen, &dataLen, 3000);
  newLine();
-// printBuf();
+ // printBuf();
+
+#endif	/* WIFI_SERIAL */
 
  char *ip = 0;			/* pointer ip address */
  if (p != 0)			/* if wifi returned result */
@@ -155,29 +189,71 @@ char dnsLookup(char *buf, const char *hostName)
  printf(F0("dnsLookup stack free %d\n"), SP - (int) &__bss_end);
 #endif /* ARDUINO_ARCH_AVR */
 
+ unsigned int dnsLen = dnsMsg(dnsBuffer, sizeof(dnsBuffer), hostName);
+ if (DBG)
+ {
+  printf(F0("\nhost %s dnsLen %d\n"), hostName, dnsLen);
+  printf("dns message ");
+  printBuf(dnsBuffer, dnsLen);
+ }
+ 
+ unsigned int dataLen;
+ char *p = nullptr;
+
+#if defined(WIFI_SERIAL)
+
  wifiMux();
  wifiWriteStr(F2("AT+CIPSTART=3,\"UDP\",\"" DNS_IP "\"," DNS_PORT), 3000);
- int dnsLen = dnsMsg(dnsBuffer, sizeof(dnsBuffer), hostName);
- if (DBG)
-  printf(F0("\nhost %s dnsLen %d\n"), hostName, dnsLen);
 
  sprintf((char *) cmdBuffer, F0("AT+CIPSEND=3,%d"), dnsLen);
  wifiStartData((char *) cmdBuffer, strlen(cmdBuffer), 1000);
 
- int dataLen;
- char *p = wifiWriteTCPx((char *) dnsBuffer, dnsLen, &dataLen, 3000);
+ p = wifiWriteTCPx((char *) dnsBuffer, dnsLen, &dataLen, 3000);
  newLine();
  // printBuf();
 
- char *ip = 0;			/* pointer ip address */
- if (p != 0)			/* if wifi returned result */
+#endif	 /* WIFI_SERIAL */
+
+#if defined(WIFI_ESP32)
+
+ IPAddress dnsIP = IPAddress(DNS_IP);
+ // printf("dnsIP %s port %d\n", dnsIP.toString().c_str(), DNS_PORT);
+ udp.beginPacket(dnsIP, DNS_PORT);
+ udp.write((const uint8_t *) dnsBuffer, dnsLen);
+ udp.endPacket();
+
+ // int status = udp.endPacket();
+ // printf("udp.write status %d\n", status);
+
+ uint32_t t0 = millis();
+ while ((millis()) - t0 < 3000)
+ {
+  delay(1000);
+  rspLen = udp.parsePacket();
+  // printf("dns parsePacket len %d\n", rspLen);
+  if (rspLen != 0)
+  {
+   udp.read((char *) packetRsp, rspLen);
+   dataLen = rspLen;
+   p = packetRsp;
+   // printBuf();
+   break;
+  }
+ }
+
+#endif	/* WIFI_ESP32 */
+
+ char *ip = nullptr;			/* pointer ip address */
+ if (p != nullptr)			/* if wifi returned result */
  {
   ip = dnsDecode(p, dataLen, (char *) dnsBuffer); /* decode dns */
  }
 
+#if defined(WIFI_SERIAL)
  wifiWriteStr(F2("AT+CIPCLOSE=3"), 1000);
+#endif	 /* WIFI_SERIAL */
 
- if (ip != 0)			/* if successful decode */
+ if (ip != nullptr)			/* if successful decode */
  {
   strncpy(buf, ip, IP_ADDRESS_LEN); /* save to return buffer */
   if (DBG)
@@ -248,8 +324,9 @@ int dnsMsg(char *buffer, int buflen, const char *name)
 
 int dnsMsg(char *buffer, int buflen, const char *name)
 {
- P_DNS dns = (P_DNS) buffer;
- dns->id = (int16_t) millis();
+ auto dns = (P_DNS) buffer;
+ // dns->id = (int16_t) millis();
+ dns->id = 0x55aa;
  dns->flags = htons(QUERY_FLAG | OPCODE_STANDARD_QUERY |
 		    RECURSION_DESIRED_FLAG);
  dns->qdcount = htons(1);
@@ -305,7 +382,7 @@ char *ntohsCpy(char *p, int16_t *val)
  return(p);
 }
 
-char *dnsDecode(char *buffer, int len, char *ip)
+char *dnsDecode(char *buffer, unsigned int len, char *ip)
 {
  int16_t answerCount;
  char *p = (char *) &((P_DNS) buffer)->ancount;
@@ -328,6 +405,7 @@ char *dnsDecode(char *buffer, int len, char *ip)
   {
    p++;				/* skip over value */
   }
+  
   int16_t dnsType;
   int16_t dnsClass;
   p = ntohsCpy(p, &dnsType);	/* read type */
@@ -347,11 +425,13 @@ char *dnsDecode(char *buffer, int len, char *ip)
      sprintf(p1, F0("%u"), (int) (*p++ & 0xff));
      if (ansLen > 0)
      {
-      while (1)
+      while (true)
       {
        ch = *p1;
        if (ch == 0)
+       {
 	break;
+       }
        p1++;
       }
       *p1++ = '.';
@@ -361,7 +441,7 @@ char *dnsDecode(char *buffer, int len, char *ip)
    else				/* if not correct answer */
    {
     printf(F0("dns incorrect type %x class %x\n"), dnsType, dnsClass);
-    ip = 0;
+    ip = nullptr;
    }
    break;
   }
