@@ -144,13 +144,14 @@ char *sendData(const char *ip, int port, const char *data,
 	       unsigned int timeout);
 
 void printBuf();
+void printBuf(char *p, unsigned int len);
 char *lc(char *p);
 int find(char *str1, const char *str2);
 int find(char *str1, const char *str2, int offset, int len1);
 int cmp(char *str1, const char *str2, int size);
 int cmp(char *str1, const char *str2);
-int findData(int cmdLen, int *datalen);
-int getVal(char *p, int pos, int *rtnVal, int size);
+int findData(int cmdLen, unsigned int *datalen);
+int getVal(char *p, int pos, unsigned int *rtnVal, int size);
 void getData(char *dst, unsigned int dstSize, char *buf, unsigned int bufSize);
 
 #if defined(ARDUINO_ARCH_AVR)
@@ -182,7 +183,8 @@ void wifiStart(int chan, char *protocol, char *ip, int port,
 	       unsigned int timeout);
 void wifiStartData(char *s, int size, unsigned int timeout);
 void wifiWriteData(char *s, int size, unsigned int timeout);
-char *wifiWriteTCPx(char *s, int size, int *dataLen, unsigned int timeout);
+char *wifiWriteTCPx(char *s, int size, unsigned int *dataLen,
+		    unsigned int timeout);
 void wifiClose(int port, unsigned int timeout);
 
 #if defined(ARDUINO_ARCH_AVR)
@@ -196,7 +198,8 @@ char wifiWrite(const __FlashStringHelper *s, int size, unsigned int timeout);
 EXT char stringBuffer[80] __attribute__((section(".noinit")));
 
 /* buffer for data sent */
-EXT char dataBuffer[192] __attribute__((section(".noinit")));
+#define DATA_BUF_SIZE ((size_t) 192)
+EXT char dataBuffer[DATA_BUF_SIZE] __attribute__((section(".noinit")));
 
 /* buffer for command sent */
 EXT char cmdBuffer[64] __attribute__((section(".noinit")));
@@ -210,11 +213,18 @@ EXT unsigned int rspLen;
 EXT unsigned char rspCount;
 EXT char *rspPtr[MAX_RSP];
 EXT int rspL[MAX_RSP];
-EXT char id[ID_LEN];
+EXT char monitorId[ID_LEN];
 
 #if !defined(wifiDbg)
 EXT bool wifiDbg;
 #endif	/* wifiDbg */
+
+int wifiRSSI(void);
+
+EXT unsigned int lastRSSI;
+EXT int rssi;
+
+#define RSSI_INTERVAL 5000
 
 #define IPD_STR "+IPD,"
 #define IPD F1(IPD_STR)

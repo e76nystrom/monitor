@@ -6,7 +6,7 @@ else
  INC="python inc.py"
 fi
 
-$INC src/wifi.cpp include/wifi.h
+$INC src/wifi.cpp include/wifiSerial.h
 $INC src/timer3.cpp include/timer3.h
 $INC src/dns.cpp include/dns.h
 $INC src/ntp.cpp include/ntp.h

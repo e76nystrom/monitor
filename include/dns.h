@@ -1,5 +1,7 @@
 #if 1	// <-
 
+#if defined(WIFI_SERIAL)
+
 #define htons(x) ((int16_t) ((((x) & 0xff) << 8) | (((x) >> 8) & 0xFF)))
 #define ntohs(x) htons(x)
 
@@ -11,6 +13,17 @@
 
 #define DNS_IP "8.8.8.8"
 #define DNS_PORT "53"
+
+#endif	/* WIFI_SERIAL */
+
+#if defined(WIFI_ESP32)
+
+const uint8_t DNS_IP[] = {8, 8, 8, 8};
+const uint16_t DNS_PORT = 53;
+// const uint8_t DNS_IP[] = {192, 168, 42, 7};
+// const uint16_t DNS_PORT = 5555;
+
+#endif	/* WIFI_ESP32 */
 
 #define QUERY_FLAG               (0)
 #define OPCODE_STANDARD_QUERY    (0)
@@ -58,7 +71,7 @@ typedef struct
 
 char *htonsCpy(char *p, int16_t val);
 int dnsMsg(char *buffer, int buflen, const char *name);
-char *dnsDecode(char *buffer, int len, char *ip);
+char *dnsDecode(char *buffer, unsigned int len, char *ip);
 char dnsLookup(char *buf, const char *hostName);
 
 #endif // ->

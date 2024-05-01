@@ -1,6 +1,6 @@
 #if 1	// <-
 
-const int NTP_PACKET_SIZE = 48; 
+const int NTP_PACKET_SIZE = 48;
 
 typedef struct
 {
@@ -24,10 +24,21 @@ typedef struct
 void printTime();
 void printTime(time_t t);
 void printTime(time_t t, bool flag);
+char *fmtTime(char *buf, size_t len);
+char *fmtTime(char *buf, size_t len, time_t t);
+
 char ntpSetTime();
 
 EXT unsigned long ntpStart;	/* reference for time compare */
 EXT unsigned long ntpTimeout;	/* ntp timeout */
 EXT char ntpIP[IP_ADDRESS_LEN];	/* ntp ip address */
+
+#if defined(WIFI_SERIAL)
+#define NTP_PORT "123"
+#endif	/* WIFI_SERIAL */
+
+#if defined(WIFI_ESP32)
+#define NTP_PORT 123
+#endif	/* WIFI_ESP32 */
 
 #endif	/* __NTP_INC__ */ // ->

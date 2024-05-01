@@ -5,7 +5,7 @@
 #define MONITOR_INDEX 4
 
 #define MON_DBG 1
-#define WIFI_DBG 1
+#define WIFI_DBG 0
 
 /* -------------------- monitor index 1 -------------------- */
 
@@ -128,24 +128,40 @@ extern DeviceAddress tempDev[TEMPDEVS];
 
 #if (MONITOR_INDEX == 4)
 
+#define EMONCMS_NODE "megaTest1"
 #define EMONCMS_ADDR EMONCMS_ADDR1
 #define EMONCMS_KEY EMONCMS_KEY1
 
 #define WIFI_ENA
 
-#define TEMP_SENSOR 0
+#define TEMP_SENSOR 1
+#define DHT_SENSOR 1
+
+#define OLED_ENA 1
+
 #define RTC_CLOCK 0
-#define DHT_SENSOR 0
 #define CURRENT_SENSOR 0
-#define WATER_MONITOR 1
-#define CHECK_IN 0
+#define WATER_MONITOR 0
+#define CHECK_IN 1
 #define DEHUMIDIFIER 0
 
 #define SSID "hug2g996565"
 #define PASS "candle14salt"
 #define MONITOR_ID "MegaTest1"
 
+#define TEMPDEVS 1
+#if defined(__MONITOR__)
+EXT DeviceAddress tempDev[TEMPDEVS] =
+{
+ {0x28, 0xdb, 0x12, 0x45, 0xd4, 0x86, 0x44, 0x99}
+};
+#else
+extern DeviceAddress tempDev[TEMPDEVS];
+#endif /* defined(__MONITOR__) */
+
 #endif	/* MONITOR_INDEX == 4 */
+
+// *****************************************************************************
 
 #define WIFI_RESET 2		/* wifi reset */
 

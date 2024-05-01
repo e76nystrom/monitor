@@ -8,17 +8,16 @@
 #include "DallasTemperature.h"
 
 #if defined(ARDUINO_ARCH_AVR)
-#define WIFI_SERIAL
+#define WIFI_SERIAL 1
 #include "monitorAVR.h"
 #endif	/* ARDUINO_ARCH_AVR */
 
 #if defined(ARDUINO_ARCH_STM32)
-#define WIFI_SERIAL
+#define WIFI_SERIAL 1
 #include "monitorSTM32.h"
 #endif	/* ARDUINO_ARCH_STM32 */
 
 #if defined(ARDUINO_AVR_MEGA)
-#define WIFI_SERIAL
 #include "monitorMega32.h"
 #endif	/* ARDUINO_AVR_MEGA */
 
@@ -39,6 +38,10 @@
 
 #if !defined(DHT_SENSOR)
 #define DNT_SENSOR 0
+#endif
+
+#if !defined(SHT_SENSOR)
+#define SNT_SENSOR 0
 #endif
 
 #if !defined(CURRENT_SENSOR)

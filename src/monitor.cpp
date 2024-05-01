@@ -118,6 +118,10 @@ bool IRAM_ATTR TimerHandler0(void * timerNo)
 
 #endif	/* ESP32_0 */
 
+#if defined(ESP32_C3)  || defined(ESP32_C3_DEV)  || defined(ESP32_S3_DEV)
+#include "driver/temp_sensor.h"
+#endif	/* ESP32_C3 || ESP32_C3_DEV || ESP32_S3_DEV */
+
 #endif	/* ARDUINO_ARCH_ESP32 */
 
 #if defined(ARDUINO_ARCH_AVR)
@@ -151,6 +155,14 @@ int numVal;
 
 #define EXT
 #include "monitor.h"
+
+#if SHT_SENSOR
+
+#include "SHTSensor.h"
+
+SHTSensor sht;
+
+#endif	/* SHT_SENSOR */
 
 #if DHT_SENSOR
 #include <DallasTemperature.h>
@@ -510,6 +522,8 @@ char monDbg;
 #define NTP_COUNT (3)		/* time setting */
 #define LOOP_MAX (6)		/* max number of intervals */
 
+// *****************************************************************************
+
 #if CURRENT_SENSOR
 
 void initCurrent(char isr);	/* init current readings */
@@ -589,9 +603,13 @@ T_CUR_QUE curQue;		/* current queue */
 
 #endif  /* CURRENT_SENSOR */
 
+// *****************************************************************************
+
 #if defined(CURRENT_STM32)
 extern "C" void ADC_MspInit(ADC_HandleTypeDef* adcHandle);
 #endif	/* CURRENT_STM32 */
+
+// *****************************************************************************
 
 #if defined(LCD_ENA)
 #include <LiquidCrystal_I2C.h>
@@ -605,9 +623,10 @@ LiquidCrystal_I2C lcd(PCF8574_ADDR_A21_A11_A01,
 
 #endif	/* LCD_ENA */
 
+// *****************************************************************************
+
 #if defined(OLED_ENA)
 
-//#include <U8x8lib.h>
 #include <U8g2lib.h>
 
 #if defined(U8X8_HAVE_HW_SPI)
@@ -618,9 +637,28 @@ LiquidCrystal_I2C lcd(PCF8574_ADDR_A21_A11_A01,
 #include <Wire.h>
 #endif	/* U8X8_HAVE_HW_I2C */
 
-//U8X*_SH1106_128X64_NONAME_F_HW_I2C u8g2(U8G2_R0, /* reset=*/ U8X8_PIN_NONE);
-//U8X8_SH1106_128X64_NONAME_HW_I2C u8g2(/* reset=*/ U8X8_PIN_NONE);
+#if defined(ESP32_0)
 U8G2_SH1106_128X64_NONAME_F_HW_I2C u8g2(U8G2_R0, /* reset=*/ U8X8_PIN_NONE);
+#endif	/* ESP32_0 */
+
+#if defined(ESP32_C3)
+U8G2_SH1106_128X64_NONAME_F_HW_I2C u8g2(U8G2_R0,
+					/* reset=*/ U8X8_PIN_NONE,
+					/* clock */ 7, /* data */ 6);
+#endif	/* ESP32_C3 */
+
+#if defined(ESP32_C3_DEV) || defined(ESP32_S3_DEV)
+U8G2_SH1106_128X64_NONAME_F_HW_I2C u8g2(U8G2_R0,
+					/* reset */ U8X8_PIN_NONE,
+					/* clock */ I2C_SCL,
+					/* data  */ I2C_SDA);
+#endif	/* ESP32_C3_DEV || ESP32_S3_DEV */
+
+#if defined(ARDUINO_AVR_MEGA)
+U8G2_SH1106_128X64_NONAME_F_HW_I2C u8g2(U8G2_R0, /* reset=*/ U8X8_PIN_NONE,
+                                        7,
+                                        8);
+#endif	/* ARDUINO_AVR_MEGA */
 
 #endif	/* OLED_ENA */
 
@@ -857,7 +895,7 @@ void setup()
 
 #if defined(ARDUINO_ARCH_ESP32)
 
- DBGPORT.begin(19200);
+ DBGPORT.begin(115200);
  printf("test\n");
 
 #if defined(ESP32_0)
@@ -883,7 +921,23 @@ void setup()
  analogReadResolution(12);
 
 #endif	/* ESP32 */
+
+#if defined(ESP32_C3) || defined(ESP32_C3_DEV) || defined(ESP32_S3_DEV)
+
+ temp_sensor_config_t temp_sensor = TSENS_CONFIG_DEFAULT();
+ temp_sensor.dac_offset = TSENS_DAC_L2;  /* TSENS_DAC_L2 is default; L2(-10°C ~ 80°C) */
+ temp_sensor_set_config(temp_sensor);
+ temp_sensor_start();
+
+#endif	 /* ESP32_C3 ESP32_C3_DEV || ES32_S3_DEV */
  
+#if defined(ESP32_S3_DEV)
+  printf("Total heap: %d\n", ESP.getHeapSize());
+  printf("Free heap: %d\n", ESP.getFreeHeap());
+  printf("Total PSRAM: %d\n", ESP.getPsramSize());
+  printf("Free PSRAM: %d\n", ESP.getFreePsram());
+#endif	/* ESP32_S3_DEV */
+
 #endif	/* ARDUINO_ARCH_ESP32 */
 
  if (DBG)
@@ -949,6 +1003,7 @@ void setup()
 #endif	/* ARDUINO_AVR_MEGA2560 */
 
 #else
+  delay(2000);
   printf(F3("\nstarting 0\n"));
 #endif	/* ARDUINO_ARCH_AVR */
  }
@@ -978,8 +1033,10 @@ void setup()
 
 #if defined(OLED_ENA)
 
+ printf("****u8b2 begin\n");
  u8g2.begin();
  u8g2.setFont(u8g2_font_ncenB08_tr); // choose a suitable font
+ printf("****u8b2 begin done\n");
 
  // u8g2.setPowerSave(0);
  // u8g2.setFont(u8x8_font_chroma48medium8_r);
@@ -1172,13 +1229,36 @@ void setup()
  PORTG &= ~_BV(PG0);
 #endif	/* ARDUINO_AVR_MEGA2560 */
 
+#if SHT_SENSOR
+ if (sht.init())
+ {
+  Serial.print("init(): success\n");
+ }
+ else
+ {
+  Serial.print("init(): failed\n");
+ }
+ sht.setAccuracy(SHTSensor::SHT_ACCURACY_MEDIUM); // only supported by SHT3x
+#endif	/* SHT_SENSOR */
+
 // ----------------------------------------
  
+#if !defined(monDbg)
+ monDbg = MON_DBG;
+#endif	/* monDdg */
+
+#if !defined(wifiDbg)
+ wifiDbg = WIFI_DBG;
+#endif	/* wifiDbg */
+
+ printf(F3("monDbg %d wifiDbg %d\n"), monDbg, wifiDbg);
+
 #if defined(WIFI_ENA)
 
 #if defined(WIFI_SERIAL)
 
  wifiInitSio();			/* enable wifi serial port */
+ 
 #if defined(WIFI_RESET)
  pinMode(WIFI_RESET, OUTPUT);	/* set wifi reset pin to output */
  digitalWrite(WIFI_RESET, HIGH); /* set it high */
@@ -1202,16 +1282,18 @@ void setup()
  dbg2Clr();
 #endif	/* DBG2_PIN */
 
+ printf(F3("wifi disconnect\n"));
  wifiWriteStr(F2("AT+CWQAP"), 1000);
  delay(100);
  
  char retry = RETRY_JOIN;
- while (1)
+ while (true)
  {
+  printf(F3("wifi join\n"));
   char result = wifiJoin();
   if (result)
   {
-   wifiWriteStr(F2("AT+CIFSR"), 1000);
+   wifiWriteStr(F2("AT+CIFSR"), 7000);
    break;
   }
   --retry;
@@ -1222,6 +1304,10 @@ void setup()
    delay(500);
   }
  }
+
+ rssi = wifiRSSI();
+ printf("rssi %d\n", rssi);
+ lastRSSI = intMillis();
 
 #if ESP8266_TIME == 0
  ntpStart = millis();
@@ -1367,15 +1453,6 @@ void setup()
 // ----------------------------------------
 
  setTime();
-
-#if !defined(monDbg)
- monDbg = MON_DBG;
-#endif	/* monDdg */
-
-#if !defined(wifiDbg)
- wifiDbg = WIFI_DBG;
-#endif	/* wifiDbg */
- printf(F3("monDbg %d wifiDbg %d\n"), monDbg, wifiDbg);
 
 #if CURRENT_SENSOR
  trace();
@@ -1543,6 +1620,37 @@ void cmdLoop()
     printf("analogRead %d\n", rawVal);
    }
 #endif	/* ESP32_0 */
+
+#if SHT_SENSOR
+   else if (ch == 's')
+   {
+    if (sht.init())
+    {
+     Serial.print("init(): success\n");
+    }
+    else
+    {
+     Serial.print("init(): failed\n");
+    }
+    sht.setAccuracy(SHTSensor::SHT_ACCURACY_MEDIUM); // only supported by SHT3x
+
+    if (sht.readSample())
+    {
+     Serial.print("SHT:\n");
+     Serial.print("  RH: ");
+     Serial.print(sht.getHumidity(), 2);
+     Serial.print("\n");
+     Serial.print("  T:  ");
+     Serial.print(sht.getTemperature(), 2);
+     Serial.print("\n");
+    }
+    else
+    {
+     Serial.print("Error in readSample()\n");
+    }
+   }
+#endif	/* SHT_SENSOR */
+
 #if defined(EMONCMS_NODE)
    else if (ch == '?')		/* file name */
    {
@@ -2003,17 +2111,46 @@ void loop()
   u8g2.clearBuffer();		      // clear the internal memory
 
   char *p;
-  
+  int y = 8;
+
+#if SHT_SENSOR
+  if (sht.readSample())
+  {
+   float shtHumidity = sht.getHumidity();
+   float shtTemp = (9 * sht.getTemperature()) / 5 + 32;
+   p = writeTemp(buf, shtTemp);
+   *p++ = ' ';
+   *p++ = 'F';
+   *p++ = ' ';
+   p = writeTemp(p, shtHumidity);
+   *p++ = ' ';
+   *p++ = '%';
+   *p++ = 0;  
+   u8g2.drawStr(0, y, buf);
+   y += 10;
+  }
+#endif  /* SHT_SENSOR */
+
 #if DHT_SENSOR
-  p = writeTemp(buf, dhtTemp);
-  *p++ = ' ';
-  *p++ = 'F';
-  *p++ = ' ';
-  p = writeTemp(p, dhtHumidity);
-  *p++ = ' ';
-  *p++ = '%';
+
+  float h = dht.readHumidity();
+  if (!isnan(h))
+  {
+   float t = dht.readTemperature(true);
+   if (!isnan(t))
+   {
+    p = writeTemp(buf, t);
+    *p++ = ' ';
+    *p++ = 'F';
+    *p++ = ' ';
+    p = writeTemp(p, h);
+    *p++ = ' ';
+    *p++ = '%';
+   }
+  }
   *p++ = 0;  
-  u8g2.drawStr(0, 10, buf);
+  u8g2.drawStr(0, y, buf);
+  y += 10;
 #endif	/* DHT_SENSOR */
 
 #if TEMP_SENSOR
@@ -2023,9 +2160,11 @@ void loop()
 
 #if TEMP_SENSOR == 1
 
+  float temp;
   for (unsigned char i = 0; i < TEMPDEVS; i++)
   {
-   tempBuf[j] = temp0[i];
+   temp = sensors.getTempF(tempDev[i]);
+   tempBuf[j] = temp;
    j += 1;
   }
 
@@ -2046,7 +2185,6 @@ void loop()
 
 #endif	/* TEMP_SENSOR == 2 */
 
- int y = 10;
  for (unsigned char i = 0; i < j; i++)
  {
   p = writeTemp(buf, tempBuf[i]);
@@ -2060,8 +2198,29 @@ void loop()
 
 #endif	/* TEMP_SENSOR */
 
+#if defined(ESP32_C3) || defined(ESP32_C3_DEV) || defined(ESP32_S3_DEV)
+  float result = 0;
+  temp_sensor_read_celsius(&result);
+  sprintf(buf, "%4.1f C", result);
+  u8g2.drawStr(96, 8, buf);
+#endif	/* ESP32_C3 || ESP32_C3_DEV || ESP32_S3_DEV */
+
   p = fmtTime(buf, sizeof(buf));
   *p++ = ' ';
+
+#if defined(WIFI_SERIAL)
+
+  unsigned int t = intMillis();
+  if ((t - lastRSSI) > RSSI_INTERVAL)
+  {
+   lastRSSI = t;
+   rssi = wifiRSSI();
+  }
+  sndDec(p, rssi);
+
+#endif  /* WIFI_SERIAL */
+
+#if defined(ESP32_WIFI)
 
   int8_t rssi = WiFi.RSSI();
   rssiSum -= rssiData[rssiP];
@@ -2071,12 +2230,12 @@ void loop()
    rssiP = 0;
   rssiSum += rssi;
   rssiAvg = rssiSum / RSSI_SAMPLES;
-   
-  sndDec(p, rssiAvg);
-  u8g2.drawStr(0, 63, buf);
 
-  //u8g2.drawStr(0, 8, buf);  // write something to the internal memory
-  //u8g2.sendBuffer();	    // transfer internal memory to the display
+  sndDec(p, rssiAvg);
+   
+#endif	/* ESP32_WIFI */
+
+  u8g2.drawStr(0, 63, buf);
 
   u8g2.sendBuffer();
 #endif	/* OLED_ENA */
@@ -2133,6 +2292,14 @@ void loop()
  loopCount++;			/* update loop counter */
  if (loopCount >= LOOP_MAX)	/* if at maximum */
  {
+#if defined(ESP32_C3)
+
+  float result = 0;
+  temp_sensor_read_celsius(&result);
+  printf("ESP32 temp %4.1f C\n", result);
+
+#endif	/* ESP32_C3 */
+
 #if defined(ARDUINO_ARCH_AVR)
   if (monDbg)
    checkBuffers();

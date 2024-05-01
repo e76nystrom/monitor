@@ -20,7 +20,6 @@ EXT char cmdBuffer[64] __attribute__((section(".noinit")));
 /* buffer for response */
 EXT char packetRsp[460] __attribute__((section(".noinit")));
 
-
 EXT char *rsp;
 EXT unsigned int rspLen;
 EXT unsigned char rspCount;
@@ -60,37 +59,34 @@ inline void dbg0Clr(void) {}
 
 //extern "C" unsigned int __attribute__ ((noinline)) xGetSP();
 
+#if !defined(MONITOR_INDEX)
+
 #define MONITOR_INDEX 1
+
+#endif	/* MONITOR_INDEX */
 
 /* -------------------- monitor index 1 -------------------- */
 
 /* outside temperature */
 
+// -----------------------------------------------------------------------------
+
 #if (MONITOR_INDEX == 1)
 
 #define EMONCMS_ADDR EMONCMS_ADDR1
 #define EMONCMS_KEY EMONCMS_KEY1
-#define EMONCMS_NODE "esp32Test"
+#define EMONCMS_NODE "esp32mon"
 
 #define WIFI_ENA
 
-#if defined(ESP32_0)
 #define OLED_ENA
-#endif
 
 #define TEMP_SENSOR 1
-
-#if defined(ESP32_0)
 #define ONE_WIRE_BUS 26
-#endif
-
-#if defined(ESP32_C3)
-#define ONE_WIRE_BUS 0
-#endif
 
 // #define RTC_CLOCK 0
-// #define DHT_SENSOR 1
-// #define DHT_PIN 27
+#define DHT_SENSOR 1
+#define DHT_PIN 27
 // #define CURRENT_SENSOR 0
 // #define WATER_MONITOR 0
 #define CHECK_IN 1
@@ -98,7 +94,7 @@ inline void dbg0Clr(void) {}
 
 #define SSID "hug2g996565"
 #define PASS "candle14salt"
-#define MONITOR_ID "esp32Temp"
+#define MONITOR_ID "esp32mon"
 
 #define TEMPDEVS 1
 
@@ -112,5 +108,139 @@ extern DeviceAddress tempDev[TEMPDEVS];
 #endif /* defined(__MONITOR__) */
 
 #endif	/* MONITOR_INDEX == 1 */
+
+// -----------------------------------------------------------------------------
+
+#if (MONITOR_INDEX == 2)
+
+#define EMONCMS_ADDR EMONCMS_ADDR1
+#define EMONCMS_KEY EMONCMS_KEY1
+#define EMONCMS_NODE "esp32c3"
+
+#define WIFI_ENA
+
+#define OLED_ENA
+
+#define SHT_SENSOR 1
+
+#define TEMP_SENSOR 1
+#define ONE_WIRE_BUS 5
+
+// #define RTC_CLOCK 0
+// #define DHT_SENSOR 1
+// #define DHT_PIN 27
+// #define CURRENT_SENSOR 0
+// #define WATER_MONITOR 0
+#define CHECK_IN 1
+// #define DEHUMIDIFIER 0
+
+#define SSID "hug2g996565"
+#define PASS "candle14salt"
+#define MONITOR_ID "esp32c3"
+
+#define TEMPDEVS 1
+
+#if defined(__MONITOR__)
+EXT DeviceAddress tempDev[TEMPDEVS] =
+{
+ {0x28, 0x1e, 0xc4, 0x45, 0xd4, 0x59, 0x63, 0xcf}
+};
+#else
+extern DeviceAddress tempDev[TEMPDEVS];
+#endif /* defined(__MONITOR__) */
+
+#endif	/* MONITOR_INDEX == 2 */
+
+// -----------------------------------------------------------------------------
+
+#if (MONITOR_INDEX == 3)
+
+#define EMONCMS_ADDR EMONCMS_ADDR1
+#define EMONCMS_KEY EMONCMS_KEY1
+#define EMONCMS_NODE "esp32c3dev"
+
+#define WIFI_ENA
+
+#define OLED_ENA
+// #define SHT_SENSOR 1
+
+#define I2C_SCL 6
+#define I2C_SDA 7
+
+#define TEMP_SENSOR 1
+#define ONE_WIRE_BUS 0
+
+#define DHT_SENSOR 1
+#define DHT_PIN 1
+
+#define CHECK_IN 1
+
+// #define RTC_CLOCK 0
+// #define CURRENT_SENSOR 0
+// #define WATER_MONITOR 0
+// #define DEHUMIDIFIER 0
+
+#define SSID "hug2g996565"
+#define PASS "candle14salt"
+#define MONITOR_ID "esp32c3dev"
+
+#define TEMPDEVS 1
+
+#if defined(__MONITOR__)
+EXT DeviceAddress tempDev[TEMPDEVS] =
+{
+ {0x28, 0x1e, 0xc4, 0x45, 0xd4, 0x59, 0x63, 0xcf}
+};
+#else
+extern DeviceAddress tempDev[TEMPDEVS];
+#endif /* defined(__MONITOR__) */
+
+#endif	/* MONITOR_INDEX == 3 */
+
+// -----------------------------------------------------------------------------
+
+#if (MONITOR_INDEX == 4)
+
+#define EMONCMS_ADDR EMONCMS_ADDR1
+#define EMONCMS_KEY EMONCMS_KEY1
+#define EMONCMS_NODE "esp32s3"
+
+#define WIFI_ENA
+
+#define OLED_ENA
+#define SHT_SENSOR 1
+
+#define I2C_SCL 5
+#define I2C_SDA 4
+
+#define TEMP_SENSOR 1
+#define ONE_WIRE_BUS 10
+
+#define DHT_SENSOR 1
+#define DHT_PIN 9
+
+#define CHECK_IN 1
+
+// #define RTC_CLOCK 0
+// #define CURRENT_SENSOR 0
+// #define WATER_MONITOR 0
+// #define DEHUMIDIFIER 0
+
+#define SSID "hug2g996565"
+#define PASS "candle14salt"
+#define MONITOR_ID "esp32s3"
+
+#define TEMPDEVS 1
+
+#if defined(__MONITOR__)
+EXT DeviceAddress tempDev[TEMPDEVS] =
+{
+ {0x28, 0x08, 0xde, 0x45, 0xd4, 0xdd, 0x4a, 0x4c}
+};
+#else
+extern DeviceAddress tempDev[TEMPDEVS];
+#endif /* defined(__MONITOR__) */
+
+#endif	/* MONITOR_INDEX == 4 */
 
 #endif	/* __MONITOR_ESP32_H__ */

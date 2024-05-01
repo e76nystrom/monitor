@@ -39,7 +39,7 @@ void printBuf(char *p, unsigned int len);
 
 #if defined(__NTP_INC__)	// <-
 
-const int NTP_PACKET_SIZE = 48; 
+const int NTP_PACKET_SIZE = 48;
 
 typedef struct
 {
@@ -212,7 +212,7 @@ char ntpSetTime()
    }
 
    wifiClose(3, 1000);
- 
+
 #endif  /* WIFI_SERIAL */
 
 #if defined(WIFI_ESP32)
@@ -223,7 +223,7 @@ char ntpSetTime()
    IPAddress ip = IPAddress();
    ip.fromString((const char *) ntpIP);
    // printf("ntpIP %s port %d\n", ip.toString().c_str(), NTP_PORT);
-   
+
    udp.beginPacket(ip, NTP_PORT);
    udp.write((const uint8_t *) dataBuffer, NTP_PACKET_SIZE);
    udp.endPacket();
@@ -254,7 +254,7 @@ char ntpSetTime()
      const auto seventyYears = (time_t) 2208988800UL; /* 1970 - 1900 */
      time_t epoch = val - seventyYears;
      printTime(epoch);
-     
+
      printf("ntp set time\n");
      setTime(epoch);
      ntpTimeout = 24UL * 60UL * 60UL * 1000UL;

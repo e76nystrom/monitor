@@ -46,7 +46,7 @@
 
 #define DBG 1
 
-#include "wifi.h"
+#include "wifiSerial.h"
 
 #if defined(__WIFI_INC__)	// <-
 
@@ -194,13 +194,14 @@ char *sendData(const char *ip, int port, const char *data,
 	       unsigned int timeout);
 
 void printBuf();
+void printBuf(char *p, unsigned int len);
 char *lc(char *p);
 int find(char *str1, const char *str2);
 int find(char *str1, const char *str2, int offset, int len1);
 int cmp(char *str1, const char *str2, int size);
 int cmp(char *str1, const char *str2);
-int findData(int cmdLen, int *datalen);
-int getVal(char *p, int pos, int *rtnVal, int size);
+int findData(int cmdLen, unsigned int *datalen);
+int getVal(char *p, int pos, unsigned int *rtnVal, int size);
 void getData(char *dst, unsigned int dstSize, char *buf, unsigned int bufSize);
 
 #if defined(ARDUINO_ARCH_AVR)
@@ -232,7 +233,8 @@ void wifiStart(int chan, char *protocol, char *ip, int port,
 	       unsigned int timeout);
 void wifiStartData(char *s, int size, unsigned int timeout);
 void wifiWriteData(char *s, int size, unsigned int timeout);
-char *wifiWriteTCPx(char *s, int size, int *dataLen, unsigned int timeout);
+char *wifiWriteTCPx(char *s, int size, unsigned int *dataLen,
+		    unsigned int timeout);
 void wifiClose(int port, unsigned int timeout);
 
 #if defined(ARDUINO_ARCH_AVR)
@@ -246,7 +248,8 @@ char wifiWrite(const __FlashStringHelper *s, int size, unsigned int timeout);
 EXT char stringBuffer[80] __attribute__((section(".noinit")));
 
 /* buffer for data sent */
-EXT char dataBuffer[192] __attribute__((section(".noinit")));
+#define DATA_BUF_SIZE ((size_t) 192)
+EXT char dataBuffer[DATA_BUF_SIZE] __attribute__((section(".noinit")));
 
 /* buffer for command sent */
 EXT char cmdBuffer[64] __attribute__((section(".noinit")));
@@ -260,11 +263,18 @@ EXT unsigned int rspLen;
 EXT unsigned char rspCount;
 EXT char *rspPtr[MAX_RSP];
 EXT int rspL[MAX_RSP];
-EXT char id[ID_LEN];
+EXT char monitorId[ID_LEN];
 
 #if !defined(wifiDbg)
 EXT bool wifiDbg;
 #endif	/* wifiDbg */
+
+int wifiRSSI(void);
+
+EXT unsigned int lastRSSI;
+EXT int rssi;
+
+#define RSSI_INTERVAL 5000
 
 #define IPD_STR "+IPD,"
 #define IPD F1(IPD_STR)
@@ -500,7 +510,7 @@ char *sendData(const char *ip, int port, const char *data,
   sprintf((char *) cmdBuffer, F0("AT+CIPSEND=4,%d"), cmdLen);
   wifiStartData((char *) cmdBuffer, strlen(cmdBuffer), 1000);
 
-  int dataLen = 0;
+  unsigned int dataLen = 0;
   p = wifiWriteTCPx((char *) data, cmdLen, &dataLen, timeout);
 //  printBuf();
   if (p != 0)			/* if success */
@@ -544,11 +554,17 @@ char *sendData(const char *ip, int port, const char *data,
 #if DBG
 
 #define MAXCOL 16
+
 void printBuf()
 {
- printf(F0("\nrspLen %d\n"), rspLen);
+ printBuf(packetRsp, rspLen);
+}
+
+void printBuf(char *p, unsigned int len)
+{
+ printf(F0("\n" "rspLen %d\n"), len);
  char buf[MAXCOL + 2];
- char *p = (char *) packetRsp;
+ // char *p = (char *) packetRsp;
  char col = 0;			/* number of columns */
  char *p1 = buf;
 
@@ -574,7 +590,7 @@ void printBuf()
   }
  }
 
- for (unsigned int i = 0; i < rspLen; i++)
+ for (unsigned int i = 0; i < len; i++)
  {
   if (col == 0)			/* if column 0 */
   {
@@ -835,7 +851,7 @@ int cmp(char *str1, const __FlashStringHelper *str2)
 
 #endif	/* ARDUINO_ARCH_AVR */
 
-int getVal(char *p, int offset, int *rtnVal, int size)
+int getVal(char *p, int offset, unsigned int *rtnVal, int size)
 {
  *rtnVal = 0;
  char ch;
@@ -859,7 +875,7 @@ int getVal(char *p, int offset, int *rtnVal, int size)
  return(offset);
 }
 
-int findData(int cmdLen, int *dataLen)
+int findData(int cmdLen, unsigned int *dataLen)
 {
  *dataLen = 0;
  int pos = find((char *) packetRsp, IPD, cmdLen, (int) rspLen);
@@ -896,13 +912,16 @@ void getData(char *dst, unsigned int dstSize, char *buf, unsigned int bufSize)
 
 void wifiReset()
 {
- printf(F0("wifiReset\n"));
 #if defined(WIFI_RESET)
+
+ printf(F0("wifiReset\n"));
  digitalWrite(WIFI_RESET, LOW);
  delay(200);
  digitalWrite(WIFI_RESET, HIGH);
+
  if (DBG)
   printf(F0("flushing wifi input\n"));
+
  while (wifiAvail())
  {
   wdt_reset();
@@ -911,12 +930,13 @@ void wifiReset()
    putChar(ch);
  }
  printf(F0("flush done\n"));
+
 #endif	/* WIFI_RESET */
+
  signed char retry = 5;
  while (--retry >= 0)
  {
   delay(200);
-  printf(F0("write AT %d\n"), retry);
   if (wifiWriteStr(F2("AT"), 1000))
    break;
  }
@@ -1019,6 +1039,53 @@ void wifiPut(char *s, int size)
  }
 }
 
+int wifiRSSI()
+{
+ if (wifiWriteStr(F2("AT+CWJAP?"), 1000))
+ {
+  char *p = packetRsp;
+  int l = (int) rspLen;
+  int count = 0;
+  while (--l >= 0)
+  {
+   if (*p++ == ',')
+   {
+    count += 1;
+    if (count == 3)
+    {
+     char c;
+     int val = 0;
+     bool neg;
+     while (--l >= 0)
+     {
+      c = *p++;
+      if (c == '-')
+       neg = true;
+      else if ((c >= '0') && (c <= '9'))
+      {
+       val *= 10;
+       val += (int) (c - '0');
+      }
+      else
+      {
+       if (neg)
+	val = -val;
+       return(val);
+       // printf("rssi %d\n", val);
+       break;
+      }
+     }
+     break;
+    }
+   }
+  }
+ }
+ else
+  printf(F3("rssi failed\n"));
+
+ return(0);
+}
+
 #if defined(ARDUINO_ARCH_AVR)
 
 void wifiPut(const __FlashStringHelper *s)
@@ -1114,7 +1181,8 @@ char wifiWrite(char *s, int size, unsigned int timeout)
    }
    else
     dbg3Set();
-   dbgChar(ch);
+   if (wifiDbg)
+    dbgChar(ch);
    if ((last == 'O') && (ch == 'K'))
    {
     start = millis();
@@ -1162,7 +1230,8 @@ char wifiWrite(const __FlashStringHelper *s, int size, unsigned int timeout)
    }
    else
     dbg3Set();
-   dbgChar(ch);
+   if (wifiDbg)
+    dbgChar(ch);
    if (result)
    {
     start = millis();
@@ -1332,8 +1401,8 @@ void wifiWriteData(char *s, int size, unsigned int timeout)
 #define dbg3 0			/* print state changes */
 #define echo 0			/* commands echoed */
 
-char *wifiWriteTCPx(char *s, int size, 
-		    int *dataLen, unsigned int timeout)
+char *wifiWriteTCPx(char *s, int size, unsigned int *dataLen,
+		    unsigned int timeout)
 {
  trace();
  wifiClrRx();
