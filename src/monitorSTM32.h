@@ -7,7 +7,7 @@
 #include <Wire.h>
 #include "serial.h"
 
-#define MONITOR_INDEX 3
+#define MONITOR_INDEX 4
 
 #define DBG 1
 #define MON_DBG 1
@@ -111,6 +111,52 @@ extern DeviceAddress tempDev[TEMPDEVS];
 #endif /* defined(__MONITOR__) */
 
 #endif	/* MONITOR_INDEX == 3 */
+
+/* -------------------- monitor index 4 -------------------- */
+
+#if (MONITOR_INDEX == 4)
+
+#include "DallasTemperature.h"
+
+#define MONITOR_ID "stm32xn"
+#define EMONCMS_NODE "stm32-xn"
+
+#define WIFI_ENA 1
+
+#define OLED_ENA
+#define CHECK_IN 1
+
+//#define TEMP_SENSOR 1
+//#define ONE_WIRE_BUS PB5
+
+//#define DHT_SENSOR 1
+//#define DHT_PIN PB4
+
+#define INT_MILLIS 0
+#define ESP8266_TIME 0
+
+#define CURRENT_STM32 1
+#define EMON_POWER 1
+#define EMON_RMS 0
+
+//#define OLED_ENA 1
+
+#define MAX_CHAN_POWER 1
+#define MAX_CHAN_RMS 2
+#define MAX_CHAN (MAX_CHAN_POWER + MAX_CHAN_RMS)
+
+#define TEMPDEVS 1
+
+#if defined(__MONITOR__)
+EXT DeviceAddress tempDev[TEMPDEVS] =
+{
+ {0x28, 0xaf, 0xe3, 0x45, 0xd4, 0x28, 0x3c, 0xbe}
+};
+#else
+extern DeviceAddress tempDev[TEMPDEVS];
+#endif /* defined(__MONITOR__) */
+
+#endif	/* MONITOR_INDEX == 4 */
 
 /* -------------------- monitor end of definitions -------------------- */
 
