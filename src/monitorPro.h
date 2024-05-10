@@ -7,7 +7,7 @@ ATMega328 Pin 7 - Arduino Pin 4 - Ext1 - RJ45 Pin 6 - S2 - 3 Pin DS18S20
 
 */
 
-#define MONITOR_INDEX 9
+#define MONITOR_INDEX 10
 
 #define monDbg 1
 #define wifiDbg 1
@@ -288,6 +288,45 @@ extern DeviceAddress tempDev[TEMPDEVS];
 #endif /* __MONITOR__ */
  
 #endif	/* MONITOR_INDEX == 9 */
+
+/* -------------------- monitor index 10 -------------------- */
+
+#if (MONITOR_INDEX == 10)
+
+#define WIFI_ENA 1
+#define EMONCMS_ADDR EMONCMS_ADDR1
+#define EMONCMS_KEY EMONCMS_KEY1
+
+#define EMONCMS_NODE "Test"
+
+//#undef COMMAND_LOOP
+
+#define ESP8266_TIME 0
+#define TEMP_SENSOR 1
+#define CHECK_IN 1
+// #define WATER_MONITOR 1
+
+#define Led_Pin 13
+#define LED_PORT PORTB
+#define LED_PIN PB5
+
+#define SSID "hug2g996565"
+#define PASS "candle14salt"
+#define MONITOR_ID "Test"
+
+#define ONE_WIRE_BUS 3		/* one wire bus pin */
+
+#define TEMPDEVS 1
+#if defined(__MONITOR__)
+DeviceAddress tempDev[TEMPDEVS] =
+{
+ {0x28, 0xfb, 0x6c, 0x45, 0xd4, 0x2f, 0x1d, 0xfb}
+};
+#else
+extern DeviceAddress tempDev[TEMPDEVS];
+#endif /* __MONITOR__ */
+
+#endif	/* MONITOR_INDEX == 10 */
 
 /* -------------------- monitor end of definitions -------------------- */
 

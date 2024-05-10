@@ -660,6 +660,18 @@ U8G2_SH1106_128X64_NONAME_F_HW_I2C u8g2(U8G2_R0, /* reset=*/ U8X8_PIN_NONE,
                                         8);
 #endif	/* ARDUINO_AVR_MEGA */
 
+#if defined(ARDUINO_AVR_PRO)
+U8G2_SH1106_128X64_NONAME_F_HW_I2C u8g2(U8G2_R0, /* reset=*/ U8X8_PIN_NONE,
+                                        28,
+                                        27);
+#endif	/* ARDUINO_AVR_MEGA */
+
+#if defined(ARDUINO_ARCH_STM32)
+U8G2_SH1106_128X64_NONAME_F_HW_I2C u8g2(U8G2_R0, /* reset=*/ U8X8_PIN_NONE,
+                                        45 /* clock PB8 */,
+                                        46 /* data  PB9 */);
+#endif  /* ARDUINO_ARCH_STM32 */
+
 #endif	/* OLED_ENA */
 
 void putx0(void *p, char c);
@@ -856,13 +868,17 @@ void trace()
 
 void setup()
 {
- char ch;
 
 #if defined(ARDUINO_ARCH_AVR)
 
-//#if defined(ARDUINO_AVF_PRO)
+//#if defined(ARDUINO_AVR_PRO)
  wdt_enable(WDT_TO);
 //#endif	/* ARDUINO_AVR_PRO */
+
+#if defined(Led_Pin)
+ pinMode(Led_Pin, OUTPUT);
+ LED_PORT |= LED_PIN;
+#endif  /* Led_Pin */
 
 #if defined(ARDUINO_AVR_MEGA2560)
  noInterrupts();
@@ -1026,8 +1042,10 @@ void setup()
   printf("lcd not connected\n");
   delay(5000);
  }
+#if defined(ARDUINO_ARCH_STM32)
  i2cInfo(I2C1, "I2C1");
  rccInfo();
+#endif  /* ARDUINO_ARCH_STM32 */
  lcd.print("PCF8574 is OK...");
 #endif	/* LCD_ENA */
 
@@ -1174,6 +1192,7 @@ void setup()
 #if TEMP_SENSOR == 1
 
  printf(F3("start temp sensor bus %d\n"), ONE_WIRE_BUS);
+ flush();
  sensors.begin();
  for (unsigned char i = 0; i < TEMPDEVS; i++)
  {
@@ -1353,8 +1372,8 @@ void setup()
 #endif	/* CURRENT_STM32 */
 
 #if DATA_SIZE
- unsigned int bss = (unsigned int) (&_ebss - &_sbss);
- unsigned int data = (unsigned int) (&_edata - &_sdata);
+ auto bss = (unsigned int) (&_ebss - &_sbss);
+ auto data = (unsigned int) (&_edata - &_sdata);
  printf("data %u bss %u total %u\n", data, bss, data + bss);
  printf("stack %08x sp %08x\n",
 	(unsigned int) &_estack, getSP());
@@ -1364,24 +1383,23 @@ void setup()
  AFIO->MAPR |= AFIO_MAPR_SWJ_CFG_1;
  printf("AFIO MAPR %08x\n", (unsigned int) AFIO->MAPR);
 
- unsigned int clockFreq = HAL_RCC_GetHCLKFreq();
+ unsigned int f = HAL_RCC_GetHCLKFreq();
  unsigned int FCY = HAL_RCC_GetPCLK2Freq();
- printf("clock frequency %u FCY %u\n", clockFreq, FCY);
+ printf("clock frequency %u FCY %u\n", f, FCY);
  printf("sysTick load %d\n", (int) SysTick->LOAD);
 
  printf("initialize adc\n");
  flush();
 
 #if defined(STM32F103xB)
- __HAL_RCC_USART1_CLK_DISABLE();
 
  /*
     PA9     ------> USART1_TX
     PA10     ------> USART1_RX
  */
 
- HAL_GPIO_DeInit(GPIOA, GPIO_PIN_9|GPIO_PIN_10);
-
+// __HAL_RCC_USART1_CLK_DISABLE();
+// HAL_GPIO_DeInit(GPIOA, GPIO_PIN_9|GPIO_PIN_10);
  MX_GPIO_Init();
  MX_ADC1_Init();
  ADC_MspInit(&hadc1);
@@ -1412,10 +1430,11 @@ void setup()
 
 // ----------------------------------------
 
-#if DBG
+#if DBG && defined(COMMAND_LOOP)
 
  printf(F3("debug mode\n"));
  unsigned int t = intMillis();
+ char ch;
  while ((unsigned int) (intMillis() - t) < 1000U)
  {
   ch = DBGPORT.read();
@@ -1448,7 +1467,7 @@ void setup()
   printf(F3("end debug mode\n"));
  }
 
-#endif /* DBG */
+#endif /* DBG && COMMAND_LOOP */
 
 // ----------------------------------------
 
@@ -1475,10 +1494,10 @@ void setTime()
  }
 #endif	/* RTC_CLOCK */
 
- char status;
- if ((millis() - ntpStart) > ntpTimeout)
+  if ((millis() - ntpStart) > ntpTimeout)
  {
 #if defined(WIFI_ENA)
+  char status;
 #if (ESP8266_TIME == 0)
   for (char retry = 0; retry < 3; retry++)
   {
@@ -1577,6 +1596,21 @@ asm(
 
 // *****************************************************************************
 
+void printTempAddress(uint8_t *p)
+{
+ int i = 8;
+ while (--i >= 0)
+ {
+  printf("0x%02x", *p++);
+  if (i > 0)
+   printf(", ");
+  else
+   newLine();
+ }
+}
+
+#if defined(COMMAND_LOOP)
+
 void cmdLoop()
 {
  wdt_disable();
@@ -1591,6 +1625,7 @@ void cmdLoop()
    newLine();
    if (ch == 'x')		/* exit command loop */
     break;
+
 #if defined(ESP32_0)
    else if (ch == 'a')
    {
@@ -1654,7 +1689,25 @@ void cmdLoop()
 #if defined(EMONCMS_NODE)
    else if (ch == '?')		/* file name */
    {
-    printf(F3("monitor.cpp emon " EMONCMS_NODE " id " MONITOR_ID "\n"));
+    printf(F3("monitor.cpp emon " EMONCMS_NODE " id " MONITOR_ID " index %d\n"),
+	   MONITOR_INDEX);
+
+#if TEMP_SENSOR == 1
+    for (auto & i : tempDev)
+     printTempAddress(i);
+#elif TEMP_SENSOR == 2
+    P_TEMP_SENSOR ts = tempSensor;
+    for (uint8_t j = 0; j < TEMP_SENSOR; j++)
+    {
+     char deviceCount = ts->deviceCount;
+     DeviceAddress *addr = ts->tempDev;
+     for (unsigned char i = 0; i < deviceCount; i++)
+     {
+      printTempAddress(*addr);
+      addr += 1;
+     }
+    }
+#endif	/* TEMP_SENSOR == 2 */
    }
 #endif	/* EMONCMS_NODE */
    
@@ -1666,14 +1719,18 @@ void cmdLoop()
      printf("lcd not connected\n");
      delay(5000);
     }
+#if defined(ARDUINO_ARCH_STM32)
     i2cInfo(I2C1, "I2C1");
     rccInfo();
+#endif  /* ARDUINO_ARCH_STM32 */
     lcd.print("PCF8574 is OK...");
    }
+#if defined(ARDUINO_ARCH_STM32)
    else if (ch == 'M')
    {
     lcdInit();
    }
+#endif  /* ARDUINO_ARCH_STM32 */
 #endif	/* LCD_ENA */
    
 #if defined(ARDUINO_ARCH_STM32)
@@ -1991,12 +2048,11 @@ void cmdLoop()
 #if TEMP_SENSOR == 1
 
     sensors.requestTemperatures();
-    for (unsigned char i = 0; i < TEMPDEVS; i++)
+    for (auto & i : tempDev)
     {
-     float temp = sensors.getTempF(tempDev[i]);
-     DBGPORT.print(F3("temp "));
-     DBGPORT.print(temp);
-     DBGPORT.print(F3(" F\n"));
+     float temp = sensors.getTempF(i);
+     printTemp(temp);
+     newLine();
     }
 
 #elif TEMP_SENSOR == 2
@@ -2051,6 +2107,8 @@ void cmdLoop()
 #endif /* ARDUINO_ARCH_AVR */
 } /* end cmdloop */
 
+#endif  /* COMMAND_LOOP */
+
 // *****************************************************************************
 
 void loop()
@@ -2060,6 +2118,9 @@ void loop()
  while (true)			/* wait for end of interval */
  {
   wdt_reset();
+
+#if defined(COMMAND_LOOP)
+
   if (DBGPORT.available())
   {
    DBGPORT.print('>');
@@ -2076,6 +2137,8 @@ void loop()
    }
    newLine();
   }
+
+#endif  /* COMMAND_LOOP */
 
   unsigned int t0 = intMillis(); /* read time */
   if ((unsigned int) (t0 - tLast) > TINTERVAL) /* if long interval up */
@@ -2099,7 +2162,15 @@ void loop()
 #endif	/* CURRENT_SENSOR */
 
 #if defined(Led_Pin)
+#if defined(ARDUINO_ARCH_STM32)
    ledToggle();
+#endif  /* ARDUINO_ARCH_STM32 */
+#if defined(ARDUINO_ARCH_AVR)
+   if (LED_PORT & LED_PIN)
+    LED_PORT &= ~LED_PIN;
+   else
+    LED_PORT |= LED_PIN;
+#endif  /* ARDUINO_ARCH_AVR */
 #endif	/* Led_Pin */
   }
 
@@ -2110,8 +2181,10 @@ void loop()
 
   u8g2.clearBuffer();		      // clear the internal memory
 
-  char *p;
+  char *p = buf;
+#if SHT_SENSOR || DHT_SENSOR || TEMP_SENSOR
   int y = 8;
+#endif
 
 #if SHT_SENSOR
   if (sht.readSample())
@@ -2208,7 +2281,7 @@ void loop()
   p = fmtTime(buf, sizeof(buf));
   *p++ = ' ';
 
-#if defined(WIFI_SERIAL)
+#if defined(WIFI_ENABLE) && defined(WIFI_SERIAL)
 
   unsigned int t = intMillis();
   if ((t - lastRSSI) > RSSI_INTERVAL)
@@ -2218,7 +2291,7 @@ void loop()
   }
   sndDec(p, rssi);
 
-#endif  /* WIFI_SERIAL */
+#endif  /* WIFI_ENABLED && WIFI_SERIAL */
 
 #if defined(ESP32_WIFI)
 
@@ -2969,7 +3042,7 @@ void procAlarm(P_INPUT water, boolean inp)
 char notify(int alarm, boolean val)
 {
  sprintf((char *) dataBuffer,
-	 F3(GET_CMD SITE "/notify?id=%s&alarm=%d&val=%d"), id, alarm, val);
+	 F3(GET_CMD SITE "/notify?id=%s&alarm=%d&val=%d"), monitorId, alarm, val);
  return(sendHTTP(dataBuffer));
 }
 #endif	/* CHECK_IN */
@@ -3191,7 +3264,7 @@ void putx(char c)
 
 void findAddresses()
 {
- byte i;
+ // byte i;
  byte addr[8];
   
  printf(F3("Looking for 1-Wire devices\n"));
@@ -3199,14 +3272,17 @@ void findAddresses()
  while(oneWire.search(addr))
  {
   printf(F3("Found one wire device with address: \n"));
-  for( i = 0; i < 8; i++)
-  {
-   printf(F3("0x%02x"), addr[i]);
-   if (i < 7)
-    printf(F3(", "));
-   else
-    newLine();
-  }
+  printTempAddress(addr);
+
+  // for( i = 0; i < 8; i++)
+  // {
+  //  printf(F3("0x%02x"), addr[i]);
+  //  if (i < 7)
+  //   printf(F3(", "));
+  //  else
+  //   newLine();
+  // }
+
   if (OneWire::crc8(addr, 7) != addr[7])
   {
    printf(F3("CRC is not valid!\n"));
@@ -3223,14 +3299,17 @@ void findAddresses()
   while (oneWire->search(addr))
   {
    printf(F3("Found one wire device with address: \n"));
-   for( i = 0; i < 8; i++)
-   {
-    printf(F3("0x%02x"), addr[i]);
-    if (i < 7)
-     printf(F3(", "));
-    else
-     newLine();
-   }
+   printTempAddress(addr);
+
+   // for( i = 0; i < 8; i++)
+   // {
+   //  printf(F3("0x%02x"), addr[i]);
+   //  if (i < 7)
+   //   printf(F3(", "));
+   //  else
+   //   newLine();
+   // }
+
    if (OneWire::crc8(addr, 7) != addr[7])
    {
     printf(F3("CRC is not valid!\n"));

@@ -1,6 +1,8 @@
 #if !defined(__MONITOR_H__)
 #define __MONITOR_H__
 
+#define COMMAND_LOOP
+
 #if !defined(EXT)
 #define EXT extern
 #endif

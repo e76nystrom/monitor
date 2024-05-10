@@ -70,11 +70,21 @@
 
 #if (MONITOR_INDEX == 3)
 
+#include "DallasTemperature.h"
+
 #define MONITOR_ID "stm32x"
 #define EMONCMS_NODE "stm32-x"
 
-//#define WIFI_ENA 1
+#define WIFI_ENA 1
+
+#define OLED_ENA
 #define CHECK_IN 1
+
+#define TEMP_SENSOR 1
+#define ONE_WIRE_BUS PB5
+
+#define DHT_SENSOR 1
+#define DHT_PIN PB4
 
 #define INT_MILLIS 0
 #define ESP8266_TIME 0
@@ -88,6 +98,17 @@
 #define MAX_CHAN_POWER 1
 #define MAX_CHAN_RMS 2
 #define MAX_CHAN (MAX_CHAN_POWER + MAX_CHAN_RMS)
+
+#define TEMPDEVS 1
+
+#if defined(__MONITOR__)
+EXT DeviceAddress tempDev[TEMPDEVS] =
+{
+ {0x28, 0xaf, 0xe3, 0x45, 0xd4, 0x28, 0x3c, 0xbe}
+};
+#else
+extern DeviceAddress tempDev[TEMPDEVS];
+#endif /* defined(__MONITOR__) */
 
 #endif	/* MONITOR_INDEX == 3 */
 
